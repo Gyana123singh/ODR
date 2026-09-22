@@ -316,7 +316,7 @@
 }
 
 /* Mobile Drawer Styles */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .sidebar-container {
     width: 260px;
     transform: translateX(-100%);
@@ -325,6 +325,15 @@
 
   .sidebar-container.mobile-open {
     transform: translateX(0);
+  }
+
+  /* Force main content container to have 0 left margin on mobile/tablet */
+  main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 
   /* Overlay Background on Mobile when open */

@@ -9,22 +9,30 @@ import Communication from "./components/Communication";
 import NewCase from "./components/NewCase";
 import CaseStatusTracking from "./components/CaseStatusTracking";
 import OnlineHearingAccess from "./components/OnlineHearingAccess";
+import GoogleMeet from "../components/GoogleMeet/GoogleMeet";
 import PaymentPortal from "./components/PaymentPortal";
 import SayaCaseAssistant from "../components/SayaCaseAssistant";
 import LegalAiHub from "../components/LegalAiHub";
 
 export default function Claimant() {
-  const [sidebarOpen, setSidebarOpen] = useState();
-  const [isMobile] = useState(window.innerWidth <= 480);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
   const claimantId = localStorage.getItem("userId");
 
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile]);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const Styles = {
     container: {
@@ -40,6 +48,8 @@ export default function Claimant() {
       paddingBottom: "80px",
       transition: "margin-left 0.3s ease",
       backgroundColor: "#f5f5f5",
+      width: isMobile ? "100%" : "auto",
+      minWidth: 0,
     },
   };
 
@@ -59,6 +69,7 @@ export default function Claimant() {
           <Route path="communication" element={<Communication />} />
           <Route path="file-cases" element={<NewCase />} />
           <Route path="online-hearing" element={<OnlineHearingAccess />} />
+          <Route path="online-meeting" element={<GoogleMeet />} />
           <Route path="case-status" element={<CaseStatusTracking />} />
           <Route path="payment" element={<PaymentPortal />} />
           <Route path="legal-ai" element={<LegalAiHub />} />

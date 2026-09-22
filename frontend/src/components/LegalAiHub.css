@@ -168,7 +168,8 @@ select {
   margin-bottom: 1.5rem;
 }
 
-.input-group button, .action-btn {
+.input-group button,
+.action-btn {
   padding: 0.875rem 1.75rem;
   border-radius: 10px;
   background-color: var(--primary);
@@ -181,11 +182,13 @@ select {
   transition: background-color 0.2s ease;
 }
 
-.input-group button:hover, .action-btn:hover {
+.input-group button:hover,
+.action-btn:hover {
   background-color: var(--primary-hover);
 }
 
-.input-group button:disabled, .action-btn:disabled {
+.input-group button:disabled,
+.action-btn:disabled {
   background-color: #cbd5e1;
   cursor: not-allowed;
 }
@@ -216,17 +219,20 @@ select {
   margin: 0 0 1rem 0;
 }
 
-.analysis-text, .strategy-markdown {
+.analysis-text,
+.strategy-markdown {
   font-size: 0.95rem;
   line-height: 1.65;
   color: #334155;
 }
 
-.analysis-text p, .strategy-markdown p {
+.analysis-text p,
+.strategy-markdown p {
   margin-bottom: 1rem;
 }
 
-.analysis-text h3, .strategy-markdown h3 {
+.analysis-text h3,
+.strategy-markdown h3 {
   font-size: 1.1rem;
   margin-top: 1.5rem;
 }
@@ -264,14 +270,18 @@ select {
 }
 
 /* Split-Pane Grid for Contract review */
-.contract-grid, .summarizer-grid {
+.contract-grid,
+.summarizer-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
 
-.risks-column h4, .missing-column h4, .summary-bullets h4, .meta-extracted h4 {
+.risks-column h4,
+.missing-column h4,
+.summary-bullets h4,
+.meta-extracted h4 {
   font-size: 0.95rem;
   font-weight: 700;
   color: #475569;
@@ -287,9 +297,17 @@ select {
   position: relative;
 }
 
-.border-high { border-left: 4px solid #ef4444; }
-.border-medium { border-left: 4px solid #f59e0b; }
-.border-low { border-left: 4px solid #10b981; }
+.border-high {
+  border-left: 4px solid #ef4444;
+}
+
+.border-medium {
+  border-left: 4px solid #f59e0b;
+}
+
+.border-low {
+  border-left: 4px solid #10b981;
+}
 
 .badge {
   position: absolute;
@@ -302,9 +320,20 @@ select {
   text-transform: uppercase;
 }
 
-.bg-high { background-color: #fee2e2; color: #ef4444; }
-.bg-medium { background-color: #fef3c7; color: #d97706; }
-.bg-low { background-color: #d1fae5; color: #059669; }
+.bg-high {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.bg-medium {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.bg-low {
+  background-color: #d1fae5;
+  color: #059669;
+}
 
 .risk-card h5 {
   font-size: 0.925rem;
@@ -460,9 +489,17 @@ select {
   margin-bottom: 1rem;
 }
 
-.severity-critical { border-left: 4px solid #ef4444; }
-.severity-major { border-left: 4px solid #f59e0b; }
-.severity-minor { border-left: 4px solid #3b82f6; }
+.severity-critical {
+  border-left: 4px solid #ef4444;
+}
+
+.severity-major {
+  border-left: 4px solid #f59e0b;
+}
+
+.severity-minor {
+  border-left: 4px solid #3b82f6;
+}
 
 .severity-badge {
   display: inline-block;
@@ -632,8 +669,15 @@ select {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade {
@@ -645,8 +689,7 @@ select {
 }
 
 /* Adaptive screen layout sizes */
-@media(max-width: 1024px) {
-}
+@media(max-width: 1024px) {}
 
 /* Tab Header Toggle Mode styling */
 .tab-header-toggle {
@@ -684,7 +727,7 @@ select {
 .toggle-btn.selected {
   background-color: white;
   color: var(--primary);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .comparison-inputs-grid {
@@ -815,7 +858,7 @@ select {
 .faq-list button:hover {
   border-color: var(--primary);
   color: var(--primary);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .chat-interface {

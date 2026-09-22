@@ -10,6 +10,7 @@ import Respondent from "./respondent/Respondent";
 import Neutral from "./neutral/Neutral";
 import Register from "./Register";
 import LegalAiHub from "./components/LegalAiHub";
+import GoogleMeet from "./components/GoogleMeet/GoogleMeet";
 import { Agentation } from "agentation";
 
 
@@ -46,6 +47,12 @@ function App() {
         <Route path="/respondent/*" element={<Respondent />} />
         <Route path="/neutral/*" element={<Neutral />} />
         <Route path="/legal-ai" element={<LegalAiHub />} />
+        <Route path="/meet" element={<GoogleMeet />} />
+        <Route path="/meet/:roomId" element={<GoogleMeet />} />
+        <Route path="/chamber/:roomId" element={<GoogleMeet />} />
+        <Route path="/google-meet" element={<GoogleMeet />} />
+        <Route path="/online-meeting" element={<GoogleMeet />} />
+        <Route path="/online-hearing" element={<GoogleMeet />} />
       </Routes>
 
       {/* Toast Container */}

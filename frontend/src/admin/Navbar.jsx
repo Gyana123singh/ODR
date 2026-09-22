@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Scale,
   MessageSquare,
+  Video,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -103,6 +104,12 @@ export default function Navbar({ isOpen, setIsOpen }) {
       label: "Schedule Hearings",
       path: "/hearings",
       color: "#3b82f6",
+    },
+    {
+      icon: Video,
+      label: "Utkal ODR Meet",
+      path: "/meet",
+      color: "#007a4d",
     },
     {
       icon: BarChart3,

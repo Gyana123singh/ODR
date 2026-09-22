@@ -7,6 +7,7 @@ import Profile from "./components/Profile";
 import Help from "./components/Help";
 import CaseDetails from "./components/CaseDetails";
 import OnlineMeeting from "./components/OnlineMeeting";
+import GoogleMeet from "../components/GoogleMeet/GoogleMeet";
 import Documents from "./components/Documents";
 import Events from "./components/Events";
 import Payments from "./components/Payments";
@@ -14,16 +15,23 @@ import Communication from "./components/Communication";
 import SayaCaseAssistant from "../components/SayaCaseAssistant";
 
 export default function Respondent() {
-  const [sidebarOpen, setSidebarOpen] = useState();
-  const [isMobile] = useState(window.innerWidth <= 480);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
 
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile]);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const Styles = {
     container: {
@@ -39,6 +47,8 @@ export default function Respondent() {
       paddingBottom: "80px",
       transition: "margin-left 0.3s ease",
       backgroundColor: "#f5f5f5",
+      width: isMobile ? "100%" : "auto",
+      minWidth: 0,
     },
   };
 
@@ -53,7 +63,7 @@ export default function Respondent() {
           <Route path="profile" element={<Profile />} />
           <Route path="help" element={<Help />} />
           <Route path="case-details" element={<CaseDetails />} />
-          <Route path="online-meeting" element={<OnlineMeeting />} />
+          <Route path="online-meeting" element={<GoogleMeet />} />
           <Route path="documents" element={<Documents />} />
           <Route path="events" element={<Events />} />
           <Route path="payments" element={<Payments />} />

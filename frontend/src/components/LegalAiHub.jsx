@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { 
-  Search, ShieldAlert, FileText, CheckCircle2, 
-  TrendingUp, Gauge, FolderPlus, Languages, 
+import {
+  Search, ShieldAlert, FileText, CheckCircle2,
+  TrendingUp, Gauge, FolderPlus, Languages,
   FileCheck, AlertTriangle, Play, HelpCircle, Copy, Check, Send, Sparkles, Trash2
 } from "lucide-react";
 import axiosInstance from "../api/axiosConfig";
@@ -167,70 +167,70 @@ export default function LegalAiHub() {
       <div className="legal-ai-workspace">
         {/* Sidebar Nav */}
         <div className="legal-ai-sidebar glass-card">
-          <button 
+          <button
             className={`nav-btn ${activeTab === "research" ? "active" : ""}`}
             onClick={() => setActiveTab("research")}
           >
             <Search size={18} />
             <span>Legal Research</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "contract" ? "active" : ""}`}
             onClick={() => setActiveTab("contract")}
           >
             <ShieldAlert size={18} />
             <span>Contract Auditor</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "summarize" ? "active" : ""}`}
             onClick={() => setActiveTab("summarize")}
           >
             <FileText size={18} />
             <span>Document Summarizer</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "compliance" ? "active" : ""}`}
             onClick={() => setActiveTab("compliance")}
           >
             <CheckCircle2 size={18} />
             <span>Compliance Checker</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "strategy" ? "active" : ""}`}
             onClick={() => setActiveTab("strategy")}
           >
             <TrendingUp size={18} />
             <span>Litigation Strategy</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "predictive" ? "active" : ""}`}
             onClick={() => setActiveTab("predictive")}
           >
             <Gauge size={18} />
             <span>Outcome Predictor</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "automation" ? "active" : ""}`}
             onClick={() => setActiveTab("automation")}
           >
             <FolderPlus size={18} />
             <span>Document Automation</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "translation" ? "active" : ""}`}
             onClick={() => setActiveTab("translation")}
           >
             <Languages size={18} />
             <span>Plain Language Hub</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "chatbot" ? "active" : ""}`}
             onClick={() => setActiveTab("chatbot")}
           >
             <HelpCircle size={18} />
             <span>AI Legal Chatbot</span>
           </button>
-          <button 
+          <button
             className={`nav-btn ${activeTab === "ediscovery" ? "active" : ""}`}
             onClick={() => setActiveTab("ediscovery")}
           >
@@ -246,15 +246,15 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>🔍 Instant Legal Research</h2>
               <p className="tab-desc">Search thousands of case laws and verify precedents instantly utilizing semantic lookup.</p>
-              
+
               <div className="input-group">
-                <input 
-                  type="text" 
-                  placeholder="Enter legal issue e.g., Unpaid cargo invoicing dispute precedents..." 
+                <input
+                  type="text"
+                  placeholder="Enter legal issue e.g., Unpaid cargo invoicing dispute precedents..."
                   value={researchQuery}
                   onChange={(e) => setResearchQuery(e.target.value)}
                 />
-                <button 
+                <button
                   disabled={loading || !researchQuery}
                   onClick={() => triggerApi("/research", { query: researchQuery }, setResearchResult)}
                 >
@@ -262,7 +262,7 @@ export default function LegalAiHub() {
                 </button>
               </div>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "180px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "180px" }} /></div>}
 
               {researchResult && !loading && (
                 <div className="result-container animate-fade">
@@ -294,13 +294,13 @@ export default function LegalAiHub() {
               <div className="tab-header-toggle">
                 <h2>🔒 Intelligent Contract Auditor & Comparer</h2>
                 <div className="toggle-mode-buttons">
-                  <button 
+                  <button
                     className={`toggle-btn ${!compareMode ? "selected" : ""}`}
                     onClick={() => { setCompareMode(false); setCompareResult(null); }}
                   >
                     Clause Audit
                   </button>
-                  <button 
+                  <button
                     className={`toggle-btn ${compareMode ? "selected" : ""}`}
                     onClick={() => { setCompareMode(true); setContractResult(null); }}
                   >
@@ -309,21 +309,21 @@ export default function LegalAiHub() {
                 </div>
               </div>
               <p className="tab-desc">
-                {!compareMode 
+                {!compareMode
                   ? "Audits NDAs, employment deeds, or lease contracts to identify risk exposures and missing provisions."
                   : "Compare Contract Version A and Contract Version B side-by-side to highlight additions, deletions, and terms modifications."}
               </p>
-              
+
               {!compareMode ? (
                 // Clause Audit View
                 <div>
-                  <textarea 
-                    placeholder="Paste the contract text or clauses here..." 
+                  <textarea
+                    placeholder="Paste the contract text or clauses here..."
                     value={contractText}
                     onChange={(e) => setContractText(e.target.value)}
                     rows={8}
                   />
-                  <button 
+                  <button
                     className="action-btn"
                     disabled={loading || !contractText}
                     onClick={() => triggerApi("/contract-review", { contractText }, setContractResult)}
@@ -331,7 +331,7 @@ export default function LegalAiHub() {
                     {loading ? "Auditing Agreement..." : "Analyze Contract"}
                   </button>
 
-                  {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "220px"}} /></div>}
+                  {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "220px" }} /></div>}
 
                   {contractResult && !loading && (
                     <div className="result-container animate-fade">
@@ -372,8 +372,8 @@ export default function LegalAiHub() {
                   <div className="comparison-inputs-grid">
                     <div>
                       <label className="input-label">Contract Version A (Original)</label>
-                      <textarea 
-                        placeholder="Paste original contract Version A..." 
+                      <textarea
+                        placeholder="Paste original contract Version A..."
                         value={contractText}
                         onChange={(e) => setContractText(e.target.value)}
                         rows={6}
@@ -381,15 +381,15 @@ export default function LegalAiHub() {
                     </div>
                     <div>
                       <label className="input-label">Contract Version B (Modified)</label>
-                      <textarea 
-                        placeholder="Paste modified contract Version B..." 
+                      <textarea
+                        placeholder="Paste modified contract Version B..."
                         value={contractBText}
                         onChange={(e) => setContractBText(e.target.value)}
                         rows={6}
                       />
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="action-btn"
                     disabled={loading || !contractText || !contractBText}
                     onClick={() => triggerApi("/compare-contracts", { contractA: contractText, contractB: contractBText }, setCompareResult)}
@@ -397,7 +397,7 @@ export default function LegalAiHub() {
                     {loading ? "Comparing Versions..." : "Compare Contracts"}
                   </button>
 
-                  {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "220px"}} /></div>}
+                  {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "220px" }} /></div>}
 
                   {compareResult && !loading && (
                     <div className="result-container animate-fade">
@@ -425,7 +425,7 @@ export default function LegalAiHub() {
                         </div>
                       </div>
 
-                      <div className="modifications-list" style={{marginTop: "1.5rem"}}>
+                      <div className="modifications-list" style={{ marginTop: "1.5rem" }}>
                         <h4>✏️ Modifications & Term Adjustments</h4>
                         {compareResult.modifications?.map((mod, idx) => (
                           <div key={idx} className="modification-row">
@@ -445,14 +445,14 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>📄 Judgment & File Summarizer</h2>
               <p className="tab-desc">Summarizes lengthy judgments or legal notices, instantly extracting parties, deadlines, and core obligations.</p>
-              
-              <textarea 
-                placeholder="Paste court judgments, notices, or case logs here..." 
+
+              <textarea
+                placeholder="Paste court judgments, notices, or case logs here..."
                 value={summarizeText}
                 onChange={(e) => setSummarizeText(e.target.value)}
                 rows={8}
               />
-              <button 
+              <button
                 className="action-btn"
                 disabled={loading || !summarizeText}
                 onClick={() => triggerApi("/summarize", { documentText: summarizeText }, setSummarizeResult)}
@@ -460,7 +460,7 @@ export default function LegalAiHub() {
                 {loading ? "Extracting Details..." : "Summarize File"}
               </button>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "200px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "200px" }} /></div>}
 
               {summarizeResult && !loading && (
                 <div className="result-container animate-fade">
@@ -476,7 +476,7 @@ export default function LegalAiHub() {
 
                     <div className="meta-extracted">
                       <h4>Extracted Metadata</h4>
-                      
+
                       <h5>Parties Involved</h5>
                       <div className="tag-cloud">
                         {summarizeResult.parties?.map((p, idx) => (
@@ -484,14 +484,14 @@ export default function LegalAiHub() {
                         ))}
                       </div>
 
-                      <h5 style={{marginTop: "1.5rem"}}>Key Obligations</h5>
+                      <h5 style={{ marginTop: "1.5rem" }}>Key Obligations</h5>
                       <ul>
                         {summarizeResult.obligations?.map((o, idx) => (
                           <li key={idx} className="obligation-item">{o}</li>
                         ))}
                       </ul>
 
-                      <h5 style={{marginTop: "1.5rem"}}>Important Milestones & Dates</h5>
+                      <h5 style={{ marginTop: "1.5rem" }}>Important Milestones & Dates</h5>
                       <div className="timeline-dates">
                         {summarizeResult.dates?.map((d, idx) => (
                           <div key={idx} className="date-row">
@@ -512,10 +512,10 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>✅ Compliance & Regulatory Risk Auditor</h2>
               <p className="tab-desc">Verifies company policies or operational documents against standard regulatory frameworks.</p>
-              
+
               <div className="form-row">
                 <label>Compliance Directive Checklist</label>
-                <select 
+                <select
                   value={complianceType}
                   onChange={(e) => setComplianceType(e.target.value)}
                 >
@@ -526,13 +526,13 @@ export default function LegalAiHub() {
                 </select>
               </div>
 
-              <textarea 
-                placeholder="Paste policy handbook or agreement clause text..." 
+              <textarea
+                placeholder="Paste policy handbook or agreement clause text..."
                 value={complianceText}
                 onChange={(e) => setComplianceText(e.target.value)}
                 rows={6}
               />
-              <button 
+              <button
                 className="action-btn"
                 disabled={loading || !complianceText}
                 onClick={() => triggerApi("/compliance", { documentText: complianceText, complianceType }, setComplianceResult)}
@@ -540,7 +540,7 @@ export default function LegalAiHub() {
                 {loading ? "Auditing Directive..." : "Audit Compliance"}
               </button>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "200px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "200px" }} /></div>}
 
               {complianceResult && !loading && (
                 <div className="result-container animate-fade">
@@ -590,14 +590,14 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>📈 AI Litigation Strategy Planner</h2>
               <p className="tab-desc">Input case facts and claim details to prepare legal defenses, arguments, and court evidence preparation lists.</p>
-              
-              <textarea 
-                placeholder="Describe your dispute, amount claimed, opponent arguments, and evidence logs..." 
+
+              <textarea
+                placeholder="Describe your dispute, amount claimed, opponent arguments, and evidence logs..."
                 value={strategyText}
                 onChange={(e) => setStrategyText(e.target.value)}
                 rows={8}
               />
-              <button 
+              <button
                 className="action-btn"
                 disabled={loading || !strategyText}
                 onClick={() => triggerApi("/litigation-strategy", { caseDetails: strategyText }, setStrategyResult)}
@@ -605,7 +605,7 @@ export default function LegalAiHub() {
                 {loading ? "Formulating Strategy..." : "Formulate Defence Strategy"}
               </button>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "220px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "220px" }} /></div>}
 
               {strategyResult && !loading && (
                 <div className="result-container animate-fade">
@@ -623,11 +623,11 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>📊 Predictive Litigation Analytics</h2>
               <p className="tab-desc">Estimate win likelihood, trial costs, and resolution timelines based on historical legal precedents.</p>
-              
+
               <div className="predictor-form">
                 <div className="form-group">
                   <label>Dispute Category</label>
-                  <select 
+                  <select
                     value={predictType}
                     onChange={(e) => setPredictType(e.target.value)}
                   >
@@ -641,15 +641,15 @@ export default function LegalAiHub() {
 
                 <div className="form-group">
                   <label>Dispute Claim Amount (₹)</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 500000" 
+                  <input
+                    type="text"
+                    placeholder="e.g. 500000"
                     value={predictAmount}
                     onChange={(e) => setPredictAmount(e.target.value)}
                   />
                 </div>
 
-                <button 
+                <button
                   disabled={loading || !predictAmount}
                   onClick={() => triggerApi("/predictive-analytics", { disputeType: predictType, claimAmount: predictAmount }, setPredictResult)}
                 >
@@ -657,7 +657,7 @@ export default function LegalAiHub() {
                 </button>
               </div>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "180px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "180px" }} /></div>}
 
               {predictResult && !loading && (
                 <div className="result-container animate-fade">
@@ -693,11 +693,11 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>✍️ Legal Document Automation Studio</h2>
               <p className="tab-desc">Auto-generate professional, binding legal notices, affidavits, or agreements instantly from standard wizard forms.</p>
-              
+
               <div className="automation-wizard">
                 <div className="doc-select">
                   <label>Choose Asset Template</label>
-                  <select 
+                  <select
                     value={docType}
                     onChange={(e) => setDocType(e.target.value)}
                   >
@@ -714,9 +714,9 @@ export default function LegalAiHub() {
                 <div className="param-form">
                   <div className="form-group">
                     <label>First Party (Claimant/Licensor)</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Ranjan Kumar" 
+                    <input
+                      type="text"
+                      placeholder="e.g. Ranjan Kumar"
                       value={docParams.partyA}
                       onChange={(e) => setDocParams({ ...docParams, partyA: e.target.value })}
                     />
@@ -724,9 +724,9 @@ export default function LegalAiHub() {
 
                   <div className="form-group">
                     <label>Second Party (Respondent/Licensee)</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. TechSolutions Ltd" 
+                    <input
+                      type="text"
+                      placeholder="e.g. TechSolutions Ltd"
                       value={docParams.partyB}
                       onChange={(e) => setDocParams({ ...docParams, partyB: e.target.value })}
                     />
@@ -734,8 +734,8 @@ export default function LegalAiHub() {
 
                   <div className="form-group">
                     <label>Dispute details & Terms</label>
-                    <textarea 
-                      placeholder="e.g. Unpaid warehousing invoices for October 2025 under contract terms..." 
+                    <textarea
+                      placeholder="e.g. Unpaid warehousing invoices for October 2025 under contract terms..."
                       value={docParams.details}
                       onChange={(e) => setDocParams({ ...docParams, details: e.target.value })}
                       rows={3}
@@ -744,16 +744,16 @@ export default function LegalAiHub() {
 
                   <div className="form-group">
                     <label>Disputed Amount / Considerations (₹)</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. 1850000" 
+                    <input
+                      type="text"
+                      placeholder="e.g. 1850000"
                       value={docParams.amount}
                       onChange={(e) => setDocParams({ ...docParams, amount: e.target.value })}
                     />
                   </div>
                 </div>
 
-                <button 
+                <button
                   className="action-btn"
                   disabled={loading || !docParams.partyA || !docParams.partyB}
                   onClick={() => triggerApi("/generate-document", { docType, parameters: docParams }, setDocResult)}
@@ -762,13 +762,13 @@ export default function LegalAiHub() {
                 </button>
               </div>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "220px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "220px" }} /></div>}
 
               {docResult && !loading && (
                 <div className="result-container animate-fade">
                   <div className="draft-header">
                     <h3>Generated Document Draft</h3>
-                    <button 
+                    <button
                       className="copy-btn"
                       onClick={() => handleCopy(docResult.draftText)}
                     >
@@ -787,9 +787,9 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>🗣️ Plain Language Advisor & Translator</h2>
               <p className="tab-desc">Translate complex legal texts into local languages or simplify complex legalese into user-friendly explanations.</p>
-              
-              <textarea 
-                placeholder="Paste the legal clause, notification message, or court document snippet..." 
+
+              <textarea
+                placeholder="Paste the legal clause, notification message, or court document snippet..."
                 value={translateText}
                 onChange={(e) => setTranslateText(e.target.value)}
                 rows={6}
@@ -798,7 +798,7 @@ export default function LegalAiHub() {
               <div className="action-row">
                 <div className="action-group">
                   <label>Operation</label>
-                  <select 
+                  <select
                     value={translateAction}
                     onChange={(e) => setTranslateAction(e.target.value)}
                   >
@@ -811,7 +811,7 @@ export default function LegalAiHub() {
                 {translateAction === "translate" && (
                   <div className="action-group">
                     <label>Target Language</label>
-                    <select 
+                    <select
                       value={translateLang}
                       onChange={(e) => setTranslateLang(e.target.value)}
                     >
@@ -823,7 +823,7 @@ export default function LegalAiHub() {
                   </div>
                 )}
 
-                <button 
+                <button
                   disabled={loading || !translateText}
                   onClick={() => triggerApi("/translate-explain", { text: translateText, action: translateAction, language: translateLang }, setTranslateResult)}
                 >
@@ -831,13 +831,13 @@ export default function LegalAiHub() {
                 </button>
               </div>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "180px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "180px" }} /></div>}
 
               {translateResult && !loading && (
                 <div className="result-container animate-fade">
                   <h3>AI Assistant Output</h3>
                   <div className="output-content-box">
-                    <p style={{whiteSpace: "pre-line"}}>{translateResult.processedText}</p>
+                    <p style={{ whiteSpace: "pre-line" }}>{translateResult.processedText}</p>
                   </div>
                 </div>
               )}
@@ -849,20 +849,20 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>🗣️ AI Legal & Procedural Advisor</h2>
               <p className="tab-desc">Ask queries about arbitration guidelines, ODR regulations, case filing steps, or how to prepare disputes.</p>
-              
+
               <div className="chatbot-workspace">
                 <div className="faq-suggs">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                     <h4 style={{ margin: 0 }}>Common Legal Procedures FAQs</h4>
-                    <button 
+                    <button
                       onClick={clearChat}
-                      style={{ 
-                        background: "none", 
-                        border: "none", 
-                        color: "#ef4444", 
-                        cursor: "pointer", 
-                        display: "flex", 
-                        alignItems: "center", 
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
                         gap: "4px",
                         fontSize: "12px",
                         fontWeight: "600"
@@ -892,16 +892,16 @@ export default function LegalAiHub() {
                     {loading && (
                       <div className="chat-bubble-row assistant">
                         <div className="chat-bubble skeleton-bubble">
-                          <div className="skeleton-shimmer" style={{width: "80px", height: "14px"}} />
+                          <div className="skeleton-shimmer" style={{ width: "80px", height: "14px" }} />
                         </div>
                       </div>
                     )}
                     <div ref={chatEndRef} />
                   </div>
                   <form className="chat-input-form" onSubmit={handleSendChatMessage}>
-                    <input 
-                      type="text" 
-                      placeholder="Type your legal procedure question here..." 
+                    <input
+                      type="text"
+                      placeholder="Type your legal procedure question here..."
                       value={chatMessage}
                       onChange={(e) => setChatMessage(e.target.value)}
                     />
@@ -919,11 +919,11 @@ export default function LegalAiHub() {
             <div className="tab-pane">
               <h2>🔍 E-Discovery Evidence Scanner</h2>
               <p className="tab-desc">Index and search through logs, emails, or transcripts using AI to identify relevant evidence and trace verbal/written commitments.</p>
-              
+
               <div className="form-row">
                 <label>Investigation Document Pool (Paste logs, emails, transcript dump)</label>
-                <textarea 
-                  placeholder="Paste email threads, meeting transcripts, or chat logs here..." 
+                <textarea
+                  placeholder="Paste email threads, meeting transcripts, or chat logs here..."
                   value={discoveryText}
                   onChange={(e) => setDiscoveryText(e.target.value)}
                   rows={6}
@@ -931,13 +931,13 @@ export default function LegalAiHub() {
               </div>
 
               <div className="input-group">
-                <input 
-                  type="text" 
-                  placeholder="Enter evidence target e.g. verbal confirmation of delivery extension..." 
+                <input
+                  type="text"
+                  placeholder="Enter evidence target e.g. verbal confirmation of delivery extension..."
                   value={discoveryQuery}
                   onChange={(e) => setDiscoveryQuery(e.target.value)}
                 />
-                <button 
+                <button
                   disabled={loading || !discoveryText || !discoveryQuery}
                   onClick={() => triggerApi("/e-discovery", { documentPool: discoveryText, searchTarget: discoveryQuery }, setDiscoveryResult)}
                 >
@@ -945,7 +945,7 @@ export default function LegalAiHub() {
                 </button>
               </div>
 
-              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{height: "200px"}} /></div>}
+              {loading && <div className="skeleton-box"><div className="skeleton-shimmer" style={{ height: "200px" }} /></div>}
 
               {discoveryResult && !loading && (
                 <div className="result-container animate-fade">
@@ -960,7 +960,7 @@ export default function LegalAiHub() {
                     </div>
                   </div>
 
-                  <div className="excerpts-list" style={{marginTop: "1.5rem"}}>
+                  <div className="excerpts-list" style={{ marginTop: "1.5rem" }}>
                     <h4>Relevant Excerpts Identified</h4>
                     {discoveryResult.excerpts?.map((ex, idx) => (
                       <div key={idx} className="precedent-card" style={{ borderLeftColor: "#8b5cf6" }}>

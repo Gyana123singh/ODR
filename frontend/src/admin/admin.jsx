@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Dashboard from "./component/Dashboard";
 import Notifications from "./component/Notifications";
@@ -17,18 +17,28 @@ import SystemSettings from "./component/SystemSettings";
 import Communication from "./component/Communication";
 import SayaCaseAssistant from "../components/SayaCaseAssistant";
 import LegalAiHub from "../components/LegalAiHub";
+import GoogleMeet from "../components/GoogleMeet/GoogleMeet";
 
 export default function Admin() {
-  const [sidebarOpen, setSidebarOpen] = useState();
-  const [isMobile] = useState(window.innerWidth <= 480);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+  const location = useLocation();
+  const isMeetRoute = location.pathname.includes("/meet") || location.pathname.includes("/online-meeting");
 
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile]);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const Styles = {
     container: {
@@ -44,6 +54,8 @@ export default function Admin() {
       paddingBottom: "80px",
       transition: "margin-left 0.3s ease",
       backgroundColor: "#f5f5f5",
+      width: isMobile ? "100%" : "auto",
+      minWidth: 0,
     },
   };
 
@@ -63,6 +75,9 @@ export default function Admin() {
             <Route path="controls" element={<AdminControls />} />
             <Route path="timeline" element={<Timeline />} />
             <Route path="hearings" element={<ScheduleHearings />} />
+            <Route path="meet" element={<GoogleMeet />} />
+            <Route path="google-meet" element={<GoogleMeet />} />
+            <Route path="online-meeting" element={<GoogleMeet />} />
             <Route path="reports" element={<Reports />} />
             <Route path="payment" element={<PaymentManagement />} />
             <Route path="service" element={<ServiceRequest />} />

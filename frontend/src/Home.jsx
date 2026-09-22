@@ -8,24 +8,31 @@ export default function Home() {
 
   const Styles = {
     home: {
-      width: "99.8%",
-      height: "99.5vh",
+      width: "100%",
+      height: "100vh",
       display: "flex",
+      flexDirection: "column",
       justifyContent: "center",
       alignItems: "center",
+      gap: "1.2rem",
+      backgroundColor: "#f8fafc",
+      fontFamily: "'Inter', sans-serif",
     },
     button: {
       border: "none",
-      borderRadius: "7px",
+      borderRadius: "10px",
       fontSize: "1rem",
+      fontWeight: "600",
       color: "white",
-      backgroundColor: "blue",
+      backgroundColor: "#2563eb",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       gap: "0.5rem",
-      padding: "0.7rem 1.3rem",
+      padding: "0.85rem 1.8rem",
       cursor: "pointer",
+      boxShadow: "0 4px 14px rgba(37, 99, 235, 0.25)",
+      transition: "all 0.2s ease",
     },
     buttonSpan: {
       display: "flex",
@@ -60,7 +67,7 @@ export default function Home() {
         <button style={Styles.button} onClick={handleClick}>
           <p>Let's Go</p>
           <span style={Styles.buttonSpan}>
-            <ChevronRight size={24} strokeWidth={2.5} />
+            <ChevronRight size={22} strokeWidth={2.5} />
           </span>
         </button>
       ) : (

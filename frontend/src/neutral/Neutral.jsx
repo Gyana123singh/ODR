@@ -14,16 +14,23 @@ import SayaCaseAssistant from "../components/SayaCaseAssistant";
 import LegalAiHub from "../components/LegalAiHub";
 
 export default function Neutral() {
-  const [sidebarOpen, setSidebarOpen] = useState();
-  const [isMobile] = useState(window.innerWidth <= 480);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
 
   useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
-    }
-  }, [isMobile]);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const Styles = {
     container: {
@@ -39,6 +46,8 @@ export default function Neutral() {
       paddingBottom: "80px",
       transition: "margin-left 0.3s ease",
       backgroundColor: "#f5f5f5",
+      width: isMobile ? "100%" : "auto",
+      minWidth: 0,
     },
   };
 
