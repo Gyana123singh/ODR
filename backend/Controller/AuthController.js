@@ -1,0 +1,115 @@
+const { adminAuth } = require("../config/firebase");
+const User = require("../models/users");
+const jwt = require("jsonwebtoken");
+
+const firebaseLogin = async (req, res) => {
+  const { idToken, role } = req.body;
+
+  try {
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: "Firebase ID Token is required" });
+    }
+
+    // Admins are not allowed to login via Firebase
+    if (role === "admin") {
+      return res.status(403).json({ success: false, message: "Admin cannot login via Firebase" });
+    }
+
+    // Verify the Firebase ID token
+    if (!adminAuth) {
+      return res.status(500).json({ success: false, message: "Firebase Admin is not properly configured on the server." });
+    }
+    
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    
+    // The decoded token will have an email (if Gmail login) or phone_number (if Phone login)
+    const email = decodedToken.email;
+    const phone = decodedToken.phone_number;
+    const name = decodedToken.name || "Firebase User";
+
+    let user = null;
+
+    if (email) {
+      user = await User.findOne({ email });
+    } else if (phone) {
+      user = await User.findOne({ phone });
+    }
+
+    // If user does not exist, we automatically register them
+    if (!user) {
+      // Default to "claimant" if no role is provided
+      const assignedRole = role && ["claimant", "respondent", "neutral"].includes(role) ? role : "claimant";
+      
+      user = await User.create({
+        email: email || "",
+        phone: phone || "",
+        name: name,
+        role: assignedRole,
+        status: "active",
+        isVerified: true,
+      });
+    }
+
+    // Double check that an admin didn't somehow bypass
+    if (user.role === "admin") {
+      return res.status(403).json({ success: false, message: "Admin cannot login via Firebase" });
+    }
+
+    // Generate our standard backend JWT
+    const token = jwt.sign(
+      { id: user._id, role: user.role, email: user.email },
+      process.env.JWT_SECRET || "default_secret", 
+      { expiresIn: "10d" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Firebase Login successful",
+      token,
+      role: user.role,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Firebase Login Error:", error);
+    return res.status(401).json({ success: false, message: "Invalid Firebase token or server error" });
+  }
+};
+
+const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+  try {
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired verification link" });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    // Redirect to login page or show success message
+    return res.send(`
+      <html>
+        <body>
+          <h2>Email Verified Successfully!</h2>
+          <p>You can now close this window and log in to your account.</p>
+          <a href="http://localhost:5173/login">Go to Login</a>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error("Email Verification Error:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+module.exports = {
+  firebaseLogin,
+  verifyEmail,
+};

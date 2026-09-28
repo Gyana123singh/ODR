@@ -454,19 +454,37 @@ const documentUpload = async (req, res) => {
       folder: "documents",
     });
 
-    const newDoc = await adminDocument.create({
-      caseId: caseData.caseId,
-      claimantName,
-      DocumentName: file.originalname,
-      fileUrl: uploadResult.secure_url,
-      fileType: file.mimetype,
-      fileSize: file.size,
-      status: "Pending",
-    });
+    let caseDocument = await adminDocument.findOne({ caseId: caseData.caseId });
+
+    if (caseDocument) {
+      caseDocument.documents.push({
+        fileUrl: uploadResult.secure_url,
+        fileName: file.originalname,
+        uploadedAt: new Date(),
+      });
+      await caseDocument.save();
+    } else {
+      caseDocument = await adminDocument.create({
+        caseId: caseData.caseId,
+        claimantName,
+        DocumentName: file.originalname,
+        fileUrl: uploadResult.secure_url,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        status: "Pending",
+        documents: [
+          {
+            fileUrl: uploadResult.secure_url,
+            fileName: file.originalname,
+            uploadedAt: new Date(),
+          },
+        ],
+      });
+    }
 
     return res.status(201).json({
       message: "Document uploaded successfully",
-      data: newDoc,
+      data: caseDocument,
     });
   } catch (error) {
     console.log("Error:", error);

@@ -8,6 +8,8 @@ const jwt = require("jsonwebtoken");
 const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const RespondentRegister = async (req, res) => {
   const { role, name, email, password } = req.body;
@@ -20,6 +22,7 @@ const RespondentRegister = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser = new respondentUser({
       name: name,
@@ -28,9 +31,36 @@ const RespondentRegister = async (req, res) => {
       password: hashedPassword,
       joinDate: new Date(), // auto
       lastActive: new Date(), // auto
+      isVerified: false,
+      verificationToken: verificationToken
     });
 
     await newUser.save();
+
+    // Send Verification Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const verificationUrl = `http://localhost:3636/api/auth/verify-email/${verificationToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Verify Your ODR Account Email",
+      html: `
+        <h3>Welcome to Utkal ODR</h3>
+        <p>Please verify your email to activate your account.</p>
+        <a href="${verificationUrl}" style="padding: 10px; background-color: #0066cc; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        <p>Or copy this link: ${verificationUrl}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     // Role options
     const users = await respondentUser.find();
@@ -45,7 +75,7 @@ const RespondentRegister = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Respondent created",
+      message: "Registration successful. Please check your email to verify your account.",
       data: {
         name: newUser.name,
         email: newUser.email,
@@ -83,6 +113,12 @@ const RespondentLogin = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not Exists" });
+    }
+
+    if (!respondent.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please verify your email before logging in." });
     }
 
     const isPassCorrect = await bcrypt.compare(password, respondent.password);
@@ -297,23 +333,41 @@ const uploadDocumentForRespondent = async (req, res) => {
       folder: "respondent_documents",
     });
 
-    // 3️⃣ Save Document in DB using the imported uploadDocument model
-    const newDoc = await uploadDocument.create({
-      respondentId: respondentId,
-      respondentEmail: respondentEmail,
-      caseId: caseId, // ⭐ SAVE CASE ID HERE
-      fileUrl: uploadResult.secure_url,
-      DocumentName: file.originalname,
-      fileType: file.mimetype,
-      fileSize: file.size,
-      UploadedBy: "RESPONDENT",
-      status: "Pending",
-      uploadedAt: new Date(),
-    });
+    // 3️⃣ Save Document in DB using the imported uploadDocument model (Push to documents array)
+    let caseDocument = await uploadDocument.findOne({ caseId: caseId });
+
+    if (caseDocument) {
+      caseDocument.documents.push({
+        fileUrl: uploadResult.secure_url,
+        fileName: file.originalname,
+        uploadedAt: new Date(),
+      });
+      await caseDocument.save();
+    } else {
+      caseDocument = await uploadDocument.create({
+        respondentId: respondentId,
+        respondentEmail: respondentEmail,
+        caseId: caseId,
+        fileUrl: uploadResult.secure_url,
+        DocumentName: file.originalname,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        UploadedBy: "RESPONDENT",
+        status: "Pending",
+        uploadedAt: new Date(),
+        documents: [
+          {
+            fileUrl: uploadResult.secure_url,
+            fileName: file.originalname,
+            uploadedAt: new Date(),
+          },
+        ],
+      });
+    }
 
     res.status(200).json({
       message: "Document uploaded successfully",
-      document: newDoc,
+      document: caseDocument,
     });
   } catch (error) {
     console.log("Upload error:", error);

@@ -12,6 +12,8 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const axios = require("axios");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 // api for claimant register
 const ClaimantRegister = async (req, res) => {
@@ -25,6 +27,7 @@ const ClaimantRegister = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser = new User({
       name: name,
@@ -34,9 +37,36 @@ const ClaimantRegister = async (req, res) => {
       password: hashedPassword,
       joinDate: new Date(), // auto
       lastActive: new Date(), // auto
+      isVerified: false,
+      verificationToken: verificationToken
     });
 
     await newUser.save();
+
+    // Send Verification Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const verificationUrl = `http://localhost:3636/api/auth/verify-email/${verificationToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Verify Your ODR Account Email",
+      html: `
+        <h3>Welcome to Utkal ODR</h3>
+        <p>Please verify your email to activate your account.</p>
+        <a href="${verificationUrl}" style="padding: 10px; background-color: #0066cc; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        <p>Or copy this link: ${verificationUrl}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     // Role options
     const users = await Case.find();
@@ -51,7 +81,7 @@ const ClaimantRegister = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Claimant created",
+      message: "Registration successful. Please check your email to verify your account.",
       data: {
         _id: newUser._id,
         name: newUser.name,
@@ -91,6 +121,12 @@ const ClaimantLogin = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not Exists" });
+    }
+
+    if (!claimant.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please verify your email before logging in." });
     }
 
     const isPassCorrect = await bcrypt.compare(password, claimant.password);
@@ -357,23 +393,41 @@ const uploadDocumentForClaimant = async (req, res) => {
       folder: "claimant_documents",
     });
 
-    // 3️⃣ Save Document in DB
-    const newDoc = await ClaimantDocument.create({
-      claimantId: claimantId,
-      claimantEmail: claimantEmail,
-      caseId: caseId, // ⭐ SAVE CASE ID HERE
-      fileUrl: uploadResult.secure_url,
-      DocumentName: file.originalname,
-      fileType: file.mimetype,
-      fileSize: file.size,
-      UploadedBy: "CLAIMANT",
-      status: "Pending",
-      uploadedAt: new Date(),
-    });
+    // 3️⃣ Save Document in DB (Push to documents array)
+    let caseDocument = await ClaimantDocument.findOne({ caseId: caseId });
+
+    if (caseDocument) {
+      caseDocument.documents.push({
+        fileUrl: uploadResult.secure_url,
+        fileName: file.originalname,
+        uploadedAt: new Date(),
+      });
+      await caseDocument.save();
+    } else {
+      caseDocument = await ClaimantDocument.create({
+        claimantId: claimantId,
+        claimantEmail: claimantEmail,
+        caseId: caseId,
+        fileUrl: uploadResult.secure_url,
+        DocumentName: file.originalname,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        UploadedBy: "CLAIMANT",
+        status: "Pending",
+        uploadedAt: new Date(),
+        documents: [
+          {
+            fileUrl: uploadResult.secure_url,
+            fileName: file.originalname,
+            uploadedAt: new Date(),
+          },
+        ],
+      });
+    }
 
     res.status(200).json({
       message: "Document uploaded successfully",
-      document: newDoc,
+      document: caseDocument,
     });
   } catch (error) {
     console.log("Upload error:", error);

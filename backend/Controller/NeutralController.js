@@ -6,6 +6,8 @@ const Hearing = require("../models/hearing");
 const ClaimantDocument = require("../models/documentDetail");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const NeutralRegister = async (req, res) => {
   const { role, phone, name, email, password } = req.body;
@@ -18,6 +20,7 @@ const NeutralRegister = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser = new neutralUser({
       name: name,
@@ -27,9 +30,36 @@ const NeutralRegister = async (req, res) => {
       password: hashedPassword,
       joinDate: new Date(), // auto
       lastActive: new Date(), // auto
+      isVerified: false,
+      verificationToken: verificationToken
     });
 
     await newUser.save();
+
+    // Send Verification Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const verificationUrl = `http://localhost:3636/api/auth/verify-email/${verificationToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Verify Your ODR Account Email",
+      html: `
+        <h3>Welcome to Utkal ODR</h3>
+        <p>Please verify your email to activate your account.</p>
+        <a href="${verificationUrl}" style="padding: 10px; background-color: #0066cc; color: white; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        <p>Or copy this link: ${verificationUrl}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     // Role options
     // ✅ Get all users for stats
@@ -45,7 +75,7 @@ const NeutralRegister = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Neutral created",
+      message: "Registration successful. Please check your email to verify your account.",
       data: {
         _id: newUser._id,
         phone: newUser.phone,
@@ -85,6 +115,12 @@ const NeutralLogin = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "User not Exists" });
+    }
+
+    if (!neutral.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please verify your email before logging in." });
     }
 
     const isPassCorrect = await bcrypt.compare(password, neutral.password);

@@ -680,7 +680,7 @@ export default function GoogleMeet() {
 
           {/* Day Selector Tabs */}
           <div className="uom-day-tabs-wrap">
-            {["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"].map((day) => (
+            {["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"].map((day) => (    
               <button
                 key={day}
                 type="button"

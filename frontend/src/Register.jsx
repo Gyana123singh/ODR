@@ -49,12 +49,13 @@ export default function Register({ getRole }) {
     },
     logoTitle: {
       fontSize: "24px",
-      fontWeight: "bold",
+      fontWeight: "900",
       color: "#0066cc",
       margin: "0.5rem 0 0 0",
     },
     logoSubtitle: {
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#666",
       margin: "0.25rem 0 0 0",
     },
@@ -100,6 +101,7 @@ export default function Register({ getRole }) {
       outline: "none",
       flex: 1,
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#333",
       backgroundColor: "transparent",
       fontFamily: "inherit",
@@ -131,6 +133,7 @@ export default function Register({ getRole }) {
     },
     dropdownText: {
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#333",
     },
     dropdownIcon: {
@@ -236,7 +239,7 @@ export default function Register({ getRole }) {
       <div style={Styles.wrapper}>
         {/* Logo Section */}
         <div style={Styles.logo}>
-          <div style={{ fontSize: "48px" }}>⚖️</div>
+          <div style={{ fontSize: "48px", fontWeight: "900" }}>⚖️</div>
           <h1 style={Styles.logoTitle}>UTKAL ODR</h1>
           <p style={Styles.logoSubtitle}>Utkrust Vivad Samadhan</p>
           <p style={Styles.logoSubtitle}>Online Dispute Resolution Platfrom</p>

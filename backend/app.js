@@ -17,6 +17,7 @@ const ChatRouter = require("./Router/ChatRouter");
 const LegalAiRouter = require("./Router/legalAiRouter");
 const ServiceRequestRouter = require("./Router/ServiceRequestRouter");
 const PaymentRouter = require("./Router/PaymentRouter");
+const AuthRouter = require("./Router/AuthRouter");
 const errorHandler = require("./middlewares/errorHandler");
 
 const app = Express();
@@ -59,6 +60,7 @@ app.use("/api/chat", ChatRouter);
 app.use("/api/legal-ai", LegalAiRouter);
 app.use("/api/service-requests", ServiceRequestRouter);
 app.use("/api/payments", PaymentRouter);
+app.use("/api/auth", AuthRouter);
 
 // Connect to MongoDB
 connectMongoDb();

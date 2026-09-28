@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema(
 
     joinDate: { type: Date, default: Date.now },
     lastActive: { type: Date, default: Date.now },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String },
   },
   { timestamps: true }
 );

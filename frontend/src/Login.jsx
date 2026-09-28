@@ -4,6 +4,7 @@ import { Mail, Lock, CircleUserRound, ChevronDown, User } from "lucide-react";
 import { toast } from "react-toastify";
 import { authApi } from "./api/authApi";
 import { useAuth } from "./context/AuthContext";
+import { auth, googleProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "./config/firebase";
 
 export default function Login({ getRole }) {
   const navigate = useNavigate();
@@ -14,6 +15,12 @@ export default function Login({ getRole }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // Firebase specific states
+  const [showPhoneLogin, setShowPhoneLogin] = useState(false);
+  const [phoneForLogin, setPhoneForLogin] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
   const roles = ["admin", "claimant", "respondent", "neutral"];
 
@@ -42,12 +49,13 @@ export default function Login({ getRole }) {
     },
     logoTitle: {
       fontSize: "24px",
-      fontWeight: "bold",
+      fontWeight: "900",
       color: "#0066cc",
       margin: "0.5rem 0 0 0",
     },
     logoSubtitle: {
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#666",
       margin: "0.25rem 0 0 0",
     },
@@ -93,6 +101,7 @@ export default function Login({ getRole }) {
       outline: "none",
       flex: 1,
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#333",
       backgroundColor: "transparent",
       fontFamily: "inherit",
@@ -124,6 +133,7 @@ export default function Login({ getRole }) {
     },
     dropdownText: {
       fontSize: "14px",
+      fontWeight: "bold",
       color: "#333",
     },
     dropdownIcon: {
@@ -235,6 +245,95 @@ export default function Login({ getRole }) {
     }
   };
 
+  const handleFirebaseLogin = async (idToken) => {
+    try {
+      const response = await fetch("http://localhost:3636/api/auth/firebase-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken, role: selectedRole })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        login(result.user, result.token);
+        getRole(result.role);
+        toast.success("Firebase Login successful!");
+        navigate(
+          result.role === "admin"
+            ? "/admin"
+            : result.role === "claimant"
+            ? "/claimant"
+            : result.role === "respondent"
+            ? "/respondent"
+            : result.role === "neutral"
+            ? "/neutral"
+            : "/"
+        );
+      } else {
+        setError(result.message || "Firebase login failed");
+      }
+    } catch (err) {
+      setError(err.message || "Firebase login error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async (e) => {
+    e.preventDefault();
+    if (selectedRole === "Select Role") return setError("Please select a role");
+    if (selectedRole === "admin") return setError("Admins cannot login via Firebase");
+    
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      await handleFirebaseLogin(idToken);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const loginWithPhone = async (e) => {
+    e.preventDefault();
+    if (selectedRole === "Select Role") return setError("Please select a role");
+    if (selectedRole === "admin") return setError("Admins cannot login via Firebase");
+    if (!phoneForLogin) return setError("Please enter your phone number");
+
+    const fullPhoneNumber = "+91" + phoneForLogin.replace(/^\+91/, "");
+
+    setLoading(true);
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible'
+        });
+      }
+      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
+      window.confirmationResult = confirmationResult;
+      setIsOtpSent(true);
+      toast.success("OTP Sent!");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const result = await window.confirmationResult.confirm(otp);
+      const idToken = await result.user.getIdToken();
+      await handleFirebaseLogin(idToken);
+    } catch (err) {
+      setError("Invalid OTP");
+      setLoading(false);
+    }
+  };
+
   const isDisabled = selectedRole === "Select Role";
 
   return (
@@ -242,7 +341,7 @@ export default function Login({ getRole }) {
       <div style={Styles.wrapper}>
         {/* Logo Section */}
         <div style={Styles.logo}>
-          <div style={{ fontSize: "48px" }}>⚖️</div>
+          <div style={{ fontSize: "48px", fontWeight: "900" }}>⚖️</div>
           <h1 style={Styles.logoTitle}>UTKAL ODR</h1>
           <p style={Styles.logoSubtitle}>Utkrust Vivad Samadhan</p>
           <p style={Styles.logoSubtitle}>Online Dispute Resolution Platfrom</p>
@@ -350,6 +449,71 @@ export default function Login({ getRole }) {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+
+            {/* Firebase Login Section */}
+            {selectedRole !== "admin" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+                <div style={{ textAlign: "center", fontSize: "14px", color: "#666", marginBottom: "0.5rem" }}>
+                  --- Or Login With ---
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={loginWithGoogle}
+                  style={{ ...Styles.button, backgroundColor: "#db4437", marginTop: "0" }}
+                  disabled={loading}
+                >
+                  Login with Google
+                </button>
+
+                {!showPhoneLogin ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPhoneLogin(true)}
+                    style={{ ...Styles.button, backgroundColor: "#0f9d58", marginTop: "0" }}
+                    disabled={loading}
+                  >
+                    Login with Phone Number
+                  </button>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {!isOtpSent ? (
+                      <>
+                        <div style={{ ...Styles.inputContainer, paddingLeft: "1rem" }}>
+                          <span style={{ color: "#666", marginRight: "0.5rem", fontWeight: "bold" }}>+91</span>
+                          <input
+                            style={{ ...Styles.input, paddingLeft: "0" }}
+                            type="tel"
+                            placeholder="Phone Number"
+                            value={phoneForLogin}
+                            onChange={(e) => setPhoneForLogin(e.target.value)}
+                          />
+                        </div>
+                        <button type="button" onClick={loginWithPhone} style={{ ...Styles.button, backgroundColor: "#0f9d58", marginTop: "0" }}>
+                          Send OTP
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div style={Styles.inputContainer}>
+                          <input
+                            style={Styles.input}
+                            type="text"
+                            placeholder="Enter OTP"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                          />
+                        </div>
+                        <button type="button" onClick={verifyOTP} style={{ ...Styles.button, backgroundColor: "#0f9d58", marginTop: "0" }}>
+                          Verify OTP & Login
+                        </button>
+                      </>
+                    )}
+                    <div id="recaptcha-container"></div>
+                  </div>
+                )}
+              </div>
+            )}
           </form>
 
           {/* Create Account Link */}
