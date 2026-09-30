@@ -62,6 +62,21 @@ app.use("/api/service-requests", ServiceRequestRouter);
 app.use("/api/payments", PaymentRouter);
 app.use("/api/auth", AuthRouter);
 
+// Temporary route to reset user password to password123
+app.get("/reset-password/:email", async (req, res) => {
+  try {
+    const bcrypt = require("bcrypt");
+    const User = require("./models/users");
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) return res.send("User not found");
+    user.password = await bcrypt.hash("password123", 10);
+    await user.save();
+    res.send("Password successfully reset to: password123");
+  } catch(err) {
+    res.send("Error: " + err.message);
+  }
+});
+
 // Connect to MongoDB
 connectMongoDb();
 
