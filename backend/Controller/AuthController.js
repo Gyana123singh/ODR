@@ -48,6 +48,12 @@ const firebaseLogin = async (req, res) => {
         status: "active",
         isVerified: true,
       });
+    } else {
+      // If user exists but selected a different role (and not admin), update their role
+      if (role && ["claimant", "respondent", "neutral"].includes(role) && user.role !== role && user.role !== "admin") {
+        user.role = role;
+        await user.save();
+      }
     }
 
     // Double check that an admin didn't somehow bypass
