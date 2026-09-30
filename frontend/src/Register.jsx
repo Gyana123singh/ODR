@@ -31,12 +31,13 @@ export default function Register({ getRole }) {
   const Styles = {
     container: {
       width: "100%",
-      height: "100vh",
+      minHeight: "100vh",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: "#f5f5f5",
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      padding: "2rem 0",
     },
     wrapper: {
       display: "flex",
@@ -60,7 +61,8 @@ export default function Register({ getRole }) {
       margin: "0.25rem 0 0 0",
     },
     formContainer: {
-      width: "450px",
+      width: "600px",
+      maxWidth: "90%",
       backgroundColor: "#fff",
       border: "1px solid #ddd",
       padding: "2.5rem",
@@ -239,10 +241,10 @@ export default function Register({ getRole }) {
       <div style={Styles.wrapper}>
         {/* Logo Section */}
         <div style={Styles.logo}>
-          <div style={{ fontSize: "48px", fontWeight: "900" }}>⚖️</div>
+          <img src="/logo.png" alt="UTKAL ODR Logo" style={{ width: "120px", height: "120px", objectFit: "contain", margin: "0 auto", display: "block" }} />
           <h1 style={Styles.logoTitle}>UTKAL ODR</h1>
           <p style={Styles.logoSubtitle}>Utkrust Vivad Samadhan</p>
-          <p style={Styles.logoSubtitle}>Online Dispute Resolution Platfrom</p>
+          <p style={Styles.logoSubtitle}>Online Dispute Resolution Platform</p>
         </div>
 
         {/* Register Form */}
