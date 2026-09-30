@@ -115,11 +115,11 @@ const RespondentLogin = async (req, res) => {
         .json({ success: false, message: "User not Exists" });
     }
 
-    if (!respondent.isVerified) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Please verify your email before logging in." });
-    }
+    // if (!respondent.isVerified) {
+    //   return res
+    //     .status(403)
+    //     .json({ success: false, message: "Please verify your email before logging in." });
+    // }
 
     const isPassCorrect = await bcrypt.compare(password, respondent.password);
     if (!isPassCorrect) {
@@ -160,8 +160,8 @@ const RespondentLogin = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({ success: false, message: "Internal Server Error" });
     console.error(err);
+    res.status(400).json({ success: false, message: err.message || "Internal Server Error" });
   }
 };
 

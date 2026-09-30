@@ -62,6 +62,18 @@ const firebaseLogin = async (req, res) => {
       { expiresIn: "10d" }
     );
 
+    // Update last active time on login
+    user.lastActive = new Date();
+    await user.save();
+
+    // Set HTTP-only secure cookie to overwrite any existing token cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
+    });
+
     return res.status(200).json({
       success: true,
       message: "Firebase Login successful",
