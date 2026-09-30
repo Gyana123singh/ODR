@@ -248,7 +248,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
               {data && data.name}
             </div>
             <div className="profile-role">
-              {data && data.user}
+              {data && data.role}
             </div>
           </div>
         </div>

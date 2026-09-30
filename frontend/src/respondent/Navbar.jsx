@@ -40,7 +40,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
       try {
         const token = localStorage.getItem("authToken");
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-        const response = await fetch(`${API_BASE_URL}/claimant/data`, {
+        const response = await fetch(`${API_BASE_URL}/respondent/data`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -222,7 +222,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
               {data && data.name}
             </div>
             <div className="profile-role">
-              {data && data.user}
+              {data && data.role}
             </div>
           </div>
         </div>
