@@ -65,9 +65,14 @@ app.use("/api/auth", AuthRouter);
 // Connect to MongoDB
 connectMongoDb();
 
-// Basic route to check server status
-app.get("/", (req, res) => {
-  res.send("ODR Backend is running");
+const path = require("path");
+
+// Serve frontend static files
+app.use(Express.static(path.join(__dirname, "../frontend/dist")));
+
+// For any other route that doesn't match an API route, send the React index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
 });
 
 // Global Error Handler Middleware (must be registered last)
