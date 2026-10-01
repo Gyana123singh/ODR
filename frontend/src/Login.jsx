@@ -23,7 +23,18 @@ export default function Login({ getRole }) {
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
 
-  const roles = ["admin", "claimant", "respondent", "neutral"];
+  const roles = [
+    { id: "admin", label: "Admin" },
+    { id: "claimant", label: "Claimant" },
+    { id: "respondent", label: "Respondent" },
+    { id: "neutral", label: "Mediator" },
+  ];
+
+  const getRoleDisplayLabel = (rId) => {
+    if (rId === "Select Role") return "Select Role";
+    const found = roles.find((r) => r.id === rId);
+    return found ? found.label : (rId === "neutral" ? "Mediator" : rId);
+  };
 
   useEffect(() => {
     getRole(selectedRole);
@@ -288,7 +299,7 @@ export default function Login({ getRole }) {
           <h2 className="hero-title" style={{ fontSize: '44px', lineHeight: '1.2' }}>
             Settle your dispute fairly, without waiting in line.
           </h2>
-          <p className="hero-subtitle" style={{ fontSize: '20px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#e2e8f0', opacity: '1' }}>
+          <p className="hero-subtitle" style={{ fontSize: '20px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#ffffff', opacity: '1' }}>
             Arbitration, mediation and conciliation on one secure platform. File your case, share evidence, attend hearings and receive orders online.
           </p>
         </div>
@@ -316,19 +327,19 @@ export default function Login({ getRole }) {
                 <span style={{ display: "flex", alignItems: "center" }}>
                   <CircleUserRound size={17} className="input-icon" />
                   <span style={{ color: selectedRole === "Select Role" ? "#94a3b8" : "#0f172a", textTransform: 'capitalize', fontWeight: '500' }}>
-                    {selectedRole}
+                    {getRoleDisplayLabel(selectedRole)}
                   </span>
                 </span>
                 <ChevronDown size={15} className="input-icon" style={{ transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0deg)", margin: 0 }} />
               </div>
               <div className={`dropdown-menu ${isDropdownOpen ? "open" : ""}`}>
-                {roles.map((role, index) => (
+                {roles.map((r, index) => (
                   <div
                     key={index}
                     className="dropdown-item"
-                    onClick={() => { setSelectedRole(role); setIsDropdownOpen(false); }}
+                    onClick={() => { setSelectedRole(r.id); setIsDropdownOpen(false); }}
                   >
-                    {role}
+                    {r.label}
                   </div>
                 ))}
               </div>
