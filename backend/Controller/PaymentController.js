@@ -16,7 +16,7 @@ const isValidStripeKey = (key) => {
 // POST /api/payments — Claimant initiates and processes payment
 exports.createPayment = async (req, res) => {
   try {
-    const { amount, method, status } = req.body;
+    const { amount, method, status, caseId, caseTitle } = req.body;
 
     if (!amount || !method) {
       return res.status(400).json({
@@ -40,8 +40,10 @@ exports.createPayment = async (req, res) => {
       userName: req.user.name,
       userEmail: req.user.email,
       amount: numAmount,
-      method,
+      method: method || "Credit Card",
       status: status || "Completed",
+      caseId: caseId || "",
+      caseTitle: caseTitle || "",
     });
 
     await payment.save();
@@ -49,6 +51,7 @@ exports.createPayment = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Payment processed successfully",
+      payment,
       data: payment,
     });
   } catch (error) {
@@ -113,13 +116,24 @@ exports.getAllPayments = async (req, res) => {
   }
 };
 
-// GET /api/payments/my — Claimant fetches their own transactions
+// GET /api/payments/my — Claimant or Respondent fetches their own transactions
 exports.getMyPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const userEmail = req.user?.email || "";
+    const userId = req.user?.id;
+    
+    const query = {
+      $or: [
+        ...(userId ? [{ user: userId }] : []),
+        ...(userEmail ? [{ userEmail: { $regex: new RegExp(`^${userEmail.trim()}$`, "i") } }] : []),
+      ],
+    };
+
+    const payments = await Payment.find(query.$or && query.$or.length > 0 ? query : { user: userId }).sort({ createdAt: -1 });
 
     return res.json({
       success: true,
+      payments,
       data: payments,
     });
   } catch (error) {

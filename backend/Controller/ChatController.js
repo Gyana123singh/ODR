@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Case = require("../models/Case");
 const Hearing = require("../models/hearing");
 const UploadDocument = require("../models/documentDetail");
@@ -209,7 +210,11 @@ const getCaseParticipants = async (req, res) => {
       return res.status(400).json({ success: false, message: "caseId is required" });
     }
 
-    const caseData = await Case.findOne({ caseId })
+    const caseData = await Case.findOne(
+      mongoose.Types.ObjectId.isValid(caseId)
+        ? { $or: [{ _id: caseId }, { caseId }] }
+        : { caseId }
+    )
       .populate("claimant", "name email phone role")
       .populate("respondent", "name email phone role")
       .populate("neutral", "name email phone role");
@@ -239,6 +244,7 @@ const getCaseParticipants = async (req, res) => {
         DisputeName: caseData.DisputeName,
       },
       data: participants,
+      participants: participants,
     });
   } catch (error) {
     console.error("Fetch case participants error:", error);

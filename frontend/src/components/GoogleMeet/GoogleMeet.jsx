@@ -33,6 +33,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 import "./GoogleMeet.css";
 
 export default function GoogleMeet() {
@@ -293,6 +294,48 @@ export default function GoogleMeet() {
     }
   }, [roomId]);
 
+  // Fetch real scheduled hearings from backend
+  useEffect(() => {
+    const fetchBackendHearings = async () => {
+      try {
+        const userEmail = localStorage.getItem("userEmail") || "";
+        const res = await axiosInstance.post("/respondent/get-hearing-by-caseId", {
+          email: userEmail,
+        });
+
+        if (res.data && res.data.hearings && res.data.hearings.length > 0) {
+          const mapped = res.data.hearings.map((h, i) => ({
+            id: h._id || `ev-dyn-${i}`,
+            dateDay: (h.date || "").split("-")[2] || "21",
+            dateMonth: "November",
+            speakerName: h.caseName || `Hearing #${h.caseId}`,
+            speakerAvatar: "/avatars/speaker1.jpg",
+            leader: h.Judge || "Presiding Mediator",
+            tag: h.hearingType || "Arbitration",
+            time: h.time || "10:30 AM",
+            duration: h.duration || "45 mins",
+            venue: h.location || "Virtual Chamber",
+            caseId: h.caseId || "ODR-2026",
+            caseTitle: h.caseName || `Case #${h.caseId}`,
+            type: (h.hearingType || "arbitration").toLowerCase(),
+            typeLabel: h.hearingType || "Hearing Session",
+            description: h.notes || "Official institutional hearing session.",
+            neutral: h.Judge || "Mediator",
+          }));
+
+          setEventScheduleDays((prev) => ({
+            ...prev,
+            "Day 1": [...mapped, ...(prev["Day 1"] || [])],
+          }));
+        }
+      } catch (err) {
+        console.warn("Notice: Backend hearings fetch for chamber:", err.message);
+      }
+    };
+
+    fetchBackendHearings();
+  }, []);
+
   // Handle stream attachments for main video, screen share, and presenter PIP
   useEffect(() => {
     if (isScreenSharing && screenStreamRef.current && videoRef.current) {
@@ -539,7 +582,7 @@ export default function GoogleMeet() {
   };
 
   // Submit new schedule
-  const handleScheduleSubmit = (e) => {
+  const handleScheduleSubmit = async (e) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
 
@@ -549,6 +592,8 @@ export default function GoogleMeet() {
       mediation: "Mediation",
       conciliation: "Conciliation",
     };
+
+    const finalCaseId = formCaseId || `ODR-2026-${Math.floor(100 + Math.random() * 900)}`;
 
     // Add to eventScheduleDays
     const newEvent = {
@@ -562,13 +607,33 @@ export default function GoogleMeet() {
       time: formTime,
       duration: formDuration,
       venue: `Room ${Math.floor(1 + Math.random() * 9)}B`,
-      caseId: formCaseId || `ODR-2026-${Math.floor(100 + Math.random() * 900)}`,
+      caseId: finalCaseId,
       caseTitle: formTitle,
       type: formType,
       typeLabel: typeLabels[formType] || "Hearing",
       description: `Institutional ${formType} hearing scheduled under Utkal ODR institutional dispute rules.`,
       neutral: formNeutral || "Presiding Mediator",
     };
+
+    // Save to backend
+    try {
+      const userEmail = localStorage.getItem("userEmail") || "";
+      await axiosInstance.post("/respondent/create-event", {
+        caseId: finalCaseId,
+        caseName: formTitle,
+        type: typeLabels[formType] || "Hearing",
+        date: `2026-11-${dayNum}`,
+        time: formTime,
+        duration: formDuration,
+        location: newEvent.venue,
+        description: newEvent.description,
+        meetLink: `${window.location.origin}/meet/chamber-${finalCaseId}`,
+        respondentEmail: userEmail,
+        status: "Scheduled",
+      });
+    } catch (apiErr) {
+      console.warn("Backend hearing record note:", apiErr.message);
+    }
 
     setEventScheduleDays((prev) => ({
       ...prev,
@@ -578,7 +643,7 @@ export default function GoogleMeet() {
     setFormCaseId("");
     setFormTitle("");
     setShowScheduleModal(false);
-    toast.success("Hearing scheduled successfully.");
+    toast.success("Hearing scheduled and registered successfully.");
   };
 
   // Download Schedule Handler

@@ -8,10 +8,14 @@ import {
   Calendar,
   Clock,
   User,
+  CheckCircle,
+  X,
+  Send,
+  Loader2,
 } from "lucide-react";
-import { useEffect } from "react";
-import { useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 import AllDetails from "../../neutral/components/Modal/AllDetails";
 import ModalComponent from "../../neutral/components/Modal/ModalComponent";
 
@@ -19,29 +23,40 @@ export default function CaseDetails() {
   const [caseData, setCaseData] = useState([]);
   const [openModal, setOpenModal] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [responseForm, setResponseForm] = useState({
+    responseText: "",
+    consent: "Yes",
+  });
 
-  // These must be taken from respondent login
-  const userEmail = localStorage.getItem("userEmail");
-  const userPhone = localStorage.getItem("userPhone");
+  // Taken from respondent login
+  const userEmail = localStorage.getItem("userEmail") || "";
+  const userPhone = localStorage.getItem("userPhone") || "";
+
+  const fetchCases = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.post("/respondent/my-case", {
+        email: userEmail,
+        phone: userPhone,
+      });
+      const data = Array.isArray(res.data) ? res.data : res.data.cases || [];
+      if (data.length > 0) {
+        setCaseData(data);
+      } else {
+        // If no backend cases yet, show demo items with clear notice
+        setCaseData(cases);
+      }
+    } catch (error) {
+      console.warn("Error fetching respondent cases, using fallback:", error);
+      setCaseData(cases);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-        const res = await axios.post(
-          `${API_BASE_URL}/respondent/my-case`,
-          {
-            email: userEmail,
-            phone: userPhone,
-          }
-        );
-        setCaseData(res.data);
-        console.log(res.data);
-      } catch (error) {
-        console.log("Error fetching respondent cases:", error);
-      }
-    };
-
     fetchCases();
   }, [userEmail, userPhone]);
 
@@ -245,106 +260,149 @@ export default function CaseDetails() {
     },
   };
 
+  const handleSubmitResponse = async (e) => {
+    e.preventDefault();
+    if (!selectedCase) return;
+    setSubmitting(true);
+    try {
+      const res = await axiosInstance.post("/respondent/submit-case-response", {
+        caseId: selectedCase.caseId || selectedCase.id,
+        responseText: responseForm.responseText,
+        consent: responseForm.consent,
+      });
+      if (res.data && res.data.success) {
+        toast.success("Statement & Response submitted to Court Registry!");
+        setOpenModal(null);
+        setResponseForm({ responseText: "", consent: "Yes" });
+        fetchCases();
+      } else {
+        toast.error(res.data?.message || "Failed to submit response");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      toast.error("Failed to submit response. Please check connection.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
         <span>📋 Case Details / Submissions</span>
+        {loading && <Loader2 size={18} className="animate-spin" />}
       </div>
 
       {/* Cases Grid */}
       {caseData.length > 0 ? (
         <div style={styles.caseGrid}>
-          {caseData.map((caseItem) => (
-            <div
-              key={caseItem.id}
-              style={styles.caseCard}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <div style={styles.caseHeader}>
-                <div style={styles.caseTitle}>
-                  <div
-                    style={styles.caseName}
-                  >{`${caseItem.CustomersName} Vs ${caseItem.oppositePartyName}`}</div>
-                  <div style={styles.caseId}>Case #{caseItem.caseId}</div>
-                </div>
-                <div style={styles.statusBadge(caseItem.statusColor)}>
-                  {caseItem.status}
-                </div>
-              </div>
+          {caseData.map((caseItem) => {
+            const caseKey = caseItem._id || caseItem.caseId || caseItem.id;
+            const badgeColor =
+              caseItem.statusColor ||
+              (caseItem.status === "Active" || caseItem.status === "Verified"
+                ? "#22bb33"
+                : caseItem.status === "Closed"
+                ? "#64748b"
+                : "#ff9900");
+            const displayName =
+              caseItem.CustomersName && caseItem.oppositePartyName
+                ? `${caseItem.CustomersName} Vs ${caseItem.oppositePartyName}`
+                : caseItem.title || caseItem.DisputeName || "Dispute Matter";
 
-              <div style={styles.caseContent}>
-                {/* Metadata Grid */}
-                <div style={styles.caseMetaGrid}>
-                  <div style={styles.metaItem}>
-                    <Calendar size={16} style={styles.metaIcon} />
-                    <div style={styles.metaText}>
-                      <div style={styles.metaLabel}>Filed</div>
-                      <div style={styles.metaValue}>{caseItem.createdAt}</div>
+            return (
+              <div
+                key={caseKey}
+                style={styles.caseCard}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                <div style={styles.caseHeader}>
+                  <div style={styles.caseTitle}>
+                    <div style={styles.caseName}>{displayName}</div>
+                    <div style={styles.caseId}>Case #{caseItem.caseId || caseItem.id}</div>
+                  </div>
+                  <div style={styles.statusBadge(badgeColor)}>
+                    {caseItem.status || "Active"}
+                  </div>
+                </div>
+
+                <div style={styles.caseContent}>
+                  {/* Metadata Grid */}
+                  <div style={styles.caseMetaGrid}>
+                    <div style={styles.metaItem}>
+                      <Calendar size={16} style={styles.metaIcon} />
+                      <div style={styles.metaText}>
+                        <div style={styles.metaLabel}>Filed</div>
+                        <div style={styles.metaValue}>{caseItem.createdAt || "Recent"}</div>
+                      </div>
+                    </div>
+                    <div style={styles.metaItem}>
+                      <div style={styles.metaText}>
+                        <div style={styles.metaLabel}>Type</div>
+                        <div style={styles.metaValue}>{caseItem.DisputeType || "Arbitration"}</div>
+                      </div>
                     </div>
                   </div>
-                  <div style={styles.metaItem}>
-                    {/* <Clock size={16} style={styles.metaIcon} /> */}
-                    <div style={styles.metaText}>
-                      <div style={styles.metaLabel}>Type</div>
-                      <div style={styles.metaValue}>{caseItem.DisputeType}</div>
+
+                  {/* Documents Section */}
+                  <div style={styles.documentsSection}>
+                    <div style={styles.docItem}>
+                      <div style={styles.docNumber}>{caseItem.documents?.length || caseItem.documents || 0}</div>
+                      <div style={styles.docLabel}>Documents</div>
+                    </div>
+                    <div style={styles.docItem}>
+                      <div style={styles.docNumber}>{caseItem.submissions || (caseItem.consent ? 1 : 0)}</div>
+                      <div style={styles.docLabel}>Submissions</div>
                     </div>
                   </div>
-                </div>
 
-                {/* Documents Section */}
-                <div style={styles.documentsSection}>
-                  <div style={styles.docItem}>
-                    <div style={styles.docNumber}>{caseItem.documents}</div>
-                    <div style={styles.docLabel}>Documents</div>
+                  {/* Action Buttons */}
+                  <div style={styles.actionButtons}>
+                    <button
+                      style={styles.actionButton("#0066cc")}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0066cc33";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0066cc22";
+                      }}
+                      onClick={() => {
+                        setSelectedCase(caseItem);
+                        setOpenModal("details");
+                      }}
+                    >
+                      <FileText size={14} />
+                      Details
+                    </button>
+                    <button
+                      style={styles.actionButton("#22bb33")}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#22bb3333";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#22bb3322";
+                      }}
+                      onClick={() => {
+                        setSelectedCase(caseItem);
+                        setOpenModal("submit");
+                      }}
+                    >
+                      <Upload size={14} />
+                      Submit
+                    </button>
                   </div>
-                  <div style={styles.docItem}>
-                    <div style={styles.docNumber}>{caseItem.submissions}</div>
-                    <div style={styles.docLabel}>Submissions</div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div style={styles.actionButtons}>
-                  <button
-                    style={styles.actionButton("#0066cc")}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#0066cc33";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#0066cc22";
-                    }}
-                    onClick={() => {
-                      setOpenModal("details");
-                      setSelectedCase(caseItem);
-                    }}
-                  >
-                    <FileText size={14} />
-                    Details
-                  </button>
-                  <button
-                    style={styles.actionButton("#22bb33")}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#22bb3333";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#22bb3322";
-                    }}
-                  >
-                    <Upload size={14} />
-                    Submit
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div style={styles.emptyState}>
@@ -353,13 +411,105 @@ export default function CaseDetails() {
         </div>
       )}
 
-      {/* Reusable componets  */}
-      {openModal === "details" && (
-        <ModalComponent title="" onClose={() => setOpenModal(null)}>
+      {/* Case Details Modal */}
+      {openModal === "details" && selectedCase && (
+        <ModalComponent title="Case Information" onClose={() => setOpenModal(null)}>
           <AllDetails
             caseData={selectedCase}
             onClose={() => setOpenModal(null)}
           />
+        </ModalComponent>
+      )}
+
+      {/* Submit Response Modal */}
+      {openModal === "submit" && selectedCase && (
+        <ModalComponent title="Submit Statement of Defense" onClose={() => setOpenModal(null)}>
+          <form onSubmit={handleSubmitResponse} style={{ padding: "1.5rem" }}>
+            <h3 style={{ margin: "0 0 8px 0", fontSize: "16px", color: "#0f172a" }}>
+              Submit Formal Response for Case #{selectedCase.caseId || selectedCase.id}
+            </h3>
+            <p style={{ margin: "0 0 1rem 0", fontSize: "13px", color: "#64748b" }}>
+              Your formal statement will be registered directly in the ODR case timeline and notified to all parties.
+            </p>
+
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
+                Consent to Dispute Resolution Proceedings:
+              </label>
+              <select
+                value={responseForm.consent}
+                onChange={(e) => setResponseForm((prev) => ({ ...prev, consent: e.target.value }))}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "14px",
+                }}
+              >
+                <option value="Yes">Yes — I agree to resolve through Utkal ODR</option>
+                <option value="No">No — Objecting to jurisdiction</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>
+                Statement of Defense / Counter-Statement:
+              </label>
+              <textarea
+                rows={5}
+                required
+                placeholder="Enter your defense statement, rebuttal of claimant assertions, or settlement proposal..."
+                value={responseForm.responseText}
+                onChange={(e) => setResponseForm((prev) => ({ ...prev, responseText: e.target.value }))}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  fontSize: "14px",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => setOpenModal(null)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  background: "#fff",
+                  color: "#475569",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "6px",
+                  border: "none",
+                  background: "#22bb33",
+                  color: "#fff",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                Submit Defense
+              </button>
+            </div>
+          </form>
         </ModalComponent>
       )}
     </div>

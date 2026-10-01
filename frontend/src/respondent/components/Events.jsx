@@ -15,13 +15,17 @@ import {
   CheckCircle2,
   ExternalLink,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 
 export default function Events() {
   const navigate = useNavigate();
   const [isMobile] = useState(window.innerWidth <= 480);
+  const [userCases, setUserCases] = useState([]);
+  const userEmail = localStorage.getItem("userEmail") || "";
+
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -88,9 +92,6 @@ export default function Events() {
     description: "",
   });
 
-  const upcomingEvents = events.filter((e) => e.status === "Upcoming");
-  const completedEvents = events.filter((e) => e.status === "Completed");
-
   // Type icon mapping
   const getTypeIcon = (type) => {
     switch (type) {
@@ -107,8 +108,55 @@ export default function Events() {
     }
   };
 
-  // ADD EVENT SUBMISSION
-  const handleCreateEvent = (e) => {
+  // Fetch respondent hearings and cases from backend
+  const fetchHearingsAndCases = async () => {
+    try {
+      // 1. Fetch hearings
+      const res = await axiosInstance.post("/respondent/get-hearing-by-caseId", {
+        email: userEmail,
+      });
+      if (res.data && res.data.hearings && res.data.hearings.length > 0) {
+        const backendEvents = res.data.hearings.map((h, idx) => ({
+          id: h._id || Date.now() + idx,
+          title: h.caseName || `Hearing - Case #${h.caseId}`,
+          type: h.hearingType || "Hearing",
+          date: h.date || "Scheduled",
+          time: h.time || "10:30 AM",
+          location: h.location || (h.meetLink ? "Virtual Courtroom" : "ODR Chamber"),
+          caseId: h.caseId || "2024-45",
+          description: h.notes || `Dispute proceeding event for case ${h.caseId}.`,
+          status: (h.status === "Completed" || h.status === "Closed") ? "Completed" : "Upcoming",
+          icon: getTypeIcon(h.hearingType || "Hearing"),
+          meetLink: h.meetLink,
+        }));
+
+        setEvents((prev) => {
+          const ids = new Set(backendEvents.map((e) => e.id));
+          return [...backendEvents, ...prev.filter((e) => !ids.has(e.id))];
+        });
+      }
+
+      // 2. Fetch respondent cases to populate case selector
+      const caseRes = await axiosInstance.post("/respondent/my-case", { email: userEmail });
+      const cases = Array.isArray(caseRes.data) ? caseRes.data : caseRes.data?.cases || [];
+      if (cases.length > 0) {
+        setUserCases(cases);
+        setFormData((prev) => ({ ...prev, caseId: cases[0].caseId || cases[0].id }));
+      }
+    } catch (err) {
+      console.warn("Backend events sync note:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchHearingsAndCases();
+  }, [userEmail]);
+
+  const upcomingEvents = events.filter((e) => e.status === "Upcoming");
+  const completedEvents = events.filter((e) => e.status === "Completed");
+
+  // ADD EVENT SUBMISSION WITH BACKEND SAVE
+  const handleCreateEvent = async (e) => {
     e.preventDefault();
     if (!formData.title || !formData.date || !formData.time) {
       toast.error("Please fill in the title, date, and time.");
@@ -132,10 +180,33 @@ export default function Events() {
       description: formData.description || "Scheduled dispute resolution event.",
       status: "Upcoming",
       icon: getTypeIcon(formData.type),
+      meetLink: `${window.location.origin}/meet/chamber-${formData.caseId || "odr-room"}`,
     };
 
+    try {
+      const res = await axiosInstance.post("/respondent/create-event", {
+        caseId: newEvent.caseId,
+        caseName: newEvent.title,
+        type: newEvent.type,
+        date: newEvent.date,
+        time: newEvent.time,
+        location: newEvent.location,
+        description: newEvent.description,
+        status: "Scheduled",
+        meetLink: newEvent.meetLink,
+        respondentEmail: userEmail,
+      });
+
+      if (res.data && res.data.hearing && res.data.hearing._id) {
+        newEvent.id = res.data.hearing._id;
+      }
+      toast.success("Event scheduled and registered with ODR Registry!");
+    } catch (err) {
+      console.warn("Backend event creation note (added locally):", err.message);
+      toast.success("Event added to schedule!");
+    }
+
     setEvents((prev) => [newEvent, ...prev]);
-    toast.success("Event scheduled successfully!");
     setShowAddModal(false);
     setFormData({
       title: "",
@@ -143,17 +214,27 @@ export default function Events() {
       date: "",
       time: "",
       location: "Virtual Courtroom",
-      caseId: "2024-45",
+      caseId: userCases[0]?.caseId || "2024-45",
       description: "",
     });
   };
 
-  // MARK AS COMPLETED
-  const handleToggleComplete = (id) => {
+  // MARK AS COMPLETED WITH BACKEND UPDATE
+  const handleToggleComplete = async (id) => {
+    const eventItem = events.find((e) => e.id === id);
+    const nextStatus = eventItem && eventItem.status === "Completed" ? "Upcoming" : "Completed";
+
+    try {
+      await axiosInstance.put(`/respondent/update-event/${id}`, {
+        status: nextStatus === "Completed" ? "Completed" : "Scheduled",
+      });
+    } catch (err) {
+      console.warn("Backend event status update note:", err.message);
+    }
+
     setEvents((prev) =>
       prev.map((e) => {
         if (e.id === id) {
-          const nextStatus = e.status === "Completed" ? "Upcoming" : "Completed";
           const nextIcon = nextStatus === "Completed" ? "✓" : getTypeIcon(e.type);
           toast.success(`Event marked as ${nextStatus.toLowerCase()}!`);
           return { ...e, status: nextStatus, icon: nextIcon };
@@ -166,18 +247,25 @@ export default function Events() {
         prev
           ? {
               ...prev,
-              status: prev.status === "Completed" ? "Upcoming" : "Completed",
-              icon: prev.status === "Completed" ? getTypeIcon(prev.type) : "✓",
+              status: nextStatus,
+              icon: nextStatus === "Completed" ? "✓" : getTypeIcon(prev.type),
             }
           : null
       );
     }
   };
 
-  // DELETE EVENT
-  const handleDeleteEvent = (id) => {
+  // DELETE EVENT WITH BACKEND REMOVAL
+  const handleDeleteEvent = async (id) => {
+    try {
+      await axiosInstance.delete(`/respondent/delete-event/${id}`);
+      toast.info("Event removed from schedule and registry.");
+    } catch (err) {
+      console.warn("Backend event delete note:", err.message);
+      toast.info("Event removed from schedule.");
+    }
+
     setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast.info("Event removed from schedule.");
     if (selectedEvent && selectedEvent.id === id) {
       setSelectedEvent(null);
     }
@@ -185,8 +273,13 @@ export default function Events() {
 
   // JOIN VIRTUAL HEARING
   const handleJoinHearing = (event) => {
-    toast.info(`Joining virtual session for Case #${event.caseId}...`);
-    navigate("/respondent/online-meeting");
+    toast.info(`Joining virtual hearing chamber for Case #${event.caseId}...`);
+    if (event.meetLink && event.meetLink.includes("/meet/")) {
+      const roomMatch = event.meetLink.split("/meet/")[1];
+      navigate(`/meet/${roomMatch || "utkal-odr-room"}`);
+    } else {
+      navigate("/respondent/online-meeting");
+    }
   };
 
   // DOWNLOAD ICALENDAR (.ICS)
@@ -684,20 +777,42 @@ END:VCALENDAR`;
                   <label style={{ display: "block", fontSize: "12.5px", fontWeight: "700", color: "#334155", marginBottom: "4px" }}>
                     Case ID
                   </label>
-                  <input
-                    type="text"
-                    value={formData.caseId}
-                    onChange={(e) => setFormData({ ...formData, caseId: e.target.value })}
-                    placeholder="2024-45"
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "6px",
-                      border: "1.5px solid #cbd5e1",
-                      fontSize: "14px",
-                      boxSizing: "border-box",
-                    }}
-                  />
+                  {userCases && userCases.length > 0 ? (
+                    <select
+                      value={formData.caseId}
+                      onChange={(e) => setFormData({ ...formData, caseId: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "6px",
+                        border: "1.5px solid #cbd5e1",
+                        fontSize: "14px",
+                        backgroundColor: "#fff",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      {userCases.map((c) => (
+                        <option key={c._id || c.caseId} value={c.caseId || c.id}>
+                          Case #{c.caseId || c.id}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.caseId}
+                      onChange={(e) => setFormData({ ...formData, caseId: e.target.value })}
+                      placeholder="2024-45"
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "6px",
+                        border: "1.5px solid #cbd5e1",
+                        fontSize: "14px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 

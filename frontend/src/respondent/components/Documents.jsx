@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import UploadDocument from "../../respondent/components/Modal/uploadDocument.jsx";
 import ModalComponent from "./Modal/modalComponent.jsx";
-import axios from "axios";
+import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 import { toast } from "react-toastify";
 
 export default function Documents() {
@@ -92,32 +92,76 @@ export default function Documents() {
     },
   ]);
 
-  // Fetch backend documents if available
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      const userEmail = localStorage.getItem("userEmail");
-      if (!userEmail) return;
+  // Fetch backend documents
+  const fetchDocuments = async () => {
+    const userEmail = localStorage.getItem("userEmail");
+    if (!userEmail) return;
 
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-        const res = await axios.get(`${API_BASE_URL}/respondent/get-documents/${userEmail}`);
-        if (res.data && res.data.documents && res.data.documents.length > 0) {
-          const formattedBackendDocs = res.data.documents.map((item, idx) => ({
-            id: item._id || Date.now() + idx,
-            name: item.name || item.filename || "Uploaded_Doc.pdf",
-            size: item.size || "1.5 MB",
-            uploadedDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Recent",
-            caseId: item.caseId || "2024-45",
-            type: (item.name || "").toLowerCase().endsWith(".pdf") ? "PDF" : (item.name || "").toLowerCase().match(/\.(jpg|jpeg|png)$/) ? "Images" : "Word Docs",
-            url: item.url,
-            description: item.description || "Uploaded by respondent for dispute proceedings.",
-          }));
-          setDocuments((prev) => [...formattedBackendDocs, ...prev]);
+    try {
+      const res = await axiosInstance.get(`/respondent/get-documents/${userEmail}`);
+      if (res.data && res.data.documents && res.data.documents.length > 0) {
+        let allDocs = [];
+        res.data.documents.forEach((item, parentIdx) => {
+          if (item.documents && item.documents.length > 0) {
+            item.documents.forEach((subDoc, sIdx) => {
+              const name = subDoc.fileName || item.DocumentName || "Uploaded_Evidence.pdf";
+              const isPdf = name.toLowerCase().endsWith(".pdf");
+              const isImg = name.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/);
+              allDocs.push({
+                id: subDoc._id || `${item._id}_${sIdx}`,
+                name: name,
+                size: item.fileSize ? `${(item.fileSize / (1024 * 1024)).toFixed(1)} MB` : "1.4 MB",
+                uploadedDate: subDoc.uploadedAt
+                  ? new Date(subDoc.uploadedAt).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "Recent",
+                caseId: item.caseId || "2024-45",
+                type: isPdf ? "PDF" : isImg ? "Images" : "Word Docs",
+                url: subDoc.fileUrl || item.fileUrl,
+                description: item.Type || "Evidentiary submission in ODR dispute proceedings.",
+              });
+            });
+          } else {
+            const name = item.DocumentName || "Uploaded_Doc.pdf";
+            const isPdf = name.toLowerCase().endsWith(".pdf");
+            const isImg = name.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/);
+            allDocs.push({
+              id: item._id || Date.now() + parentIdx,
+              name: name,
+              size: item.fileSize ? `${(item.fileSize / (1024 * 1024)).toFixed(1)} MB` : "1.2 MB",
+              uploadedDate: item.uploadedAt
+                ? new Date(item.uploadedAt).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "Recent",
+              caseId: item.caseId || "2024-45",
+              type: isPdf ? "PDF" : isImg ? "Images" : "Word Docs",
+              url: item.fileUrl,
+              description: "Evidentiary submission registered with ODR Registry.",
+            });
+          }
+        });
+
+        if (allDocs.length > 0) {
+          // Merge unique docs
+          setDocuments((prev) => {
+            const existingIds = new Set(allDocs.map((d) => d.id));
+            const retainedMock = prev.filter((d) => !existingIds.has(d.id));
+            return [...allDocs, ...retainedMock];
+          });
         }
-      } catch (error) {
-        console.warn("Backend document fetch (using local data):", error.message);
       }
-    };
+    } catch (error) {
+      console.warn("Backend document fetch notice:", error.message);
+    }
+  };
+
+  useEffect(() => {
     fetchDocuments();
   }, []);
 
@@ -149,6 +193,7 @@ export default function Documents() {
     if (doc.url) {
       const a = document.createElement("a");
       a.href = doc.url;
+      a.target = "_blank";
       a.download = doc.name;
       document.body.appendChild(a);
       a.click();
@@ -180,20 +225,26 @@ Status: Authenticated & Registered with Utkal ODR Registry
     toast.success(`Downloaded "${doc.name}"!`);
   };
 
-  // DELETE HANDLER
-  const handleConfirmDelete = () => {
+  // DELETE HANDLER WITH BACKEND CALL
+  const handleConfirmDelete = async () => {
     if (!deletingDoc) return;
+    try {
+      await axiosInstance.delete(`/respondent/delete-document/${deletingDoc.id}`);
+      toast.success(`Document "${deletingDoc.name}" deleted from registry.`);
+    } catch (err) {
+      console.warn("Backend delete document note:", err.message);
+      toast.info(`Document "${deletingDoc.name}" removed.`);
+    }
     setDocuments((prev) => prev.filter((d) => d.id !== deletingDoc.id));
-    toast.success(`Document "${deletingDoc.name}" deleted.`);
     setDeletingDoc(null);
   };
 
-  // SHARE HANDLER
+  // SHARE HANDLER DYNAMIC LINK
   const handleCopyShareLink = (doc) => {
-    const shareUrl = `https://utkalodr.gov.in/verify-doc/${doc.caseId}/${doc.id}`;
+    const shareUrl = `${window.location.origin}/respondent/documents#case-${doc.caseId}-doc-${doc.id}`;
     navigator.clipboard?.writeText(shareUrl);
     setCopiedLink(true);
-    toast.success("Document link copied to clipboard!");
+    toast.success("Document verification link copied!");
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
@@ -938,6 +989,7 @@ Status: Authenticated & Registered with Utkal ODR Registry
             onClose={() => {
               setOpenModal(null);
             }}
+            onUploaded={fetchDocuments}
           />
         </ModalComponent>
       )}

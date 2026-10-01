@@ -17,14 +17,15 @@ const paymentSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     method: {
       type: String,
-      enum: ["UPI", "Credit Card", "Debit Card", "Net Banking", "Wallet"],
-      required: true,
+      default: "UPI",
     },
     status: {
       type: String,
-      enum: ["Pending", "Completed", "Failed"],
+      enum: ["Pending", "Completed", "Failed", "Paid"],
       default: "Pending",
     },
+    caseId: { type: String },
+    caseTitle: { type: String },
   },
   { timestamps: true }
 );

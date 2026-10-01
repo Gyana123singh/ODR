@@ -14,12 +14,14 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axiosInstance from "../../api/axiosConfig";
 
 export default function Payments() {
   const [isMobile] = useState(window.innerWidth <= 480);
+  const userEmail = localStorage.getItem("userEmail") || "";
+
   const [payments, setPayments] = useState([
     {
       id: 1,
@@ -70,6 +72,45 @@ export default function Payments() {
       transactionId: "TXN-2024-002",
     },
   ]);
+
+  const fetchPayments = async () => {
+    try {
+      const res = await axiosInstance.get("/api/payments/my");
+      if (res.data && res.data.data && res.data.data.length > 0) {
+        const backendPayments = res.data.data.map((p, idx) => ({
+          id: p._id || Date.now() + idx,
+          caseId: p.caseId || "ODR-2024",
+          caseTitle: p.caseTitle || `Dispute Fee Payment - Case #${p.caseId || "2024-45"}`,
+          amount: `₹${Number(p.amount).toLocaleString("en-IN")}`,
+          dueDate: new Date(p.createdAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          status: p.status === "Completed" ? "Paid" : p.status,
+          statusColor: p.status === "Completed" ? "#22bb33" : p.status === "Pending" ? "#ff9900" : "#ff5555",
+          paymentDate: new Date(p.createdAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          paymentMethod: p.method || "Credit Card",
+          transactionId: p.transactionId || `TXN-ODR-${Math.floor(100000 + Math.random() * 900000)}`,
+        }));
+
+        setPayments((prev) => {
+          const ids = new Set(backendPayments.map((b) => b.id));
+          return [...backendPayments, ...prev.filter((p) => !ids.has(p.id))];
+        });
+      }
+    } catch (err) {
+      console.warn("Backend payments fetch note:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, [userEmail]);
 
   // Modal States
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -291,26 +332,30 @@ export default function Payments() {
     try {
       const numAmount = parseFloat(payingPayment.amount.replace(/[^0-9.]/g, "")) || 5000;
       let chosenMethodTitle = "Credit Card";
-      if (paymentMethod === "upi") chosenMethodTitle = `UPI (${upiId || "ODR Gateway"})`;
-      if (paymentMethod === "netbanking") chosenMethodTitle = `Net Banking (${selectedBank})`;
+      if (paymentMethod === "upi") chosenMethodTitle = "UPI";
+      if (paymentMethod === "netbanking") chosenMethodTitle = "Net Banking";
 
-      // Attempt to record with backend if available
+      let newTxnId = `TXN-2025-${Math.floor(100000 + Math.random() * 900000)}`;
+
+      // Attempt to record with backend
       try {
-        await axiosInstance.post("/api/payments", {
+        const res = await axiosInstance.post("/api/payments", {
           amount: numAmount,
           method: chosenMethodTitle,
           status: "Completed",
           caseId: payingPayment.caseId,
           caseTitle: payingPayment.caseTitle,
         });
+        if (res.data?.data?.transactionId) {
+          newTxnId = res.data.data.transactionId;
+        }
       } catch (apiErr) {
-        console.warn("Backend payment logging note (processing locally):", apiErr.message);
+        console.warn("Backend payment logging note:", apiErr.message);
       }
 
       // Simulate secure gateway turnaround
-      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-      const newTxnId = `TXN-2025-${Math.floor(100000 + Math.random() * 900000)}`;
       const todayFormatted = new Date().toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
@@ -333,7 +378,7 @@ export default function Payments() {
 
       setCompletedPaymentData(updatedRecord);
       setPaymentSuccess(true);
-      toast.success(`Payment of ${payingPayment.amount} successful!`);
+      fetchPayments();
     } catch (err) {
       console.error("Payment failed:", err);
       toast.error("Payment processing error. Please try again.");

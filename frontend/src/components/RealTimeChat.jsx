@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageSquare, Send, Bot, ShieldAlert, ArrowLeft, RefreshCw, Sparkles, Loader2 } from "lucide-react";
-import axiosInstance from "../api/axiosConfig";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
+import axiosInstance, { getApiBaseUrl } from "../api/axiosConfig";
 
 export default function RealTimeChat({ role }) {
   const [cases, setCases] = useState([]);
@@ -24,7 +22,6 @@ export default function RealTimeChat({ role }) {
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      // Automatically show sidebar on desktop transition
       if (!mobile) {
         setShowSidebar(true);
       }
@@ -40,13 +37,24 @@ export default function RealTimeChat({ role }) {
     }
   }, [chatMessages]);
 
-  // Read current user ID from localStorage
+  // Read or fetch current user ID
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {
       setCurrentUserId(userId);
+    } else {
+      const activeRole = role || localStorage.getItem("userRole") || "respondent";
+      axiosInstance
+        .get(`/${activeRole}/data`)
+        .then((res) => {
+          if (res.data?.data?._id) {
+            setCurrentUserId(res.data.data._id);
+            localStorage.setItem("userId", res.data.data._id);
+          }
+        })
+        .catch(() => {});
     }
-  }, []);
+  }, [role]);
 
   // Fetch all user cases on mount
   useEffect(() => {
@@ -57,6 +65,17 @@ export default function RealTimeChat({ role }) {
         if (res.data.success && res.data.data.length > 0) {
           setCases(res.data.data);
           setSelectedCaseId(res.data.data[0].caseId);
+        } else {
+          // Fallback to respondent cases
+          const userEmail = localStorage.getItem("userEmail");
+          if (userEmail) {
+            const respCaseRes = await axiosInstance.post("/respondent/my-case", { email: userEmail });
+            const respCases = Array.isArray(respCaseRes.data) ? respCaseRes.data : respCaseRes.data?.cases || [];
+            if (respCases.length > 0) {
+              setCases(respCases);
+              setSelectedCaseId(respCases[0].caseId || respCases[0].id);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to load user cases:", err);
@@ -75,7 +94,6 @@ export default function RealTimeChat({ role }) {
       try {
         const res = await axiosInstance.get(`/api/chat/participants/${selectedCaseId}`);
         if (res.data.success) {
-          // Filter out the current user from list of potential chat contacts
           const filtered = res.data.data.filter(
             (p) => p._id?.toString() !== currentUserId?.toString()
           );
@@ -90,16 +108,19 @@ export default function RealTimeChat({ role }) {
     fetchParticipants();
   }, [selectedCaseId, currentUserId]);
 
-  // Dynamically load Socket.io client from CDN and maintain single connection
+  // Dynamically load Socket.io client and maintain single connection
   useEffect(() => {
     let scriptLoaded = false;
     let sInstance = null;
 
     const initSocket = () => {
-      const socketUrl = API_BASE_URL;
+      const socketUrl = getApiBaseUrl();
       console.log("Attempting Socket.io connection to:", socketUrl);
       if (window.io) {
-        sInstance = window.io(socketUrl);
+        sInstance = window.io(socketUrl, {
+          withCredentials: true,
+          transports: ["websocket", "polling"],
+        });
         sInstance.on("connect", () => {
           console.log("Socket.io connected successfully! ID:", sInstance.id);
         });
@@ -114,11 +135,19 @@ export default function RealTimeChat({ role }) {
       initSocket();
     } else {
       const script = document.createElement("script");
-      script.src = `${API_BASE_URL}/socket.io/socket.io.js`;
+      script.src = `${getApiBaseUrl()}/socket.io/socket.io.js`;
       script.async = true;
+      script.onerror = () => {
+        // Fallback to CDN if backend static file doesn't load
+        const cdnScript = document.createElement("script");
+        cdnScript.src = "https://cdn.socket.io/4.8.1/socket.io.min.js";
+        cdnScript.onload = () => {
+          initSocket();
+        };
+        document.body.appendChild(cdnScript);
+      };
       script.onload = () => {
         scriptLoaded = true;
-        console.log("Loaded Socket.io script client locally from ODR backend.");
         initSocket();
       };
       document.body.appendChild(script);
@@ -126,14 +155,7 @@ export default function RealTimeChat({ role }) {
 
     return () => {
       if (sInstance) {
-        console.log("Disconnecting Socket.io client instance...");
         sInstance.disconnect();
-      }
-      if (scriptLoaded) {
-        const existingScript = document.querySelector(`script[src="${API_BASE_URL}/socket.io/socket.io.js"]`);
-        if (existingScript) {
-          document.body.removeChild(existingScript);
-        }
       }
     };
   }, []);

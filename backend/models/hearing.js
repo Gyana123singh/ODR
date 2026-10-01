@@ -20,12 +20,13 @@ const hearingSchema = new mongoose.Schema(
       enum: [
         "Pending",
         "Scheduled",
+        "Upcoming",
         "Active",
         "Under Review",
         "Completed",
         "Closed",
       ],
-      default: "Pending",
+      default: "Scheduled",
     },
     meetLink: { type: String }, // <---- IMPORTANT
 

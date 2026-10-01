@@ -8,31 +8,29 @@ import {
   Users,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 
 export default function OnlineMeeting() {
   const [hearingData, setHearingData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // These must be taken from respondent login
-  const userEmail = localStorage.getItem("userEmail");
-  // const userPhone = localStorage.getItem("userPhone");
+  // Taken from respondent session
+  const userEmail = localStorage.getItem("userEmail") || "";
 
   useEffect(() => {
     const fetchCases = async () => {
+      setLoading(true);
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-        const res = await axios.post(
-          `${API_BASE_URL}/respondent/get-hearing-by-caseId`,
-          {
-            email: userEmail,
-         
-          }
-        );
-        setHearingData(res.data.hearings);
-        console.log(res.data.hearings);
+        const res = await axiosInstance.post(`/respondent/get-hearing-by-caseId`, {
+          email: userEmail,
+        });
+        if (res.data?.hearings) {
+          setHearingData(res.data.hearings);
+        }
       } catch (error) {
         console.log("Error fetching respondent cases:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -248,14 +246,18 @@ export default function OnlineMeeting() {
                 </div>
 
                 {/* Meeting Link */}
-                <div style={styles.meetingLink}>{meeting.meetLink}</div>
+                <div style={styles.meetingLink}>
+                  {meeting.meetLink?.startsWith("http") 
+                    ? meeting.meetLink 
+                    : `${typeof window !== "undefined" ? window.location.origin : ""}${meeting.meetLink?.startsWith("/") ? "" : "/"}${meeting.meetLink || ""}`}
+                </div>
 
                 {/* Action Buttons */}
                 <div style={styles.actionButtons}>
-                  {meeting.status === "Scheduled" ? (
+                  {meeting.status === "Scheduled" || meeting.status === "Upcoming" ? (
                     <a
                       className="join-hearing-btn"
-                      href={meeting.meetLink}
+                      href={meeting.meetLink?.startsWith("http") ? meeting.meetLink : `${window.location.origin}${meeting.meetLink?.startsWith("/") ? "" : "/"}${meeting.meetLink || ""}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -268,6 +270,11 @@ export default function OnlineMeeting() {
                   )}
                   <button
                     style={styles.actionButton("#22bb33")}
+                    onClick={() => {
+                      const link = meeting.meetLink?.startsWith("http") ? meeting.meetLink : `${window.location.origin}${meeting.meetLink?.startsWith("/") ? "" : "/"}${meeting.meetLink || ""}`;
+                      navigator.clipboard?.writeText(link);
+                      alert("Meeting link copied to clipboard: " + link);
+                    }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#22bb3333";
                     }}
@@ -276,7 +283,7 @@ export default function OnlineMeeting() {
                     }}
                   >
                     <Share2 size={14} />
-                    Share
+                    Copy Link
                   </button>
                 </div>
               </div>

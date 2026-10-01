@@ -11,6 +11,35 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3636",
+        changeOrigin: true,
+      },
+      "/respondent": {
+        target: "http://localhost:3636",
+        changeOrigin: true,
+      },
+      "/claimant": {
+        target: "http://localhost:3636",
+        changeOrigin: true,
+      },
+      "/admin": {
+        target: "http://localhost:3636",
+        changeOrigin: true,
+      },
+      "/neutral": {
+        target: "http://localhost:3636",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://localhost:3636",
+        ws: true,
+      },
+    },
+  },
   build: {
     // Raise warning threshold to 600 kB (default is 500 kB)
     chunkSizeWarningLimit: 600,

@@ -13,6 +13,11 @@ const {
   getRespondentUsers,
   uploadDocumentForRespondent,
   getDocumentsByUser,
+  deleteRespondentDocument,
+  createRespondentEvent,
+  updateRespondentEvent,
+  deleteRespondentEvent,
+  submitCaseResponse,
   updateRespondentProfile,
   updateRespondentPassword,
 } = require("../Controller/RespondentController");
@@ -24,8 +29,20 @@ router.post("/login", RespondentLogin);
 router.get("/data", verifyToken, authorizeRoles("respondent"), RespondentData);
 router.put("/update-profile", verifyToken, authorizeRoles("respondent"), updateRespondentProfile);
 router.put("/update-password", verifyToken, authorizeRoles("respondent"), updateRespondentPassword);
+
+// Case management & response
 router.post("/my-case", getRespondentCase);
+router.get("/my-case", verifyToken, getRespondentCase);
+router.post("/submit-case-response", submitCaseResponse);
+
+// Events & hearings CRUD
 router.post("/get-hearing-by-caseId", getScheduleHearingByCaseId);
+router.get("/get-hearing-by-caseId", verifyToken, getScheduleHearingByCaseId);
+router.post("/create-event", createRespondentEvent);
+router.put("/update-event/:id", updateRespondentEvent);
+router.delete("/delete-event/:id", deleteRespondentEvent);
+
+// Notifications
 router.post("/get-notification", getCaseNotification);
 router.delete(
   "/delete-respondent-notification/:id",
@@ -35,8 +52,22 @@ router.delete(
   "/delete-all-respondent-notification/:email",
   deleteAllRespondentNotification
 );
+
+// Users list
 router.get("/get-respondent-users", getRespondentUsers);
-router.post("/document-upload-by-respondent/:respondentId", upload.single("documents"), uploadDocumentForRespondent);
+
+// Documents CRUD
+router.post(
+  "/document-upload-by-respondent/:respondentId",
+  upload.any(),
+  uploadDocumentForRespondent
+);
+router.post(
+  "/document-upload-by-respondent",
+  upload.any(),
+  uploadDocumentForRespondent
+);
 router.get("/get-documents/:email", getDocumentsByUser);
+router.delete("/delete-document/:id", deleteRespondentDocument);
 
 module.exports = router;
