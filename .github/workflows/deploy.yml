@@ -1,0 +1,62 @@
+name: Deploy ODR to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: vps-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Backend & Frontend to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            echo ">>> Navigating to /var/www/ODR..."
+            cd /var/www/ODR
+
+            echo ">>> Force-syncing repository to latest origin/main..."
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+
+            echo ">>> Installing backend dependencies..."
+            cd /var/www/ODR/backend
+            npm install
+
+            echo ">>> Restarting backend service with PM2..."
+            pm2 restart odr-backend || pm2 restart all || pm2 start app.js --name odr-backend
+            pm2 save
+
+            echo ">>> Setting up frontend environment..."
+            cd /var/www/ODR/frontend
+            cat << 'EOF' > .env
+            VITE_API_BASE_URL=https://gokulanandachaudhurifoundation.com
+            VITE_FIREBASE_API_KEY=AIzaSyAurz8Xb77hEkG_HsZ_xhkxpTXTAIkJtCw
+            VITE_FIREBASE_AUTH_DOMAIN=odr-project-e9661.firebaseapp.com
+            VITE_FIREBASE_PROJECT_ID=odr-project-e9661
+            VITE_FIREBASE_STORAGE_BUCKET=odr-project-e9661.firebasestorage.app
+            VITE_FIREBASE_MESSAGING_SENDER_ID=787835897809
+            VITE_FIREBASE_APP_ID=1:787835897809:web:3575c48a250f20ccecc2f0
+            EOF
+
+            echo ">>> Installing frontend dependencies and building production bundle..."
+            npm install
+            npm run build
+
+            echo ">>> Reloading PM2 to serve updated frontend assets..."
+            pm2 reload odr-backend || pm2 restart all
+            pm2 save
+
+            echo ">>> Deployment successfully completed!"
