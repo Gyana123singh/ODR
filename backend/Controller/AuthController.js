@@ -112,12 +112,13 @@ const verifyEmail = async (req, res) => {
     await user.save();
 
     // Redirect to login page or show success message
+    const loginUrl = (process.env.FRONTEND_URL || "https://gokulanandachaudhurifoundation.com") + "/login";
     return res.send(`
       <html>
-        <body>
-          <h2>Email Verified Successfully!</h2>
+        <body style="font-family: sans-serif; text-align: center; padding: 40px;">
+          <h2 style="color: #16a34a;">Email Verified Successfully!</h2>
           <p>You can now close this window and log in to your account.</p>
-          <a href="http://localhost:5173/login">Go to Login</a>
+          <a href="${loginUrl}" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px;">Go to Login</a>
         </body>
       </html>
     `);

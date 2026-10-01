@@ -12,8 +12,9 @@ export default function Notifications() {
   useEffect(() => {
     const getNotification = async () => {
       try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
         const response = await axios.post(
-          "http://localhost:3636/claimant/get-notification",
+          `${API_BASE_URL}/claimant/get-notification`,
           { email: userEmail }
         );
 

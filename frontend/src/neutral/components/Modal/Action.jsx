@@ -19,8 +19,9 @@ export default function Action({ onClose, caseId }) {
       if (!caseId) return;
 
       try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
         const res = await axios.get(
-          `http://localhost:3636/neutral/get-status/${caseId}`
+          `${API_BASE_URL}/neutral/get-status/${caseId}`
         );
         setActiveStatus(res.data?.status || "Pending");
       } catch (err) {
@@ -36,8 +37,9 @@ export default function Action({ onClose, caseId }) {
     setActiveStatus(newStatus);
 
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       await axios.put(
-        `http://localhost:3636/neutral/update-status/${caseId}`,
+        `${API_BASE_URL}/neutral/update-status/${caseId}`,
         { status: newStatus }
       );
 

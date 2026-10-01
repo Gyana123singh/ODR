@@ -9,8 +9,9 @@ export default function Notifications() {
 
   useEffect(() => {
     const getNotification = async () => {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       const response = await axios.post(
-        "http://localhost:3636/neutral/get-notifications",
+        `${API_BASE_URL}/neutral/get-notifications`,
         {
           email: userEmail,
         }
@@ -104,8 +105,9 @@ export default function Notifications() {
   // delete for one by one Notification
   const deleteNotification = async (id) => {
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       await axios.delete(
-        `http://localhost:3636/neutral/delete-neutral-notification/${id}`
+        `${API_BASE_URL}/neutral/delete-neutral-notification/${id}`
       );
 
       // Remove instantly from UI
@@ -120,10 +122,11 @@ export default function Notifications() {
   // delete for all notification
   const deleteAllNotifications = async (email) => {
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       const encodedEmail = encodeURIComponent(email);
 
       const response = await axios.delete(
-        `http://localhost:3636/neutral/delete-all-neutral-notification/${encodedEmail}`
+        `${API_BASE_URL}/neutral/delete-all-neutral-notification/${encodedEmail}`
       );
 
       console.log("Deleted", response.data);

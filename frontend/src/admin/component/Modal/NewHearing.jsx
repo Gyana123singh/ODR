@@ -47,8 +47,9 @@ export default function ScheduleHearing({ onClose }) {
     e.preventDefault();
 
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       const response = await axios.post(
-        "http://localhost:3636/admin/new-hearing",
+        `${API_BASE_URL}/admin/new-hearing`,
         formData
       );
 

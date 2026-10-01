@@ -21,8 +21,9 @@ export default function OnlineMeeting() {
   useEffect(() => {
     const fetchCases = async () => {
       try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
         const res = await axios.post(
-          "http://localhost:3636/respondent/get-hearing-by-caseId",
+          `${API_BASE_URL}/respondent/get-hearing-by-caseId`,
           {
             email: userEmail,
          

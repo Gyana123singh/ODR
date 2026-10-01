@@ -80,7 +80,8 @@ export default function Login({ getRole }) {
 
   const handleFirebaseLogin = async (idToken) => {
     try {
-      const response = await fetch("http://localhost:3636/api/auth/firebase-login", {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
+      const response = await fetch(`${API_BASE_URL}/api/auth/firebase-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken, role: selectedRole })

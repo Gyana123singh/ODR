@@ -61,8 +61,9 @@ export default function NewCaseForm({ onClose }) {
         if (value) formDataToSend.append(key, value);
       });
 
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       const response = await axios.post(
-        "http://localhost:3636/claimant/add-new-case",
+        `${API_BASE_URL}/claimant/add-new-case`,
         formDataToSend,
         {
           headers: { "Content-Type": "multipart/form-data" },

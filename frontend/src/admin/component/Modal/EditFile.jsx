@@ -65,8 +65,9 @@ export default function EditCaseForm({ caseData, onClose }) {
         formDataToSend.append("file", file);
       }
 
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       await axios.put(
-        `http://localhost:3636/admin/update-case/${caseData._id}`,
+        `${API_BASE_URL}/admin/update-case/${caseData._id}`,
         formDataToSend
       );
 

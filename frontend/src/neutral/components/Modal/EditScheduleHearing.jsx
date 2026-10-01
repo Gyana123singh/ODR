@@ -38,8 +38,9 @@ export default function ScheduleHearingForm({ newHearingData, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       await axios.put(
-        `http://localhost:3636/admin/update-hearing/${newHearingData._id}`,
+        `${API_BASE_URL}/admin/update-hearing/${newHearingData._id}`,
         formData,
         { headers: { "Content-Type": "application/json" } }
       );

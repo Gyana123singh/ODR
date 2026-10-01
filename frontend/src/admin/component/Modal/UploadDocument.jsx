@@ -45,8 +45,9 @@ export default function UploadDocument({ onClose }) {
       formData.append("file", file);
       formData.append("claimantName", selectedClaimant); // ⭐ ONLY NAME
 
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       await axios.post(
-        "http://localhost:3636/admin/document-upload",
+        `${API_BASE_URL}/admin/document-upload`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

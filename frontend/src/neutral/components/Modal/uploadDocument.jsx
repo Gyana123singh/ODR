@@ -17,8 +17,9 @@ const uploadDocument = ({ caseId }) => {
         formData.append("documents", file); // append each file
       });
 
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
       const res = await axios.post(
-        "http://localhost:3636/hearing/upload-documents",
+        `${API_BASE_URL}/hearing/upload-documents`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

@@ -215,7 +215,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     // Call Stripe REST API directly using URLSearchParams and axios
-    const origin = req.headers.origin || "http://localhost:5173";
+    const origin = req.headers.origin || process.env.FRONTEND_URL || "https://gokulanandachaudhurifoundation.com";
     const params = new URLSearchParams();
     params.append("payment_method_types[0]", "card");
     params.append("line_items[0][price_data][currency]", "inr");

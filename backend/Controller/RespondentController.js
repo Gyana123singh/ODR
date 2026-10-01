@@ -46,7 +46,8 @@ const RespondentRegister = async (req, res) => {
       },
     });
 
-    const verificationUrl = `http://localhost:3636/api/auth/verify-email/${verificationToken}`;
+    const baseUrl = process.env.APP_URL || process.env.BASE_URL || "https://gokulanandachaudhurifoundation.com";
+    const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL,
