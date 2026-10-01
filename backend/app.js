@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // Exit early if critical env variables are missing
 if (!process.env.JWT_SECRET) {
@@ -79,8 +80,6 @@ app.get("/reset-password/:email", async (req, res) => {
 
 // Connect to MongoDB
 connectMongoDb();
-
-const path = require("path");
 
 // Serve frontend static files
 app.use(Express.static(path.join(__dirname, "../frontend/dist")));
