@@ -57,8 +57,7 @@ export default function RealTimeChat({ role }) {
         if (res.data.success && res.data.data.length > 0) {
           setCases(res.data.data);
           setSelectedCaseId(res.data.data[0].caseId);
-        }
-      } else {
+        } else {
           const demoCase = { caseId: "DEMO-CASE", DisputeName: "Interactive Demo Dispute" };
           setCases([demoCase]);
           setSelectedCaseId("DEMO-CASE");
