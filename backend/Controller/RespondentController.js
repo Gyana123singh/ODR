@@ -169,8 +169,13 @@ const RespondentLogin = async (req, res) => {
 
 const RespondentData = async (req, res) => {
   try {
+    const respondentId = req.respondent?.id || req.respondent?._id || req.user?.id || req.user?._id;
+    if (!respondentId) {
+      return res.status(401).json({ success: false, message: "Unauthorized respondent" });
+    }
+
     const respondent = await respondentUser
-      .findById(req.respondent.id)
+      .findById(respondentId)
       .select("-password");
     if (!respondent) {
       return res
@@ -180,7 +185,7 @@ const RespondentData = async (req, res) => {
 
     res.status(200).json({ success: true, data: respondent });
   } catch (err) {
-    console.error(err);
+    console.error("RespondentData error:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

@@ -96,6 +96,8 @@ const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
 const ChatMessage = require("./models/chatMessage");
+const Case = require("./models/case");
+const User = require("./models/users");
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -111,17 +113,33 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("Real-time chat client connected:", socket.id);
 
-  socket.on("join_room", (data) => {
-    console.log("join_room request received on backend:", data);
-    const { caseId, userAId, userBId } = data;
-    if (!caseId || !userAId || !userBId) {
-      console.warn("Invalid join_room data. Missing fields:", { caseId, userAId, userBId });
-      return;
+  socket.on("join_room", async (data) => {
+    try {
+      console.log("join_room request received on backend:", data);
+      const { caseId, userAId, userBId } = data;
+      if (!caseId || !userAId || !userBId) {
+        console.warn("Invalid join_room data. Missing fields:", { caseId, userAId, userBId });
+        return;
+      }
+
+      const caseRecord = await Case.findOne(
+        mongoose.Types.ObjectId.isValid(caseId) ? { $or: [{ _id: caseId }, { caseId }] } : { caseId }
+      );
+      const canonicalCaseId = caseRecord ? String(caseRecord.caseId || caseRecord._id) : String(caseId);
+
+      const sortedIds = [String(userAId), String(userBId)].sort().join("_");
+      const roomName = `room_${canonicalCaseId}_${sortedIds}`;
+      socket.join(roomName);
+
+      // Join room aliases for case._id and case.caseId to ensure cross-view reliability
+      if (caseRecord && caseRecord.caseId && caseRecord._id) {
+        socket.join(`room_${String(caseRecord._id)}_${sortedIds}`);
+        socket.join(`room_${String(caseRecord.caseId)}_${sortedIds}`);
+      }
+      console.log(`User socket ${socket.id} successfully joined chat room: ${roomName}`);
+    } catch (e) {
+      console.error("join_room error:", e);
     }
-    const sortedIds = [userAId, userBId].sort().join("_");
-    const roomName = `room_${caseId}_${sortedIds}`;
-    socket.join(roomName);
-    console.log(`User socket ${socket.id} successfully joined chat room: ${roomName}`);
   });
 
   socket.on("send_message", async (data) => {
@@ -134,27 +152,48 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
-        console.warn("send_message rejected: senderId or receiverId is not a valid ObjectId:", { senderId, receiverId });
-        return;
+      let validSenderId = senderId;
+      let validReceiverId = receiverId;
+
+      if (!mongoose.Types.ObjectId.isValid(validSenderId)) {
+        const foundSender = await User.findOne({
+          $or: [{ email: validSenderId }, { role: senderRole }]
+        });
+        if (foundSender) validSenderId = foundSender._id;
+      }
+      if (!mongoose.Types.ObjectId.isValid(validReceiverId)) {
+        const foundReceiver = await User.findOne({
+          $or: [{ email: validReceiverId }, { role: receiverRole }]
+        });
+        if (foundReceiver) validReceiverId = foundReceiver._id;
       }
 
+      const caseRecord = await Case.findOne(
+        mongoose.Types.ObjectId.isValid(caseId) ? { $or: [{ _id: caseId }, { caseId }] } : { caseId }
+      );
+      const canonicalCaseId = caseRecord ? String(caseRecord.caseId || caseRecord._id) : String(caseId);
+
       const savedMsg = await ChatMessage.create({
-        caseId,
-        senderId,
-        senderRole,
-        receiverId,
-        receiverRole,
+        caseId: canonicalCaseId,
+        senderId: validSenderId,
+        senderRole: senderRole || "respondent",
+        receiverId: validReceiverId,
+        receiverRole: receiverRole || "claimant",
         message,
         timestamp: new Date(),
       });
       console.log("Saved chat message to MongoDB:", savedMsg._id);
 
-      const sortedIds = [senderId, receiverId].sort().join("_");
-      const roomName = `room_${caseId}_${sortedIds}`;
+      const sortedIds = [String(validSenderId), String(validReceiverId)].sort().join("_");
+      const roomName = `room_${canonicalCaseId}_${sortedIds}`;
 
       console.log(`Broadcasting receive_message to room: ${roomName}`);
       io.to(roomName).emit("receive_message", savedMsg);
+      if (caseRecord && caseRecord._id) {
+        io.to(`room_${String(caseRecord._id)}_${sortedIds}`).emit("receive_message", savedMsg);
+      }
+      // Also emit to the sender socket directly to ensure instant message feedback
+      socket.emit("receive_message", savedMsg);
     } catch (err) {
       console.error("Socket chat event database save error:", err);
     }

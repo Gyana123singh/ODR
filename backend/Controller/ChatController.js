@@ -38,39 +38,61 @@ const getUserCases = async (user) => {
   if (user.role === "admin") {
     return Case.find({}).select(
       "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).lean();
+    ).sort({ createdAt: -1 }).lean();
   }
 
   if (user.role === "claimant") {
-    return Case.find({
-      $or: [
-        { claimant: user.id },
-        { CustomersEmail: user.email }
-      ]
-    }).collation({ locale: "en", strength: 2 }).select(
-      "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).lean();
+    const userEmail = (user.email || "").trim();
+    const userId = user.id || user._id;
+    const orConditions = [];
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      orConditions.push({ claimant: userId });
+    }
+    if (userEmail) {
+      orConditions.push({ CustomersEmail: new RegExp(`^${userEmail}$`, "i") });
+    }
+    return Case.find(orConditions.length ? { $or: orConditions } : { CustomersEmail: userEmail })
+      .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
   }
 
   if (user.role === "respondent") {
-    return Case.find({
-      $or: [
-        { respondent: user.id },
-        { oppositePartyEmail: user.email }
-      ]
-    }).collation({ locale: "en", strength: 2 }).select(
-      "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).lean();
+    const userEmail = (user.email || "").trim();
+    const userId = user.id || user._id;
+    const orConditions = [];
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      orConditions.push({ respondent: userId });
+    }
+    if (userEmail) {
+      orConditions.push({ oppositePartyEmail: new RegExp(`^${userEmail}$`, "i") });
+    }
+    let cases = [];
+    if (orConditions.length > 0) {
+      cases = await Case.find({ $or: orConditions })
+        .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+        .sort({ createdAt: -1 })
+        .lean();
+    }
+    if (!cases || cases.length === 0) {
+      if (userEmail) {
+        cases = await Case.find({ oppositePartyEmail: new RegExp(userEmail, "i") })
+          .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+          .sort({ createdAt: -1 })
+          .lean();
+      }
+    }
+    return cases || [];
   }
 
   if (user.role === "neutral") {
     let cases = await Case.find({ neutral: user.id }).select(
       "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).lean();
+    ).sort({ createdAt: -1 }).lean();
     if (!cases || cases.length === 0) {
       cases = await Case.find({}).select(
         "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-      ).lean();
+      ).sort({ createdAt: -1 }).lean();
     }
     return cases;
   }
@@ -188,8 +210,15 @@ const getChatHistory = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required parameters" });
     }
 
+    const caseRecord = await Case.findOne(
+      mongoose.Types.ObjectId.isValid(caseId) ? { $or: [{ _id: caseId }, { caseId }] } : { caseId }
+    );
+    const caseIdVariants = caseRecord
+      ? [String(caseRecord.caseId), String(caseRecord._id)].filter(Boolean)
+      : [String(caseId)];
+
     const history = await ChatMessage.find({
-      caseId,
+      caseId: { $in: caseIdVariants },
       $or: [
         { senderId: userAId, receiverId: userBId },
         { senderId: userBId, receiverId: userAId },
@@ -223,25 +252,77 @@ const getCaseParticipants = async (req, res) => {
       return res.status(404).json({ success: false, message: "Case not found" });
     }
 
-    // Find all system administrators to list as support contacts
-    const admins = await User.find({ role: "admin" }).select("name email phone role");
+    let claimantUser = caseData.claimant;
+    if (!claimantUser && caseData.CustomersEmail) {
+      claimantUser = await User.findOne({
+        email: new RegExp(`^${caseData.CustomersEmail.trim()}$`, "i")
+      }).select("name email phone role");
+      if (!claimantUser) {
+        claimantUser = await User.findOneAndUpdate(
+          { email: caseData.CustomersEmail.toLowerCase().trim() },
+          {
+            $setOnInsert: {
+              name: caseData.CustomersName || "Claimant",
+              email: caseData.CustomersEmail.toLowerCase().trim(),
+              role: "claimant",
+              phone: caseData.CustomersMobileNumber || "",
+            }
+          },
+          { upsert: true, new: true }
+        ).select("name email phone role");
+      }
+    }
+
+    let respondentUser = caseData.respondent;
+    if (!respondentUser && caseData.oppositePartyEmail) {
+      respondentUser = await User.findOne({
+        email: new RegExp(`^${caseData.oppositePartyEmail.trim()}$`, "i")
+      }).select("name email phone role");
+      if (!respondentUser) {
+        respondentUser = await User.findOneAndUpdate(
+          { email: caseData.oppositePartyEmail.toLowerCase().trim() },
+          {
+            $setOnInsert: {
+              name: caseData.oppositePartyName || "Respondent",
+              email: caseData.oppositePartyEmail.toLowerCase().trim(),
+              role: "respondent",
+              phone: caseData.oppositeMobile || "",
+            }
+          },
+          { upsert: true, new: true }
+        ).select("name email phone role");
+      }
+    }
+
+    let neutralUser = caseData.neutral;
+    if (!neutralUser) {
+      neutralUser = await User.findOne({ role: "neutral" }).select("name email phone role");
+    }
 
     const participants = [];
+    const addedIds = new Set();
 
-    if (caseData.claimant) participants.push(caseData.claimant);
-    if (caseData.respondent) participants.push(caseData.respondent);
-    if (caseData.neutral) participants.push(caseData.neutral);
-    
-    // Merge admins in contact lists
-    admins.forEach(adm => {
-      participants.push(adm);
+    [claimantUser, respondentUser, neutralUser].forEach((u) => {
+      if (u && !addedIds.has(String(u._id))) {
+        addedIds.add(String(u._id));
+        participants.push(u);
+      }
+    });
+
+    // Merge system admins as support contacts
+    const admins = await User.find({ role: "admin" }).select("name email phone role");
+    admins.forEach((adm) => {
+      if (!addedIds.has(String(adm._id))) {
+        addedIds.add(String(adm._id));
+        participants.push(adm);
+      }
     });
 
     res.status(200).json({
       success: true,
       case: {
-        caseId: caseData.caseId,
-        DisputeName: caseData.DisputeName,
+        caseId: caseData.caseId || String(caseData._id),
+        DisputeName: caseData.DisputeName || "Dispute Case",
       },
       data: participants,
       participants: participants,

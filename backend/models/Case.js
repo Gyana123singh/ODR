@@ -55,4 +55,4 @@ caseSchema.set("toJSON", { getters: true });
 caseSchema.path("createdAt").get(function (date) {
   return date.toISOString().split("T")[0];
 });
-module.exports = mongoose.model("Case", caseSchema);
+module.exports = mongoose.models.Case || mongoose.model("Case", caseSchema);

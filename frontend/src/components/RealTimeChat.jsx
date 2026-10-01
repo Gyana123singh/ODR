@@ -52,30 +52,60 @@ export default function RealTimeChat({ role }) {
             localStorage.setItem("userId", res.data.data._id);
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          const userEmail = localStorage.getItem("userEmail");
+          if (userEmail) {
+            axiosInstance
+              .post("/respondent/my-case", { email: userEmail })
+              .then((cRes) => {
+                const list = Array.isArray(cRes.data) ? cRes.data : cRes.data?.cases || [];
+                if (list.length > 0 && list[0].respondent) {
+                  const rId = typeof list[0].respondent === "object" ? list[0].respondent._id : list[0].respondent;
+                  if (rId) {
+                    setCurrentUserId(String(rId));
+                    localStorage.setItem("userId", String(rId));
+                  }
+                }
+              })
+              .catch(() => {});
+          }
+        });
     }
   }, [role]);
 
-  // Fetch all user cases on mount
+  // Fetch all user cases on mount with multi-strategy fallback
   useEffect(() => {
     const fetchCases = async () => {
       try {
         setLoading(true);
-        const res = await axiosInstance.get("/api/chat/cases");
-        if (res.data.success && res.data.data.length > 0) {
-          setCases(res.data.data);
-          setSelectedCaseId(res.data.data[0].caseId);
-        } else {
-          // Fallback to respondent cases
-          const userEmail = localStorage.getItem("userEmail");
-          if (userEmail) {
+        let loadedCases = [];
+
+        try {
+          const res = await axiosInstance.get("/api/chat/cases");
+          if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+            loadedCases = res.data.data;
+          }
+        } catch (chatApiErr) {
+          console.warn("Direct /api/chat/cases failed or unauthenticated, attempting role fallback:", chatApiErr);
+        }
+
+        if (loadedCases.length === 0) {
+          const userEmail = localStorage.getItem("userEmail") || "";
+          try {
             const respCaseRes = await axiosInstance.post("/respondent/my-case", { email: userEmail });
             const respCases = Array.isArray(respCaseRes.data) ? respCaseRes.data : respCaseRes.data?.cases || [];
             if (respCases.length > 0) {
-              setCases(respCases);
-              setSelectedCaseId(respCases[0].caseId || respCases[0].id);
+              loadedCases = respCases;
             }
+          } catch (rErr) {
+            console.warn("Respondent fallback cases fetch failed:", rErr);
           }
+        }
+
+        if (loadedCases.length > 0) {
+          setCases(loadedCases);
+          const firstId = loadedCases[0].caseId || loadedCases[0]._id || loadedCases[0].id;
+          setSelectedCaseId(firstId);
         }
       } catch (err) {
         console.error("Failed to load user cases:", err);
@@ -93,12 +123,21 @@ export default function RealTimeChat({ role }) {
     const fetchParticipants = async () => {
       try {
         const res = await axiosInstance.get(`/api/chat/participants/${selectedCaseId}`);
-        if (res.data.success) {
-          const filtered = res.data.data.filter(
-            (p) => p._id?.toString() !== currentUserId?.toString()
+        if (res.data?.success) {
+          const list = res.data.participants || res.data.data || [];
+          const filtered = list.filter(
+            (p) => p && (!currentUserId || p._id?.toString() !== currentUserId?.toString())
           );
           setParticipants(filtered);
-          setActiveRecipient(null);
+          if (filtered.length > 0) {
+            setActiveRecipient((prev) => {
+              // Keep current if still in list, else select first
+              if (prev && filtered.some((p) => p._id === prev._id)) return prev;
+              return filtered[0];
+            });
+          } else {
+            setActiveRecipient(null);
+          }
           setChatMessages([]);
         }
       } catch (err) {
@@ -162,32 +201,38 @@ export default function RealTimeChat({ role }) {
 
   // Join Socket.io Room and fetch chat history when active recipient or case updates
   useEffect(() => {
-    if (!socket || !selectedCaseId || !activeRecipient || !currentUserId) return;
+    const sender = currentUserId || localStorage.getItem("userId");
+    if (!socket || !selectedCaseId || !activeRecipient || !sender) return;
 
     const joinPayload = {
       caseId: selectedCaseId,
-      userAId: currentUserId,
+      userAId: sender,
       userBId: activeRecipient._id,
     };
     console.log("Emitting join_room on client side:", joinPayload);
     socket.emit("join_room", joinPayload);
 
     // Listen for incoming room events
-    socket.on("receive_message", (messageData) => {
+    const handleReceive = (messageData) => {
       console.log("Received receive_message broadcast on client side:", messageData);
       setChatMessages((prev) => {
-        if (prev.some((m) => m._id === messageData._id)) return prev;
-        return [...prev, messageData];
+        const filteredPrev = prev.filter(
+          (m) => !(m._id?.startsWith("temp_") && m.message === messageData.message)
+        );
+        if (filteredPrev.some((m) => m._id === messageData._id)) return filteredPrev;
+        return [...filteredPrev, messageData];
       });
-    });
+    };
+
+    socket.on("receive_message", handleReceive);
 
     // Fetch conversation logs from DB
     const fetchHistory = async () => {
       try {
         const res = await axiosInstance.get(
-          `/api/chat/history/${selectedCaseId}/${currentUserId}/${activeRecipient._id}`
+          `/api/chat/history/${selectedCaseId}/${sender}/${activeRecipient._id}`
         );
-        if (res.data.success) {
+        if (res.data?.success) {
           console.log(`Loaded ${res.data.data.length} messages from database history.`);
           setChatMessages(res.data.data);
         }
@@ -199,7 +244,7 @@ export default function RealTimeChat({ role }) {
 
     return () => {
       console.log("Cleaning up receive_message socket listener...");
-      socket.off("receive_message");
+      socket.off("receive_message", handleReceive);
     };
   }, [socket, selectedCaseId, activeRecipient, currentUserId]);
 
@@ -225,19 +270,41 @@ export default function RealTimeChat({ role }) {
   // Send a message
   const handleSendMessage = (e) => {
     if (e) e.preventDefault();
-    if (!inputMessage.trim() || !socket || !activeRecipient) return;
+    if (!inputMessage.trim() || !activeRecipient) return;
 
+    const sender = currentUserId || localStorage.getItem("userId");
+    if (!sender) {
+      alert("Please ensure you are logged in to send messages.");
+      return;
+    }
+
+    const trimmedMsg = inputMessage.trim();
     const payload = {
       caseId: selectedCaseId,
-      senderId: currentUserId,
-      senderRole: role,
+      senderId: sender,
+      senderRole: role || "respondent",
       receiverId: activeRecipient._id,
-      receiverRole: activeRecipient.role,
-      message: inputMessage.trim(),
+      receiverRole: activeRecipient.role || "claimant",
+      message: trimmedMsg,
     };
 
     console.log("Emitting send_message event on client side:", payload);
-    socket.emit("send_message", payload);
+    if (socket) {
+      socket.emit("send_message", payload);
+    }
+
+    // Optimistically append message to conversation immediately
+    const optimisticMsg = {
+      _id: "temp_" + Date.now(),
+      caseId: selectedCaseId,
+      senderId: sender,
+      senderRole: role || "respondent",
+      receiverId: activeRecipient._id,
+      receiverRole: activeRecipient.role || "claimant",
+      message: trimmedMsg,
+      timestamp: new Date().toISOString(),
+    };
+    setChatMessages((prev) => [...prev, optimisticMsg]);
     setInputMessage("");
   };
 
@@ -331,11 +398,17 @@ export default function RealTimeChat({ role }) {
             onChange={(e) => setSelectedCaseId(e.target.value)}
             style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "6px", fontSize: "14px", outline: "none" }}
           >
-            {cases.map((c) => (
-              <option key={c.caseId} value={c.caseId}>
-                {c.caseId} - {c.DisputeName}
-              </option>
-            ))}
+            {cases.map((c) => {
+              const val = c.caseId || c._id || c.id;
+              const title = c.caseId 
+                ? `${c.caseId} - ${c.DisputeName || c.caseTitle || "Dispute Case"}` 
+                : (c.DisputeName || c.caseTitle || `Case #${val}`);
+              return (
+                <option key={val} value={val}>
+                  {title}
+                </option>
+              );
+            })}
           </select>
         </div>
 
