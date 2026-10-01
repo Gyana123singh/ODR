@@ -129,43 +129,132 @@ export default function Login({ getRole }) {
     }
   };
 
+  const clearRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (err) {
+        console.warn("Error clearing RecaptchaVerifier:", err);
+      }
+      window.recaptchaVerifier = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearRecaptcha();
+    };
+  }, []);
+
+  const setupRecaptcha = () => {
+    clearRecaptcha();
+    const container = document.getElementById("recaptcha-container");
+    if (!container) {
+      throw new Error("reCAPTCHA container element not found. Please try again.");
+    }
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+      callback: () => {
+        // reCAPTCHA solved
+      },
+      "expired-callback": () => {
+        toast.warn("reCAPTCHA expired. Please try again.");
+        clearRecaptcha();
+      }
+    });
+    return window.recaptchaVerifier;
+  };
+
   const loginWithPhone = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (selectedRole === "Select Role") return setError("Please select a role");
     if (selectedRole === "admin") return setError("Admins cannot login via Firebase");
     if (!phoneForLogin) return setError("Please enter your phone number");
 
-    const fullPhoneNumber = "+91" + phoneForLogin.replace(/^\+91/, "");
+    const digitsOnly = phoneForLogin.replace(/\D/g, "");
+    const cleanNumber = digitsOnly.startsWith("91") && digitsOnly.length > 10 ? digitsOnly.slice(2) : digitsOnly;
+
+    if (cleanNumber.length !== 10) {
+      return setError("Please enter a valid 10-digit mobile number");
+    }
+
+    const fullPhoneNumber = `+91${cleanNumber}`;
 
     setLoading(true);
+    setError("");
+
     try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible'
-        });
-      }
-      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
+      const verifier = setupRecaptcha();
+      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
       window.confirmationResult = confirmationResult;
       setIsOtpSent(true);
-      toast.success("OTP Sent!");
+      toast.success(`OTP sent to ${fullPhoneNumber}`);
     } catch (err) {
-      setError(err.message);
+      console.error("Phone sign-in error:", err);
+      clearRecaptcha();
+
+      if (err.code === "auth/captcha-check-failed" || (err.message && err.message.includes("Hostname match not found"))) {
+        setError(
+          `reCAPTCHA verification failed for hostname "${window.location.hostname}". Please ensure this domain is added to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
+        );
+      } else if (err.code === "auth/invalid-phone-number") {
+        setError("Invalid phone number format. Please enter a valid 10-digit number.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many requests from this device. Please wait a few moments before trying again.");
+      } else if (err.code === "auth/quota-exceeded") {
+        setError("SMS quota exceeded. Please check Firebase SMS quota or test phone numbers.");
+      } else {
+        setError(err.message || "Failed to send OTP. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const verifyOTP = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (!otp || otp.trim().length === 0) {
+      return setError("Please enter the OTP");
+    }
+
     setLoading(true);
+    setError("");
+
     try {
-      const result = await window.confirmationResult.confirm(otp);
+      if (!window.confirmationResult) {
+        throw new Error("Session expired. Please request a new OTP.");
+      }
+      const result = await window.confirmationResult.confirm(otp.trim());
       const idToken = await result.user.getIdToken();
       await handleFirebaseLogin(idToken);
     } catch (err) {
-      setError("Invalid OTP");
+      console.error("OTP verification error:", err);
+      if (err.code === "auth/invalid-verification-code") {
+        setError("Invalid OTP entered. Please check and try again.");
+      } else if (err.code === "auth/code-expired") {
+        setError("OTP has expired. Please request a new one.");
+      } else {
+        setError(err.message || "Invalid OTP");
+      }
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelPhoneLogin = () => {
+    setShowPhoneLogin(false);
+    setIsOtpSent(false);
+    setPhoneForLogin("");
+    setOtp("");
+    clearRecaptcha();
+    setError("");
+  };
+
+  const handleResendOtp = () => {
+    setIsOtpSent(false);
+    setOtp("");
+    clearRecaptcha();
+    setError("");
   };
 
   const isDisabled = selectedRole === "Select Role";
