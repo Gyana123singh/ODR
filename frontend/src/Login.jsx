@@ -464,6 +464,9 @@ export default function Login({ getRole }) {
                       </>
                     )}
                     <div id="recaptcha-container"></div>
+                    <div style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginTop: "4px" }}>
+                      Protected by reCAPTCHA (<a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: "#64748b" }}>Privacy</a> &amp; <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: "#64748b" }}>Terms</a>)
+                    </div>
                   </div>
                 )}
               </div>

@@ -600,3 +600,9 @@
   transform: translateY(-2px);
   box-shadow: 0 14px 25px -10px rgba(16, 185, 129, 0.6);
 }
+
+
+/* Hide floating reCAPTCHA badge for clean production UI */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
