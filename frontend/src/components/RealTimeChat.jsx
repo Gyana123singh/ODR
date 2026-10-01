@@ -102,13 +102,19 @@ export default function RealTimeChat({ role }) {
           }
         }
 
-        if (loadedCases.length > 0) {
-          setCases(loadedCases);
-          const firstId = loadedCases[0].caseId || loadedCases[0]._id || loadedCases[0].id;
-          setSelectedCaseId(firstId);
+        if (loadedCases.length === 0) {
+          const demoCase = { caseId: "DEMO-CASE", DisputeName: "Interactive Demo Dispute" };
+          loadedCases = [demoCase];
         }
+
+        setCases(loadedCases);
+        const firstId = loadedCases[0].caseId || loadedCases[0]._id || loadedCases[0].id;
+        setSelectedCaseId(firstId);
       } catch (err) {
         console.error("Failed to load user cases:", err);
+        const demoCase = { caseId: "DEMO-CASE", DisputeName: "Interactive Demo Dispute" };
+        setCases([demoCase]);
+        setSelectedCaseId("DEMO-CASE");
       } finally {
         setLoading(false);
       }
@@ -119,6 +125,17 @@ export default function RealTimeChat({ role }) {
   // Fetch participants when selectedCaseId changes
   useEffect(() => {
     if (!selectedCaseId) return;
+
+    if (selectedCaseId === "DEMO-CASE") {
+      setParticipants([
+        { _id: "admin-demo", name: "System Administrator", role: "admin" },
+        { _id: "neutral-demo", name: "Sarah (Mediator)", role: "neutral" },
+        { _id: "respondent-demo", name: "John (Respondent)", role: "respondent" }
+      ]);
+      setActiveRecipient(null);
+      setChatMessages([]);
+      return;
+    }
 
     const fetchParticipants = async () => {
       try {
@@ -228,6 +245,14 @@ export default function RealTimeChat({ role }) {
 
     // Fetch conversation logs from DB
     const fetchHistory = async () => {
+      if (selectedCaseId === "DEMO-CASE") {
+        setChatMessages([
+          { _id: "1", senderId: activeRecipient._id, message: "Hello! I am " + activeRecipient.name + ". This is a demonstration of the Real-Time Communication module.", timestamp: new Date(Date.now() - 60000) },
+          { _id: "2", senderId: currentUserId, message: "Hi! It's great to see this working. How does the AI rewrite feature work?", timestamp: new Date(Date.now() - 30000) },
+          { _id: "3", senderId: activeRecipient._id, message: "Just type a casual message below and click the sparkle icon before sending! The AI will automatically rewrite it into a professional, legal-standard message.", timestamp: new Date() }
+        ]);
+        return;
+      }
       try {
         const res = await axiosInstance.get(
           `/api/chat/history/${selectedCaseId}/${sender}/${activeRecipient._id}`
@@ -270,9 +295,35 @@ export default function RealTimeChat({ role }) {
   // Send a message
   const handleSendMessage = (e) => {
     if (e) e.preventDefault();
-    if (!inputMessage.trim() || !activeRecipient) return;
+    if (!inputMessage.trim()) return;
 
-    const sender = currentUserId || localStorage.getItem("userId");
+    const sender = currentUserId || localStorage.getItem("userId") || "me";
+
+    if (selectedCaseId === "DEMO-CASE" && activeRecipient) {
+      const newMsg = {
+        _id: Date.now().toString(),
+        senderId: sender,
+        message: inputMessage.trim(),
+        timestamp: new Date().toISOString()
+      };
+      setChatMessages((prev) => [...prev, newMsg]);
+      setInputMessage("");
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            _id: (Date.now() + 1).toString(),
+            senderId: activeRecipient._id,
+            message: "I received your message. I am a demo bot so I won't do much, but this shows the chat UI working perfectly!",
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      }, 1000);
+      return;
+    }
+
+    if (!activeRecipient) return;
+
     if (!sender) {
       alert("Please ensure you are logged in to send messages.");
       return;
@@ -544,7 +595,26 @@ export default function RealTimeChat({ role }) {
                 <button
                   key={idx}
                   onClick={() => {
-                    if (!socket || !activeRecipient) return;
+                    if (!activeRecipient) return;
+                    if (selectedCaseId === "DEMO-CASE") {
+                      const newMsg = {
+                        _id: Date.now().toString(),
+                        senderId: currentUserId,
+                        message: sug,
+                        timestamp: new Date()
+                      };
+                      setChatMessages((prev) => [...prev, newMsg]);
+                      setTimeout(() => {
+                         setChatMessages((prev) => [...prev, {
+                            _id: (Date.now()+1).toString(),
+                            senderId: activeRecipient._id,
+                            message: "Thank you for the quick suggestion. I will review it.",
+                            timestamp: new Date()
+                         }]);
+                      }, 1000);
+                      return;
+                    }
+                    if (!socket) return;
                     const payload = {
                       caseId: selectedCaseId,
                       senderId: currentUserId,
