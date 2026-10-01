@@ -50,8 +50,16 @@ const firebaseLogin = async (req, res) => {
       });
     } else {
       // If user exists but selected a different role (and not admin), update their role
+      let changed = false;
       if (role && ["claimant", "respondent", "neutral"].includes(role) && user.role !== role && user.role !== "admin") {
         user.role = role;
+        changed = true;
+      }
+      if ((!user.name || user.name === "Firebase User" || user.name === "User") && name && name !== "Firebase User") {
+        user.name = name;
+        changed = true;
+      }
+      if (changed) {
         await user.save();
       }
     }

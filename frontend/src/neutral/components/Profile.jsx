@@ -22,20 +22,43 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import ModalComponent from "./Modal/ModalComponent";
 import axiosInstance from "../../api/axiosConfig";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
-  const [neutralData, setNeutralData] = useState({
-    name: "User",
-    email: "neutral@email.com",
-    phone: "",
-    role: "neutral",
-  });
+  const { user: authUser } = useAuth();
+
+  const [neutralData, setNeutralData] = useState(() => ({
+    name: localStorage.getItem("username") || authUser?.name || "Neutral User",
+    email: localStorage.getItem("userEmail") || authUser?.email || "",
+    phone: localStorage.getItem("userPhone") || authUser?.phone || "",
+    role: localStorage.getItem("userRole") || authUser?.role || "neutral",
+  }));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openModal, setOpenModal] = useState(null); // "editProfile" or "changePassword"
 
   // Form states
-  const [profileForm, setProfileForm] = useState({ name: "", phone: "" });
+  const [profileForm, setProfileForm] = useState(() => ({
+    name: localStorage.getItem("username") || authUser?.name || "",
+    phone: localStorage.getItem("userPhone") || authUser?.phone || "",
+  }));
+
+  // Sync state if auth context updates
+  useEffect(() => {
+    if (authUser) {
+      setNeutralData((prev) => ({
+        ...prev,
+        name: authUser.name || prev.name,
+        email: authUser.email || prev.email,
+        phone: authUser.phone || prev.phone,
+        role: authUser.role || prev.role,
+      }));
+      setProfileForm((prev) => ({
+        name: authUser.name || prev.name,
+        phone: authUser.phone || prev.phone,
+      }));
+    }
+  }, [authUser]);
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
     newPassword: "",
@@ -128,15 +151,34 @@ export default function Profile() {
     try {
       const res = await axiosInstance.get("/neutral/data");
       if (res.data?.success && res.data.data) {
-        setNeutralData(res.data.data);
+        const u = res.data.data;
+        setNeutralData(u);
         setProfileForm({
-          name: res.data.data.name || "",
-          phone: res.data.data.phone || "",
+          name: u.name || "",
+          phone: u.phone || "",
         });
+        if (u.name) localStorage.setItem("username", u.name);
+        if (u.email) localStorage.setItem("userEmail", u.email);
+        if (u.phone) localStorage.setItem("userPhone", u.phone);
+        if (u.role) localStorage.setItem("userRole", u.role);
       }
     } catch (error) {
       console.error("Fetch neutral data error:", error);
-      toast.error("Failed to load profile details");
+      // Fallback gracefully to localStorage or authUser so email/name still displays
+      const savedEmail = localStorage.getItem("userEmail") || authUser?.email || "";
+      const savedName = localStorage.getItem("username") || authUser?.name || "Neutral User";
+      const savedPhone = localStorage.getItem("userPhone") || authUser?.phone || "";
+      const savedRole = localStorage.getItem("userRole") || authUser?.role || "neutral";
+      setNeutralData({
+        name: savedName,
+        email: savedEmail,
+        phone: savedPhone,
+        role: savedRole,
+      });
+      setProfileForm({
+        name: savedName,
+        phone: savedPhone,
+      });
     } finally {
       setLoading(false);
     }
@@ -609,6 +651,15 @@ export default function Profile() {
           onClose={() => setOpenModal(null)}
         >
           <form onSubmit={handleUpdateProfile} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Email Address (Google Account)</label>
+              <input
+                type="email"
+                value={neutralData.email || ""}
+                disabled
+                style={{ ...styles.input, backgroundColor: "#f1f5f9", cursor: "not-allowed", color: "#64748b" }}
+              />
+            </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Full Name</label>
               <input

@@ -24,7 +24,11 @@ export default function Navbar({ isOpen, setIsOpen }) {
   const location = useLocation();
   const [isMobile] = useState(window.innerWidth <= 480);
   const [isClick, setIsClick] = useState(false);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(() => ({
+    name: localStorage.getItem("username") || "Neutral User",
+    email: localStorage.getItem("userEmail") || "",
+    role: localStorage.getItem("userRole") || "neutral",
+  }));
 
   useEffect(() => {
     if (isClick && isMobile) {

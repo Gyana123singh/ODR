@@ -169,7 +169,7 @@ const NeutralLogin = async (req, res) => {
 const NeutralData = async (req, res) => {
   try {
     const neutral = await neutralUser
-      .findById(req.neutral.id)
+      .findById(req.neutral?._id || req.neutral?.id || req.user?.id)
       .select("-password");
     if (!neutral) {
       return res
@@ -433,11 +433,11 @@ const getNeutralDashboardStats = async (req, res) => {
 const updateNeutralProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
-    if (!req.neutral) {
+    if (!req.neutral && !req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized. Neutral session not found." });
     }
 
-    const neutral = await neutralUser.findById(req.neutral.id);
+    const neutral = await neutralUser.findById(req.neutral?._id || req.neutral?.id || req.user?.id);
     if (!neutral) {
       return res.status(404).json({ success: false, message: "Neutral not found" });
     }
@@ -470,11 +470,11 @@ const updateNeutralPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Both old and new passwords are required" });
     }
 
-    if (!req.neutral) {
+    if (!req.neutral && !req.user) {
       return res.status(401).json({ success: false, message: "Unauthorized. Neutral session not found." });
     }
 
-    const neutral = await neutralUser.findById(req.neutral.id);
+    const neutral = await neutralUser.findById(req.neutral?._id || req.neutral?.id || req.user?.id);
     if (!neutral) {
       return res.status(404).json({ success: false, message: "Neutral not found" });
     }
