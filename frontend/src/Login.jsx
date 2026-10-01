@@ -268,11 +268,18 @@ export default function Login({ getRole }) {
         {/* Top: Logo */}
         <div className="left-top">
           <div className="brand-header-light">
-            <img src="/logo.png" alt="Utkal ODR Logo" />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '28px', fontWeight: '700', lineHeight: '1.1', color: '#ffffff' }}>Utkal ODR</span>
-              <span style={{ fontSize: '15px', fontWeight: '400', color: '#cbd5e1', marginTop: '4px', letterSpacing: '0px' }}>Online Dispute Resolution</span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Utkal ODR - Online Dispute Resolution" 
+              style={{
+                width: "220px",
+                maxWidth: "100%",
+                height: "auto",
+                objectFit: "contain",
+                display: "block",
+                filter: "drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35))"
+              }}
+            />
           </div>
         </div>
 

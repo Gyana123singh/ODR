@@ -137,13 +137,14 @@
 .brand-header-light {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .brand-header-light img {
-  width: 70px;
+  width: 220px;
+  max-width: 100%;
   height: auto;
-  max-height: 70px;
+  max-height: 95px;
   object-fit: contain;
   display: block;
 }
