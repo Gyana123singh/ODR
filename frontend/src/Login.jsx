@@ -300,7 +300,7 @@ export default function Login({ getRole }) {
           <h2 className="hero-title" style={{ fontSize: '44px', lineHeight: '1.2' }}>
             Settle your dispute online, without waiting in line.
           </h2>
-          <p className="hero-subtitle" style={{ fontSize: '20px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#ffffff', opacity: '1' }}>
+          <p className="hero-subtitle" style={{ fontSize: '26px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#ffffff', opacity: '1', fontWeight: '500' }}>
             Online Mediation Platform
           </p>
         </div>
