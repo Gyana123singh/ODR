@@ -40,17 +40,30 @@ export default function Admin() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    document.body.classList.add("admin-layout-active");
+    document.documentElement.classList.add("admin-layout-active");
+    return () => {
+      document.body.classList.remove("admin-layout-active");
+      document.documentElement.classList.remove("admin-layout-active");
+    };
+  }, []);
+
   const Styles = {
     container: {
       display: "flex",
       height: "100vh",
       width: "100%",
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      overflow: "hidden",
     },
     main: {
       flex: 1,
       marginLeft: isMobile ? "0" : sidebarOpen ? "260px" : "72px",
-      overflow: "auto",
+      overflowY: "auto",
+      overflowX: "hidden",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
       paddingBottom: "80px",
       transition: "margin-left 0.3s ease",
       backgroundColor: "#f5f5f5",
@@ -61,9 +74,9 @@ export default function Admin() {
 
   return (
     <>
-      <div style={Styles.container}>
+      <div style={Styles.container} className="admin-container" data-admin-root>
         <Navbar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-        <main style={Styles.main}>
+        <main style={Styles.main} className="admin-main">
           <Routes>
             <Route path="/" element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />

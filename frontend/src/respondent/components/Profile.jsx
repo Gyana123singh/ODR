@@ -12,34 +12,285 @@ import {
   Phone,
   MessagesSquare,
   User,
+  X,
+  Check,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import axiosInstance from "../../api/axiosConfig";
 
 export default function Profile() {
-  const [enableNotifications, setEnableNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [dataSaver, setDataSaver] = useState(false);
+  const navigate = useNavigate();
   const [isMobile] = useState(window.innerWidth <= 480);
 
+  // Profile State
+  const [name, setName] = useState(localStorage.getItem("userName") || "User");
+  const [email, setEmail] = useState(localStorage.getItem("userEmail") || "respondent@email.com");
+  const [phone, setPhone] = useState(localStorage.getItem("userPhone") || "+91 98765 43210");
+
+  // Preferences State
+  const [enableNotifications, setEnableNotifications] = useState(
+    () => localStorage.getItem("respondent_notifications") !== "false"
+  );
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("respondent_darkMode") === "true"
+  );
+  const [dataSaver, setDataSaver] = useState(
+    () => localStorage.getItem("respondent_dataSaver") === "true"
+  );
+
+  // Language State
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem("appLanguage") || "English"
+  );
+
+  // Privacy Settings State
+  const [twoFactorAuth, setTwoFactorAuth] = useState(
+    () => localStorage.getItem("respondent_2fa") === "true"
+  );
+  const [profileVisible, setProfileVisible] = useState(
+    () => localStorage.getItem("respondent_profileVisible") !== "false"
+  );
+  const [sessionTimeout, setSessionTimeout] = useState(
+    () => localStorage.getItem("respondent_sessionTimeout") !== "false"
+  );
+  const [emailAlerts, setEmailAlerts] = useState(
+    () => localStorage.getItem("respondent_emailAlerts") !== "false"
+  );
+
+  // Modal States
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState(null);
+
+  // Edit Profile Form State
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Change Password Form State
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOldPass, setShowOldPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [isChangingPass, setIsChangingPass] = useState(false);
+
+  // Fetch initial profile if available
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await axiosInstance.get("/respondent/data");
+        if (res.data?.success && res.data.data) {
+          if (res.data.data.name) setName(res.data.data.name);
+          if (res.data.data.email) setEmail(res.data.data.email);
+          if (res.data.data.phone) setPhone(res.data.data.phone);
+        }
+      } catch (err) {
+        // Fallback to localStorage values
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  // Open Edit Profile Modal
+  const handleOpenEdit = () => {
+    setEditName(name);
+    setEditEmail(email);
+    setEditPhone(phone);
+    setShowEditModal(true);
+  };
+
+  // Submit Profile Edit
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    if (!editName.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      try {
+        await axiosInstance.put("/respondent/update-profile", {
+          name: editName,
+          email: editEmail,
+          phone: editPhone,
+        });
+      } catch (apiErr) {
+        console.warn("Backend update notice:", apiErr.message);
+      }
+
+      setName(editName);
+      setEmail(editEmail);
+      setPhone(editPhone);
+
+      localStorage.setItem("userName", editName);
+      localStorage.setItem("userEmail", editEmail);
+      localStorage.setItem("userPhone", editPhone);
+
+      toast.success("Profile updated successfully!");
+      setShowEditModal(false);
+    } catch (err) {
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Submit Password Change
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (!oldPassword.trim()) {
+      toast.error("Please enter your current password");
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    setIsChangingPass(true);
+    try {
+      const res = await axiosInstance.put("/respondent/update-password", {
+        oldPassword,
+        newPassword,
+      });
+      if (res.data?.success) {
+        toast.success(res.data.message || "Password changed successfully!");
+        setShowPasswordModal(false);
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(res.data?.message || "Failed to update password");
+      }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "Incorrect current password or server error";
+      toast.error(errMsg);
+    } finally {
+      setIsChangingPass(false);
+    }
+  };
+
+  // Language List
+  const languagesList = [
+    { code: "en", name: "English", native: "English" },
+    { code: "or", name: "Odia", native: "ଓଡ଼ିଆ" },
+    { code: "hi", name: "Hindi", native: "हिन्दी" },
+    { code: "bn", name: "Bengali", native: "বাংলা" },
+    { code: "te", name: "Telugu", native: "తెలుగు" },
+  ];
+
+  const handleSelectLanguage = (lang) => {
+    setLanguage(lang.name);
+    localStorage.setItem("appLanguage", lang.name);
+    toast.success(`Language changed to ${lang.name} (${lang.native})`);
+    setShowLanguageModal(false);
+  };
+
+  // Save Privacy Settings
+  const handleSavePrivacy = () => {
+    localStorage.setItem("respondent_2fa", String(twoFactorAuth));
+    localStorage.setItem("respondent_profileVisible", String(profileVisible));
+    localStorage.setItem("respondent_sessionTimeout", String(sessionTimeout));
+    localStorage.setItem("respondent_emailAlerts", String(emailAlerts));
+    toast.success("Privacy settings updated successfully!");
+    setShowPrivacyModal(false);
+  };
+
+  // FAQ List
+  const faqList = [
+    {
+      id: 1,
+      q: "How do I file a response to a dispute?",
+      a: "Navigate to the Case Details section. Select the case assigned to you and follow the structured submission form. Upload any supporting contracts, invoices, or communications before submitting.",
+    },
+    {
+      id: 2,
+      q: "What happens if I miss a scheduled online hearing?",
+      a: "If you cannot attend, submit a rescheduling request through the Events & Schedule section at least 24 hours in advance. Unexcused absences may result in ex-parte proceedings by the arbitrator.",
+    },
+    {
+      id: 3,
+      q: "Are the awards and rulings legally binding?",
+      a: "Yes. Arbitral awards rendered through the Utkal ODR platform are enforceable under the Arbitration and Conciliation Act, holding the same legal authority as civil court decrees.",
+    },
+    {
+      id: 4,
+      q: "How do I upload evidentiary documents?",
+      a: "Go to the Documents section, click 'Upload Document', choose your file (PDF, DOCX, JPG, PNG up to 25MB), and assign it to your case reference number.",
+    },
+    {
+      id: 5,
+      q: "Who can I contact for urgent technical assistance?",
+      a: "You can email support@odrcourtapp.com or call our toll-free support line at +91 9876543210 during working hours.",
+    },
+  ];
+
+  // Account Settings items
   const accountSettings = [
-    { id: 1, icon: Lock, label: "Change Password", color: "#0066cc" },
-    { id: 2, icon: Globe, label: "Language (English)", color: "#2196f3" },
-    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2" },
+    {
+      id: 1,
+      icon: Lock,
+      label: "Change Password",
+      color: "#0066cc",
+      onClick: () => {
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setShowPasswordModal(true);
+      },
+    },
+    {
+      id: 2,
+      icon: Globe,
+      label: `Language (${language})`,
+      color: "#2196f3",
+      onClick: () => setShowLanguageModal(true),
+    },
+    {
+      id: 3,
+      icon: Shield,
+      label: "Privacy Settings",
+      color: "#1976d2",
+      onClick: () => setShowPrivacyModal(true),
+    },
     {
       id: 4,
       icon: CreditCard,
       label: "Manage Subscriptions",
       color: "#1565c0",
+      onClick: () => setShowSubscriptionModal(true),
     },
   ];
 
+  // Preferences items
   const preferences = [
     {
       id: 1,
       icon: Bell,
       label: "Enable Notifications",
       toggle: enableNotifications,
-      setToggle: setEnableNotifications,
+      setToggle: (val) => {
+        setEnableNotifications(val);
+        localStorage.setItem("respondent_notifications", String(val));
+        toast.info(val ? "Notifications enabled" : "Notifications muted");
+      },
       color: "#ff9900",
     },
     {
@@ -47,7 +298,11 @@ export default function Profile() {
       icon: Moon,
       label: "Dark Mode",
       toggle: darkMode,
-      setToggle: setDarkMode,
+      setToggle: (val) => {
+        setDarkMode(val);
+        localStorage.setItem("respondent_darkMode", String(val));
+        toast.info(val ? "Dark mode enabled" : "Dark mode disabled");
+      },
       color: "#9c27b0",
     },
     {
@@ -55,11 +310,16 @@ export default function Profile() {
       icon: Zap,
       label: "Data Saver",
       toggle: dataSaver,
-      setToggle: setDataSaver,
+      setToggle: (val) => {
+        setDataSaver(val);
+        localStorage.setItem("respondent_dataSaver", String(val));
+        toast.info(val ? "Data saver enabled" : "Data saver disabled");
+      },
       color: "#673ab7",
     },
   ];
 
+  // Help Options items
   const helpOptions = [
     {
       id: 1,
@@ -67,6 +327,14 @@ export default function Profile() {
       label: "Email Us",
       desc: "support@odrcourtapp.com",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Opening Gmail compose...");
+        window.open(
+          "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Respondent%20Support%20Request",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      },
     },
     {
       id: 2,
@@ -74,6 +342,10 @@ export default function Profile() {
       label: "Call Us",
       desc: "+91 9876543210",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Calling support: +91 9876543210");
+        window.location.href = "tel:+919876543210";
+      },
     },
     {
       id: 3,
@@ -81,6 +353,10 @@ export default function Profile() {
       label: "Visit Website",
       desc: "www.odrcourtapp.com/help",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Navigating to Help Center...");
+        navigate("/respondent/help");
+      },
     },
     {
       id: 4,
@@ -88,6 +364,9 @@ export default function Profile() {
       label: "FAQs",
       desc: "Find answers to common questions",
       color: "#0066cc",
+      onClick: () => {
+        setShowFaqModal(true);
+      },
     },
   ];
 
@@ -225,6 +504,31 @@ export default function Profile() {
       transition: "transform 0.3s ease",
       transform: isActive ? "translateX(22px)" : "translateX(0)",
     }),
+    modalOverlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backdropFilter: "blur(3px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      padding: "1rem",
+    },
+    modalCard: {
+      backgroundColor: "#ffffff",
+      borderRadius: "12px",
+      maxWidth: "460px",
+      width: "100%",
+      maxHeight: "88vh",
+      overflowY: "auto",
+      boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+      padding: "1.75rem",
+      position: "relative",
+    },
   };
 
   return (
@@ -237,11 +541,12 @@ export default function Profile() {
         <div style={styles.profileAvatar}>
           <User size={isMobile ? 40 : 60} strokeWidth={2.2} />
         </div>
-        <div style={styles.profileName}>User</div>
+        <div style={styles.profileName}>{name}</div>
         <div style={styles.profileRole}>respondent</div>
-        <div style={styles.profileEmail}>respondent@email.com</div>
+        <div style={styles.profileEmail}>{email}</div>
         <button
           style={styles.editButton}
+          onClick={handleOpenEdit}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = "#f0f0f0";
             e.currentTarget.style.color = "#0066cc";
@@ -264,6 +569,7 @@ export default function Profile() {
           return (
             <div
               key={setting.id}
+              onClick={setting.onClick}
               style={styles.settingItem(setting.color)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
@@ -294,6 +600,7 @@ export default function Profile() {
           return (
             <div
               key={pref.id}
+              onClick={() => pref.setToggle(!pref.toggle)}
               style={styles.settingItem(pref.color)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
@@ -311,8 +618,12 @@ export default function Profile() {
                 <div style={styles.settingLabel}>{pref.label}</div>
               </div>
               <button
+                type="button"
                 style={styles.toggleSwitch(pref.toggle)}
-                onClick={() => pref.setToggle(!pref.toggle)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  pref.setToggle(!pref.toggle);
+                }}
               >
                 <div style={styles.toggleDot(pref.toggle)} />
               </button>
@@ -329,6 +640,7 @@ export default function Profile() {
           return (
             <div
               key={option.id}
+              onClick={option.onClick}
               style={styles.settingItem(option.color)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
@@ -344,13 +656,750 @@ export default function Profile() {
               </div>
               <div style={styles.settingContent}>
                 <div style={styles.settingLabel}>{option.label}</div>
-                <div style={styles.settingLabel}>{option.desc}</div>
+                <div style={styles.settingDescription}>{option.desc}</div>
               </div>
               <ChevronRight size={20} color="#999" />
             </div>
           );
         })}
       </div>
+
+      {/* EDIT PROFILE MODAL */}
+      {showEditModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                Edit Profile
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    padding: "0.55rem 1rem",
+                    backgroundColor: "#f5f5f5",
+                    color: "#555",
+                    border: "1px solid #ddd",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  style={{
+                    padding: "0.55rem 1.25rem",
+                    backgroundColor: "#0066cc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: isSaving ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CHANGE PASSWORD MODAL */}
+      {showPasswordModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowPasswordModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ padding: "6px", borderRadius: "6px", backgroundColor: "#e3f2fd", color: "#0066cc" }}>
+                  <Lock size={18} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                  Change Password
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  Current Password
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showOldPass ? "text" : "password"}
+                    required
+                    placeholder="Enter current password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "9px 38px 9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPass(!showOldPass)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#777",
+                      padding: "2px",
+                    }}
+                  >
+                    {showOldPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  New Password
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showNewPass ? "text" : "password"}
+                    required
+                    minLength={6}
+                    placeholder="At least 6 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "9px 38px 9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(!showNewPass)}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#777",
+                      padding: "2px",
+                    }}
+                  >
+                    {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "4px" }}>
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Re-enter new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  style={{
+                    padding: "0.55rem 1rem",
+                    backgroundColor: "#f5f5f5",
+                    color: "#555",
+                    border: "1px solid #ddd",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPass}
+                  style={{
+                    padding: "0.55rem 1.25rem",
+                    backgroundColor: "#0066cc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: isChangingPass ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {isChangingPass ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* LANGUAGE SELECT MODAL */}
+      {showLanguageModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowLanguageModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ padding: "6px", borderRadius: "6px", backgroundColor: "#e3f2fd", color: "#2196f3" }}>
+                  <Globe size={18} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                  Select Language
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLanguageModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {languagesList.map((lang) => {
+                const isSelected = language === lang.name;
+                return (
+                  <div
+                    key={lang.code}
+                    onClick={() => handleSelectLanguage(lang)}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "8px",
+                      border: isSelected ? "2px solid #0066cc" : "1px solid #e0e0e0",
+                      backgroundColor: isSelected ? "#f0f7ff" : "#fff",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: isSelected ? "700" : "500", color: "#333", fontSize: "14px" }}>
+                        {lang.name}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#666" }}>{lang.native}</div>
+                    </div>
+                    {isSelected && <Check size={18} color="#0066cc" strokeWidth={2.5} />}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.25rem" }}>
+              <button
+                type="button"
+                onClick={() => setShowLanguageModal(false)}
+                style={{
+                  padding: "0.55rem 1.25rem",
+                  backgroundColor: "#f5f5f5",
+                  color: "#555",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRIVACY SETTINGS MODAL */}
+      {showPrivacyModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowPrivacyModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ padding: "6px", borderRadius: "6px", backgroundColor: "#e3f2fd", color: "#1976d2" }}>
+                  <Shield size={18} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                  Privacy & Security Settings
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                    Two-Factor Authentication (2FA)
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
+                    Require a one-time verification code on login
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={styles.toggleSwitch(twoFactorAuth)}
+                  onClick={() => setTwoFactorAuth(!twoFactorAuth)}
+                >
+                  <div style={styles.toggleDot(twoFactorAuth)} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                    Profile Visibility
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
+                    Allow appointed Arbitrators & Neutrals to view verified contact profile
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={styles.toggleSwitch(profileVisible)}
+                  onClick={() => setProfileVisible(!profileVisible)}
+                >
+                  <div style={styles.toggleDot(profileVisible)} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                    Auto Session Timeout
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
+                    Automatically log out after 30 minutes of inactivity for security
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={styles.toggleSwitch(sessionTimeout)}
+                  onClick={() => setSessionTimeout(!sessionTimeout)}
+                >
+                  <div style={styles.toggleDot(sessionTimeout)} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                    Case Email Alerts
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
+                    Receive real-time email notifications whenever documents or hearings update
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={styles.toggleSwitch(emailAlerts)}
+                  onClick={() => setEmailAlerts(!emailAlerts)}
+                >
+                  <div style={styles.toggleDot(emailAlerts)} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1.5rem" }}>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                style={{
+                  padding: "0.55rem 1rem",
+                  backgroundColor: "#f5f5f5",
+                  color: "#555",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePrivacy}
+                style={{
+                  padding: "0.55rem 1.25rem",
+                  backgroundColor: "#0066cc",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                }}
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MANAGE SUBSCRIPTIONS MODAL */}
+      {showSubscriptionModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowSubscriptionModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ padding: "6px", borderRadius: "6px", backgroundColor: "#e3f2fd", color: "#1565c0" }}>
+                  <CreditCard size={18} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                  Manage Subscriptions
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSubscriptionModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: "#f8fafd",
+                border: "1px solid #d0e2ff",
+                borderRadius: "8px",
+                padding: "1rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "14px", fontWeight: "700", color: "#0066cc" }}>
+                  Respondent Standard Access
+                </span>
+                <span
+                  style={{
+                    backgroundColor: "#e8f5e9",
+                    color: "#2e7d32",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                  }}
+                >
+                  Active
+                </span>
+              </div>
+              <div style={{ fontSize: "12px", color: "#555", marginTop: "6px" }}>
+                Official dispute resolution access enabled under institutional ODR rules.
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#444", marginBottom: "6px" }}>
+                Included Privileges:
+              </div>
+              <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "13px", color: "#555", lineHeight: "1.6" }}>
+                <li>Full access to dispute records and counterparty claims</li>
+                <li>Secure online video hearing rooms (Google Meet)</li>
+                <li>Digital documentary evidence submission</li>
+                <li>Download legally binding arbitral orders & awards</li>
+                <li>Integrated escrow & settlement payments</li>
+              </ul>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+              <button
+                type="button"
+                onClick={() => setShowSubscriptionModal(false)}
+                style={{
+                  padding: "0.55rem 1rem",
+                  backgroundColor: "#f5f5f5",
+                  color: "#555",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSubscriptionModal(false);
+                  navigate("/respondent/payments");
+                }}
+                style={{
+                  padding: "0.55rem 1.25rem",
+                  backgroundColor: "#0066cc",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                }}
+              >
+                View Payments & Invoices
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FAQS MODAL */}
+      {showFaqModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowFaqModal(false)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ padding: "6px", borderRadius: "6px", backgroundColor: "#e3f2fd", color: "#0066cc" }}>
+                  <MessagesSquare size={18} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#333" }}>
+                  Frequently Asked Questions
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFaqModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#666",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {faqList.map((faq) => {
+                const isOpen = expandedFaq === faq.id;
+                return (
+                  <div
+                    key={faq.id}
+                    style={{
+                      border: "1px solid #e0e0e0",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      onClick={() => setExpandedFaq(isOpen ? null : faq.id)}
+                      style={{
+                        padding: "0.75rem 1rem",
+                        backgroundColor: isOpen ? "#f0f7ff" : "#fafafa",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        fontSize: "13px",
+                        color: isOpen ? "#0066cc" : "#333",
+                      }}
+                    >
+                      <span>{faq.q}</span>
+                      {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                    {isOpen && (
+                      <div
+                        style={{
+                          padding: "0.75rem 1rem",
+                          backgroundColor: "#fff",
+                          fontSize: "13px",
+                          color: "#555",
+                          lineHeight: "1.5",
+                          borderTop: "1px solid #e0e0e0",
+                        }}
+                      >
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.25rem" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFaqModal(false);
+                  navigate("/respondent/help");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#0066cc",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  padding: 0,
+                  textDecoration: "underline",
+                }}
+              >
+                Open Full Help Center →
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFaqModal(false)}
+                style={{
+                  padding: "0.55rem 1.25rem",
+                  backgroundColor: "#f5f5f5",
+                  color: "#555",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

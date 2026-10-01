@@ -1,16 +1,60 @@
 import {
-  Bell,
-  Moon,
-  Zap,
   Mail,
   Phone,
   Globe,
-  MessageCircle,
   Wrench,
   Palette,
+  Sun,
+  Moon,
+  Check,
+  ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import ModalComponent from "./Modal/ModalComponent";
 
 export default function AdminControls() {
+  const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(null);
+
+  // Maintenance state
+  const [isMaintenanceActive, setIsMaintenanceActive] = useState(() => {
+    return localStorage.getItem("adminMaintenanceMode") === "true";
+  });
+  const [maintenanceDuration, setMaintenanceDuration] = useState("1 hour");
+  const [maintenanceReason, setMaintenanceReason] = useState(
+    "Scheduled platform maintenance and security updates"
+  );
+
+  // Theme state
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem("adminTheme") || "light";
+  });
+  const [accentColor, setAccentColor] = useState(() => {
+    return localStorage.getItem("adminAccentColor") || "#2196f3";
+  });
+
+  const handleSaveMaintenance = () => {
+    localStorage.setItem("adminMaintenanceMode", String(isMaintenanceActive));
+    if (isMaintenanceActive) {
+      toast.warn(
+        `Maintenance mode ENABLED (${maintenanceDuration}). Access restricted.`
+      );
+    } else {
+      toast.success("Platform restored to live operational mode!");
+    }
+    setOpenModal(null);
+  };
+
+  const handleSaveTheme = () => {
+    localStorage.setItem("adminTheme", currentTheme);
+    localStorage.setItem("adminAccentColor", accentColor);
+    toast.success("Theme preferences saved successfully!");
+    setOpenModal(null);
+  };
+
   const preferenceItems = [
     {
       id: "supp-1",
@@ -18,6 +62,7 @@ export default function AdminControls() {
       title: "Maintenence Mode",
       description: "support@odrcourtapp.com",
       color: "#2196f3",
+      action: () => setOpenModal("maintenance"),
     },
     {
       id: "supp-2",
@@ -25,6 +70,7 @@ export default function AdminControls() {
       title: "Theme Setting",
       description: "+91 9876543210",
       color: "#2196f3",
+      action: () => setOpenModal("theme"),
     },
   ];
 
@@ -35,6 +81,7 @@ export default function AdminControls() {
       title: "User Management",
       description: "support@odrcourtapp.com",
       color: "#2196f3",
+      action: () => navigate("/admin/users"),
     },
     {
       id: "supp-2",
@@ -42,6 +89,7 @@ export default function AdminControls() {
       title: "Cases Management",
       description: "+91 9876543210",
       color: "#2196f3",
+      action: () => navigate("/admin/cases"),
     },
     {
       id: "supp-3",
@@ -49,6 +97,7 @@ export default function AdminControls() {
       title: "Document Management",
       description: "www.odrcourtapp.com/help",
       color: "#2196f3",
+      action: () => navigate("/admin/documents"),
     },
   ];
 
@@ -59,6 +108,7 @@ export default function AdminControls() {
       title: "Send Notifications",
       description: "support@odrcourtapp.com",
       color: "#2196f3",
+      action: () => navigate("/admin/notifications"),
     },
     {
       id: "supp-2",
@@ -66,6 +116,7 @@ export default function AdminControls() {
       title: "Report & Analytics",
       description: "+91 9876543210",
       color: "#2196f3",
+      action: () => navigate("/admin/reports"),
     },
   ];
 
@@ -103,75 +154,11 @@ export default function AdminControls() {
       textTransform: "uppercase",
       letterSpacing: "0.5px",
     },
-    preferencesContainer: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "0.75rem",
-      marginBottom: "2rem",
-    },
-    preferenceItem: {
-      backgroundColor: "#fff",
-      borderRadius: "12px",
-      padding: "1.25rem 1.5rem",
-      display: "flex",
-      alignItems: "center",
-      gap: "1rem",
-      border: "1px solid #f0f0f0",
-      transition: "all 0.2s ease",
-    },
-    preferenceItemHover: {
-      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-    },
-    iconContainer: (color) => ({
-      width: "50px",
-      height: "50px",
-      backgroundColor: `${color}15`,
-      borderRadius: "10px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-    }),
-    preferenceContent: {
-      flex: 1,
-    },
-    preferenceName: {
-      fontSize: "15px",
-      fontWeight: "600",
-      color: "#333",
-    },
-    toggleContainer: {
-      display: "flex",
-      alignItems: "center",
-      flexShrink: 0,
-    },
-    toggleButton: (isActive) => ({
-      width: "50px",
-      height: "28px",
-      borderRadius: "14px",
-      backgroundColor: isActive ? "#ff9800" : "#ddd",
-      border: "none",
-      cursor: "pointer",
-      position: "relative",
-      transition: "all 0.3s ease",
-      display: "flex",
-      alignItems: "center",
-      padding: "0 3px",
-      boxShadow: isActive ? "0 2px 6px rgba(255,152,0,0.3)" : "none",
-    }),
-    toggleDot: (isActive) => ({
-      width: "24px",
-      height: "24px",
-      borderRadius: "50%",
-      backgroundColor: "#fff",
-      transition: "transform 0.3s ease",
-      transform: isActive ? "translateX(22px)" : "translateX(0)",
-    }),
     manageSupportContainer: {
       display: "flex",
       flexDirection: "column",
       gap: "0.75rem",
-      marginTop: '1rem',
+      marginTop: "1rem",
     },
     supportContainer: {
       display: "flex",
@@ -198,6 +185,16 @@ export default function AdminControls() {
       gap: "1rem",
       flex: 1,
     },
+    iconContainer: (color) => ({
+      width: "50px",
+      height: "50px",
+      backgroundColor: `${color}15`,
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }),
     supportText: {
       display: "flex",
       flexDirection: "column",
@@ -230,6 +227,7 @@ export default function AdminControls() {
             <div
               key={item.id}
               style={styles.supportItem}
+              onClick={item.action}
               onMouseEnter={(e) => {
                 Object.assign(e.currentTarget.style, styles.supportItemHover);
               }}
@@ -274,6 +272,7 @@ export default function AdminControls() {
             <div
               key={item.id}
               style={styles.supportItem}
+              onClick={item.action}
               onMouseEnter={(e) => {
                 Object.assign(e.currentTarget.style, styles.supportItemHover);
               }}
@@ -318,6 +317,7 @@ export default function AdminControls() {
             <div
               key={item.id}
               style={styles.supportItem}
+              onClick={item.action}
               onMouseEnter={(e) => {
                 Object.assign(e.currentTarget.style, styles.supportItemHover);
               }}
@@ -351,6 +351,393 @@ export default function AdminControls() {
           );
         })}
       </div>
+
+      {/* Maintenance Mode Modal */}
+      {openModal === "maintenance" && (
+        <ModalComponent
+          title="Maintenance Mode"
+          onClose={() => setOpenModal(null)}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div
+              style={{
+                padding: "16px",
+                borderRadius: "10px",
+                backgroundColor: isMaintenanceActive ? "#fee2e2" : "#f0fdf4",
+                border: `1px solid ${
+                  isMaintenanceActive ? "#fecaca" : "#bbf7d0"
+                }`,
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  backgroundColor: isMaintenanceActive ? "#ef4444" : "#22c55e",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {isMaintenanceActive ? (
+                  <ShieldAlert size={20} />
+                ) : (
+                  <ShieldCheck size={20} />
+                )}
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    color: isMaintenanceActive ? "#991b1b" : "#166534",
+                  }}
+                >
+                  {isMaintenanceActive
+                    ? "Maintenance Mode Active"
+                    : "Platform Live & Operational"}
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: isMaintenanceActive ? "#b91c1c" : "#15803d",
+                  }}
+                >
+                  {isMaintenanceActive
+                    ? "Access is restricted for public users."
+                    : "All systems and portal services are running normally."}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                backgroundColor: "#f8fafc",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#333",
+                }}
+              >
+                Enable Maintenance Mode
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsMaintenanceActive(!isMaintenanceActive)}
+                style={{
+                  width: "48px",
+                  height: "26px",
+                  borderRadius: "13px",
+                  backgroundColor: isMaintenanceActive ? "#2196f3" : "#cbd5e1",
+                  border: "none",
+                  cursor: "pointer",
+                  position: "relative",
+                  transition: "background-color 0.2s ease",
+                  padding: "2px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "22px",
+                    height: "22px",
+                    borderRadius: "50%",
+                    backgroundColor: "#fff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                    transform: isMaintenanceActive
+                      ? "translateX(22px)"
+                      : "translateX(0)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "6px",
+                }}
+              >
+                Estimated Duration
+              </label>
+              <select
+                value={maintenanceDuration}
+                onChange={(e) => setMaintenanceDuration(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ddd",
+                  fontSize: "14px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <option value="30 minutes">30 Minutes</option>
+                <option value="1 hour">1 Hour</option>
+                <option value="2 hours">2 Hours</option>
+                <option value="Until manually disabled">
+                  Until Manually Disabled
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "6px",
+                }}
+              >
+                Maintenance Notice
+              </label>
+              <textarea
+                rows={3}
+                value={maintenanceReason}
+                onChange={(e) => setMaintenanceReason(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ddd",
+                  fontSize: "13px",
+                  resize: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenModal(null)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  backgroundColor: "#eee",
+                  color: "#333",
+                  border: "none",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveMaintenance}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "6px",
+                  backgroundColor: "#2196f3",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </ModalComponent>
+      )}
+
+      {/* Theme Setting Modal */}
+      {openModal === "theme" && (
+        <ModalComponent
+          title="Theme Setting"
+          onClose={() => setOpenModal(null)}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "8px",
+                }}
+              >
+                Select Theme
+              </label>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  onClick={() => setCurrentTheme("light")}
+                  style={{
+                    padding: "14px",
+                    borderRadius: "8px",
+                    border: `2px solid ${
+                      currentTheme === "light" ? "#2196f3" : "#ddd"
+                    }`,
+                    backgroundColor:
+                      currentTheme === "light" ? "#e3f2fd" : "#fff",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <Sun size={18} color="#f57c00" />
+                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                    Light Mode
+                  </span>
+                </div>
+                <div
+                  onClick={() => setCurrentTheme("dark")}
+                  style={{
+                    padding: "14px",
+                    borderRadius: "8px",
+                    border: `2px solid ${
+                      currentTheme === "dark" ? "#2196f3" : "#ddd"
+                    }`,
+                    backgroundColor:
+                      currentTheme === "dark" ? "#e3f2fd" : "#fff",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <Moon size={18} color="#2196f3" />
+                  <span style={{ fontSize: "14px", fontWeight: "600" }}>
+                    Dark Mode
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "8px",
+                }}
+              >
+                Accent Color
+              </label>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                }}
+              >
+                {[
+                  { name: "Blue", hex: "#2196f3" },
+                  { name: "Green", hex: "#4caf50" },
+                  { name: "Orange", hex: "#ff9800" },
+                  { name: "Purple", hex: "#9c27b0" },
+                ].map((color) => {
+                  const isSelected = accentColor === color.hex;
+                  return (
+                    <button
+                      key={color.hex}
+                      type="button"
+                      onClick={() => setAccentColor(color.hex)}
+                      style={{
+                        flex: 1,
+                        padding: "10px",
+                        borderRadius: "8px",
+                        backgroundColor: color.hex,
+                        color: "#fff",
+                        border: isSelected
+                          ? "3px solid #000"
+                          : "3px solid transparent",
+                        cursor: "pointer",
+                        fontWeight: "600",
+                        fontSize: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      {isSelected && <Check size={14} />}
+                      {color.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenModal(null)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  backgroundColor: "#eee",
+                  color: "#333",
+                  border: "none",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveTheme}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "6px",
+                  backgroundColor: "#2196f3",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Save Theme
+              </button>
+            </div>
+          </div>
+        </ModalComponent>
+      )}
     </div>
   );
 }

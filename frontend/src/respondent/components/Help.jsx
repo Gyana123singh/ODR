@@ -191,9 +191,8 @@ export default function Help() {
                 key={method.id}
                 style={styles.contactCard(method.color)}
                 onClick={() => {
-                  // ✅ ONLY CTA ADDED — WHATSAPP FOR LIVE CHAT
                   if (method.title === "Live Chat") {
-                    const phoneNumber = "919876543210"; // change your number
+                    const phoneNumber = "919876543210";
                     const message = "Hello, I need support regarding my case.";
                     window.open(
                       `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -201,6 +200,14 @@ export default function Help() {
                       )}`,
                       "_blank"
                     );
+                  } else if (method.title === "Email Support") {
+                    window.open(
+                      "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Respondent%20Support%20Request",
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  } else if (method.title === "Phone Support") {
+                    window.location.href = "tel:+919876543210";
                   }
                 }}
                 onMouseEnter={(e) => {

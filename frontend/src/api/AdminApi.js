@@ -152,6 +152,45 @@ export const documentDetailsApi = {
     }
   },
 
+  downloadSubmittedDocument: async (id, docName) => {
+    try {
+      const response = await axiosInstance.get(
+        `/admin/download-submitted-document/${id}`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/octet-stream",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      let fileName = docName || "submitted-document";
+      const contentDisposition = response.headers["content-disposition"];
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          try {
+            fileName = decodeURIComponent(fileNameMatch[1]);
+          } catch (e) {
+            fileName = fileNameMatch[1];
+          }
+        }
+      }
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   newScheduleHearing: async (formData) => {
     try {
       const response = await axiosInstance.post(

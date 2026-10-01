@@ -163,6 +163,37 @@ select:focus {
   background: #555;
 }
 
+/* Remove scrollbar for Admin layout */
+.admin-container,
+.admin-main,
+.admin-main *,
+body.admin-layout-active,
+html.admin-layout-active,
+html:has(.admin-container),
+body:has(.admin-container) {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.admin-container::-webkit-scrollbar,
+.admin-main::-webkit-scrollbar,
+.admin-main *::-webkit-scrollbar,
+body.admin-layout-active::-webkit-scrollbar,
+html.admin-layout-active::-webkit-scrollbar,
+html:has(.admin-container)::-webkit-scrollbar,
+body:has(.admin-container)::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+body.admin-layout-active,
+html.admin-layout-active {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
 .setting-title {
   margin: 0;
 }
+

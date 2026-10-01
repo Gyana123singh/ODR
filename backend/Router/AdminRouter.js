@@ -23,6 +23,7 @@ const {
   deleteHearing,
   hearingActiveStatus,
   deleteSubmitedDocument,
+  downloadSubmittedDocument,
   assignCase,
   getAssignedCases,
   asignScheduleHearing,
@@ -31,11 +32,13 @@ const {
   getTimelineEvents,
   timelineEventsStream,
   getDashboardStats,
+  updateAdminPassword,
 } = require("../Controller/AdminController");
 
 router.post("/register", AdminUserRegister);
 router.post("/login", AdminUserLogin);
 router.get("/data", verifyToken, authorizeRoles("admin"), AdminData);
+router.put("/update-password", verifyToken, authorizeRoles("admin"), updateAdminPassword);
 router.get("/dashboard-stats", verifyToken, authorizeRoles("admin"), getDashboardStats);
 router.get("/reports-analytics", verifyToken, authorizeRoles("admin"), getReportsAnalytics);
 router.get("/timeline-events", verifyToken, authorizeRoles("admin"), getTimelineEvents);
@@ -66,6 +69,7 @@ router.put("/update-hearing/:id", ScheduleHearingUpdate);
 router.delete("/delete-hearing/:id", deleteHearing);
 router.post("/hearing-active-status/:id", hearingActiveStatus);
 router.delete("/delete-document/:id", deleteSubmitedDocument);
+router.get("/download-submitted-document/:id", downloadSubmittedDocument);
 router.put("/assign-all-cases", assignCase);
 router.get("/get-assign-cases/:neutralId", getAssignedCases);
 router.put("/schedule-hearing", asignScheduleHearing);

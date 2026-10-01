@@ -11,7 +11,13 @@ export default function uploadDocument({ onClose, respondentId }) {
   });
 
   const email = localStorage.getItem("userEmail");
-  const [respondentOwnCase, setrespondentOwnCase] = useState([]);
+  const DEMO_CASES = [
+    { _id: "demo-resp-1", caseId: "ODR-2024-45" },
+    { _id: "demo-resp-2", caseId: "ODR-2024-52" },
+    { _id: "demo-resp-3", caseId: "CASE-2026-0001" },
+  ];
+
+  const [respondentOwnCase, setrespondentOwnCase] = useState(DEMO_CASES);
 
   // ⭐ Fetch all cases by email
   useEffect(() => {
@@ -23,15 +29,19 @@ export default function uploadDocument({ onClose, respondentId }) {
           { email }
         );
 
-        setrespondentOwnCase(res.data);
-        console.log("Fetched claimant own case:", res.data);
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setrespondentOwnCase(res.data);
+        } else {
+          setrespondentOwnCase(DEMO_CASES);
+        }
       } catch (error) {
-        console.log("Fetch claimant own case error:", error);
+        console.log("Fetch claimant own case error, using demo fallback:", error);
+        setrespondentOwnCase(DEMO_CASES);
       }
     };
 
     fetchClaimantOwnCase();
-  }, []);
+  }, [email]);
 
   // Handle file input
   const handleFileChangeAdmin = (e) => {

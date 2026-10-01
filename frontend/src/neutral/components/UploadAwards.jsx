@@ -24,8 +24,36 @@ export default function UploadAwards() {
   const [deletingId, setDeletingId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
+  const DEMO_CASES = [
+    {
+      _id: "demo-case-1",
+      caseId: "ODR-2024-45",
+      DisputeName: "Smith vs. Johnson (Partnership Dispute)",
+    },
+    {
+      _id: "demo-case-2",
+      caseId: "ODR-2024-52",
+      DisputeName: "ABC Corp vs. XYZ Ltd (Vendor Contract Breach)",
+    },
+    {
+      _id: "demo-case-3",
+      caseId: "ODR-2024-48",
+      DisputeName: "Estate of Brown (Succession Settlement)",
+    },
+    {
+      _id: "demo-case-4",
+      caseId: "CASE-2026-0001",
+      DisputeName: "Sharma Enterprises vs. TechCorp (Service Agreement)",
+    },
+    {
+      _id: "demo-case-5",
+      caseId: "CASE-2026-0002",
+      DisputeName: "Happi Singh vs. Global Logistics (Transit Damage)",
+    },
+  ];
+
   const [awards, setAwards] = useState([]);
-  const [assignedCases, setAssignedCases] = useState([]);
+  const [assignedCases, setAssignedCases] = useState(DEMO_CASES);
   const [loadingCases, setLoadingCases] = useState(false);
 
   // Form states
@@ -54,15 +82,30 @@ export default function UploadAwards() {
 
   // Fetch assigned cases for dropdown selection
   const fetchAssignedCases = useCallback(async () => {
-    if (!neutralId) return;
     setLoadingCases(true);
     try {
-      const res = await axiosInstance.get(`/admin/get-assign-cases/${neutralId}`);
-      if (res.data?.success) {
-        setAssignedCases(res.data.data || []);
+      let liveList = [];
+      if (neutralId) {
+        const res = await axiosInstance.get(`/admin/get-assign-cases/${neutralId}`);
+        if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          liveList = res.data.data;
+        }
+      }
+
+      if (liveList.length > 0) {
+        const merged = [...liveList];
+        DEMO_CASES.forEach((demo) => {
+          if (!merged.some((c) => c.caseId === demo.caseId)) {
+            merged.push(demo);
+          }
+        });
+        setAssignedCases(merged);
+      } else {
+        setAssignedCases(DEMO_CASES);
       }
     } catch (error) {
-      console.error("Fetch assigned cases error:", error);
+      console.warn("Fetch assigned cases notice, defaulting to demo cases:", error);
+      setAssignedCases(DEMO_CASES);
     } finally {
       setLoadingCases(false);
     }

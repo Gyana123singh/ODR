@@ -123,11 +123,11 @@ const ClaimantLogin = async (req, res) => {
         .json({ success: false, message: "User not Exists" });
     }
 
-    // if (!claimant.isVerified) {
-    //   return res
-    //     .status(403)
-    //     .json({ success: false, message: "Please verify your email before logging in." });
-    // }
+    if (!claimant.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please verify your email before logging in." });
+    }
 
     const isPassCorrect = await bcrypt.compare(password, claimant.password);
     if (!isPassCorrect) {

@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Case = require("../models/Case");
 const https = require("https");
+const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const cloudinary = require("../config/cloudinary");
@@ -36,6 +37,7 @@ const AdminUserRegister = async (req, res) => {
       password: hashedPassword,
       joinDate: new Date(), // auto
       lastActive: new Date(), // auto
+      isVerified: true, // auto-verify users added by admin
     });
 
     await newUser.save();
@@ -358,12 +360,16 @@ const getAllUsers = async (req, res) => {
       _id: u._id,
       name: u.name || "No Name",
       email: u.email,
+      phone: u.phone || "Not Provided",
       role: u.role || "N/A",
       status: u.status || "active",
+      isVerified: u.isVerified !== undefined ? u.isVerified : true,
+      cases: u.cases !== undefined ? u.cases : 0,
 
       // New fields
       joinDate: formatDate(u.joinDate || u.createdAt),
       lastActive: timeAgo(u.lastActive || u.updatedAt),
+      createdAt: u.createdAt,
     }));
 
     // Role options
@@ -809,6 +815,83 @@ const deleteSubmitedDocument = async (req, res) => {
       message: "Server error while deleting Documents",
       error: error.message,
     });
+  }
+};
+
+// api for downloading submitted document file
+const downloadSubmittedDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await adminDocument.findById(id);
+    if (!doc) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    const fileUrl = doc.fileUrl || (doc.documents && doc.documents[0]?.fileUrl);
+    const fileName = doc.DocumentName || "submitted-document";
+
+    if (!fileUrl) {
+      const textContent =
+        `UTKAL ODR ONLINE DISPUTE RESOLUTION PLATFORM\n` +
+        `============================================================\n` +
+        `OFFICIAL SUBMITTED EVIDENCE / DOCUMENT RECORD\n` +
+        `============================================================\n` +
+        `Document Name  : ${fileName}\n` +
+        `Case Identifier: ${doc.caseId || "N/A"}\n` +
+        `Document Type  : ${doc.Type || "Evidence"}\n` +
+        `Uploaded By    : ${doc.UploadedBy || "Party"}\n` +
+        `Upload Date    : ${doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleString() : "N/A"}\n` +
+        `Audit Status   : ${doc.status || "Verified"}\n` +
+        `============================================================\n`;
+
+      res.setHeader("Content-Type", "text/plain");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${encodeURIComponent(fileName)}.txt"`
+      );
+      return res.send(textContent);
+    }
+
+    let downloadUrl = fileUrl;
+    if (downloadUrl.includes("/image/upload/") && !downloadUrl.includes("fl_attachment")) {
+      downloadUrl = downloadUrl.replace("/image/upload/", "/image/upload/fl_attachment/");
+    } else if (downloadUrl.includes("/raw/upload/") && !downloadUrl.includes("fl_attachment")) {
+      downloadUrl = downloadUrl.replace("/raw/upload/", "/raw/upload/fl_attachment/");
+    }
+
+    const client = downloadUrl.startsWith("http:") ? http : https;
+
+    client
+      .get(downloadUrl, (fileRes) => {
+        if (fileRes.statusCode >= 300 && fileRes.statusCode < 400 && fileRes.headers.location) {
+          const redirectClient = fileRes.headers.location.startsWith("http:") ? http : https;
+          redirectClient.get(fileRes.headers.location, (redirectRes) => {
+            const contentType = doc.fileType || redirectRes.headers["content-type"] || "application/octet-stream";
+            res.setHeader("Content-Type", contentType);
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename="${encodeURIComponent(fileName)}"`
+            );
+            redirectRes.pipe(res);
+          });
+          return;
+        }
+
+        const contentType = doc.fileType || fileRes.headers["content-type"] || "application/octet-stream";
+        res.setHeader("Content-Type", contentType);
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${encodeURIComponent(fileName)}"`
+        );
+        fileRes.pipe(res);
+      })
+      .on("error", (err) => {
+        console.error("Stream error in downloadSubmittedDocument:", err);
+        res.status(500).json({ message: "File streaming failed" });
+      });
+  } catch (error) {
+    console.error("Download submitted document error:", error);
+    res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
@@ -1343,7 +1426,40 @@ const broadcastTimelineEvent = (event) => {
   });
 };
 
+const updateAdminPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Both old and new passwords are required" });
+    }
+
+    const adminId = req.user ? req.user.id : null;
+    const admin = await AdminUser.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin user not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Incorrect current password" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    admin.password = await bcrypt.hash(newPassword, salt);
+    await admin.save();
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("Change admin password error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports = {
+  updateAdminPassword,
   AdminUserRegister,
   AdminUserLogin,
   AdminData,
@@ -1364,6 +1480,7 @@ module.exports = {
   deleteHearing,
   hearingActiveStatus,
   deleteSubmitedDocument,
+  downloadSubmittedDocument,
   assignCase,
   getAssignedCases,
   asignScheduleHearing,

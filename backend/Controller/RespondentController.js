@@ -115,11 +115,11 @@ const RespondentLogin = async (req, res) => {
         .json({ success: false, message: "User not Exists" });
     }
 
-    // if (!respondent.isVerified) {
-    //   return res
-    //     .status(403)
-    //     .json({ success: false, message: "Please verify your email before logging in." });
-    // }
+    if (!respondent.isVerified) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please verify your email before logging in." });
+    }
 
     const isPassCorrect = await bcrypt.compare(password, respondent.password);
     if (!isPassCorrect) {
@@ -407,6 +407,76 @@ const getDocumentsByUser = async (req, res) => {
   }
 };
 
+const updateRespondentProfile = async (req, res) => {
+  try {
+    const { name, phone, organization, address } = req.body;
+    const respondentId = req.respondent ? req.respondent._id : req.user ? req.user.id : null;
+
+    if (!respondentId) {
+      return res.status(401).json({ success: false, message: "Unauthorized respondent session" });
+    }
+
+    const respondent = await respondentUser.findById(respondentId);
+    if (!respondent) {
+      return res.status(404).json({ success: false, message: "Respondent not found" });
+    }
+
+    if (name) respondent.name = name;
+    if (phone) respondent.phone = phone;
+    if (organization) respondent.organization = organization;
+    if (address) respondent.address = address;
+
+    await respondent.save();
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: respondent._id,
+        name: respondent.name,
+        email: respondent.email,
+        phone: respondent.phone,
+        role: "respondent",
+      },
+    });
+  } catch (err) {
+    console.error("Update respondent profile error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const updateRespondentPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Both old and new passwords are required" });
+    }
+
+    const respondentId = req.respondent ? req.respondent._id : req.user ? req.user.id : null;
+    const respondent = await respondentUser.findById(respondentId);
+    if (!respondent) {
+      return res.status(404).json({ success: false, message: "Respondent not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, respondent.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Incorrect old password" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    respondent.password = await bcrypt.hash(newPassword, salt);
+    await respondent.save();
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("Change respondent password error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports = {
   RespondentRegister,
   RespondentLogin,
@@ -419,4 +489,6 @@ module.exports = {
   getRespondentUsers,
   uploadDocumentForRespondent,
   getDocumentsByUser,
+  updateRespondentProfile,
+  updateRespondentPassword,
 };

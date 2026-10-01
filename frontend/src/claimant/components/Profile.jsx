@@ -18,18 +18,66 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Modal from "./Modal/Modal";
 import axiosInstance from "../../api/axiosConfig";
 import "../../claimant/components/NewCase.css";
 
 export default function Profile() {
-  const [enableNotifications, setEnableNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [dataSaver, setDataSaver] = useState(false);
+  const [enableNotifications, setEnableNotifications] = useState(
+    () => localStorage.getItem("claimant_notifications") !== "false"
+  );
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("claimant_darkMode") === "true"
+  );
+  const [dataSaver, setDataSaver] = useState(
+    () => localStorage.getItem("claimant_dataSaver") === "true"
+  );
   const [isMobile] = useState(window.innerWidth <= 480);
+
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem("appLanguage") || "English"
+  );
+  const [twoFactorAuth, setTwoFactorAuth] = useState(
+    () => localStorage.getItem("claimant_2fa") === "true"
+  );
+  const [profileVisible, setProfileVisible] = useState(
+    () => localStorage.getItem("claimant_profileVisible") !== "false"
+  );
+  const [sessionTimeout, setSessionTimeout] = useState(
+    () => localStorage.getItem("claimant_sessionTimeout") !== "false"
+  );
+  const [caseAlerts, setCaseAlerts] = useState(
+    () => localStorage.getItem("claimant_caseAlerts") !== "false"
+  );
+
+  const languagesList = [
+    { code: "en", name: "English", native: "English" },
+    { code: "or", name: "Odia", native: "ଓଡ଼ିଆ" },
+    { code: "hi", name: "Hindi", native: "हिन्दी" },
+    { code: "bn", name: "Bengali", native: "বাংলা" },
+    { code: "te", name: "Telugu", native: "తెలుగు" },
+  ];
+
+  const handleSelectLanguage = (lang) => {
+    setLanguage(lang.name);
+    localStorage.setItem("appLanguage", lang.name);
+    toast.success(`Language changed to ${lang.name} (${lang.native})`);
+    setOpenModal(null);
+  };
+
+  const handleSavePrivacy = () => {
+    localStorage.setItem("claimant_2fa", String(twoFactorAuth));
+    localStorage.setItem("claimant_profileVisible", String(profileVisible));
+    localStorage.setItem("claimant_sessionTimeout", String(sessionTimeout));
+    localStorage.setItem("claimant_caseAlerts", String(caseAlerts));
+    toast.success("Privacy settings updated successfully!");
+    setOpenModal(null);
+  };
 
   // Profile data state
   const [profileData, setProfileData] = useState(null);
@@ -170,13 +218,14 @@ export default function Profile() {
 
   const accountSettings = [
     { id: 1, icon: Lock, label: "Change Password", color: "#0066cc", action: () => setOpenModal("ChangePassword") },
-    { id: 2, icon: Globe, label: "Language (English)", color: "#2196f3" },
-    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2" },
+    { id: 2, icon: Globe, label: `Language (${language})`, color: "#2196f3", action: () => setOpenModal("Language") },
+    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2", action: () => setOpenModal("Privacy") },
     {
       id: 4,
       icon: CreditCard,
       label: "Manage Subscriptions",
       color: "#1565c0",
+      action: () => setOpenModal("Subscription"),
     },
   ];
 
@@ -186,7 +235,11 @@ export default function Profile() {
       icon: Bell,
       label: "Enable Notifications",
       toggle: enableNotifications,
-      setToggle: setEnableNotifications,
+      setToggle: (val) => {
+        setEnableNotifications(val);
+        localStorage.setItem("claimant_notifications", String(val));
+        toast.info(val ? "Notifications enabled" : "Notifications muted");
+      },
       color: "#ff9900",
     },
     {
@@ -194,7 +247,11 @@ export default function Profile() {
       icon: Moon,
       label: "Dark Mode",
       toggle: darkMode,
-      setToggle: setDarkMode,
+      setToggle: (val) => {
+        setDarkMode(val);
+        localStorage.setItem("claimant_darkMode", String(val));
+        toast.info(val ? "Dark mode enabled" : "Dark mode disabled");
+      },
       color: "#9c27b0",
     },
     {
@@ -202,7 +259,11 @@ export default function Profile() {
       icon: Zap,
       label: "Data Saver",
       toggle: dataSaver,
-      setToggle: setDataSaver,
+      setToggle: (val) => {
+        setDataSaver(val);
+        localStorage.setItem("claimant_dataSaver", String(val));
+        toast.info(val ? "Data saver enabled" : "Data saver disabled");
+      },
       color: "#673ab7",
     },
   ];
@@ -214,6 +275,14 @@ export default function Profile() {
       label: "Email Us",
       desc: "support@odrcourtapp.com",
       color: "#0066cc",
+      action: () => {
+        toast.info("Opening Gmail compose...");
+        window.open(
+          "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Claimant%20Support%20Request",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      },
     },
     {
       id: 2,
@@ -221,6 +290,10 @@ export default function Profile() {
       label: "Call Us",
       desc: "+91 9876543210",
       color: "#0066cc",
+      action: () => {
+        toast.info("Calling support: +91 9876543210");
+        window.location.href = "tel:+919876543210";
+      },
     },
   ];
 
@@ -549,6 +622,7 @@ export default function Profile() {
             <div
               key={option.id}
               style={styles.settingItem(option.color)}
+              onClick={option.action ? option.action : undefined}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
                 e.currentTarget.style.transform = "translateY(-2px)";
@@ -856,6 +930,146 @@ export default function Profile() {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* MODAL: LANGUAGE */}
+      <Modal isOpen={openModal === "Language"} onClose={() => setOpenModal(null)} title="Select Language">
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+          {languagesList.map((lang) => {
+            const isSelected = language === lang.name;
+            return (
+              <div
+                key={lang.code}
+                onClick={() => handleSelectLanguage(lang)}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0.75rem 1rem",
+                  borderRadius: "8px",
+                  border: isSelected ? "2px solid #0066cc" : "1px solid #e2e8f0",
+                  backgroundColor: isSelected ? "#f0f7ff" : "#fff",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: isSelected ? "700" : "500", color: "#1e293b", fontSize: "14px" }}>
+                    {lang.name}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>{lang.native}</div>
+                </div>
+                {isSelected && <Check size={18} color="#0066cc" strokeWidth={2.5} />}
+              </div>
+            );
+          })}
+        </div>
+      </Modal>
+
+      {/* MODAL: PRIVACY */}
+      <Modal isOpen={openModal === "Privacy"} onClose={() => setOpenModal(null)} title="Privacy & Security Settings">
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Two-Factor Authentication (2FA)</div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Require OTP code on sign-in</div>
+            </div>
+            <button
+              type="button"
+              style={styles.toggleSwitch(twoFactorAuth)}
+              onClick={() => setTwoFactorAuth(!twoFactorAuth)}
+            >
+              <div style={styles.toggleDot(twoFactorAuth)} />
+            </button>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Profile Visibility to Arbitrators</div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Allow assigned neutrals to verify claimant identity</div>
+            </div>
+            <button
+              type="button"
+              style={styles.toggleSwitch(profileVisible)}
+              onClick={() => setProfileVisible(!profileVisible)}
+            >
+              <div style={styles.toggleDot(profileVisible)} />
+            </button>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+            <div>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Auto Session Timeout</div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Sign out after 30 minutes of inactivity</div>
+            </div>
+            <button
+              type="button"
+              style={styles.toggleSwitch(sessionTimeout)}
+              onClick={() => setSessionTimeout(!sessionTimeout)}
+            >
+              <div style={styles.toggleDot(sessionTimeout)} />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSavePrivacy}
+            style={{
+              padding: "10px",
+              backgroundColor: "#0066cc",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Save Privacy Settings
+          </button>
+        </div>
+      </Modal>
+
+      {/* MODAL: SUBSCRIPTION */}
+      <Modal isOpen={openModal === "Subscription"} onClose={() => setOpenModal(null)} title="Claimant Account Privileges">
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "8px", padding: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "14px", fontWeight: "700", color: "#0369a1" }}>Standard Claimant Access</span>
+              <span style={{ backgroundColor: "#e0f2fe", color: "#0284c7", fontSize: "12px", fontWeight: "700", padding: "2px 8px", borderRadius: "12px" }}>
+                Active
+              </span>
+            </div>
+            <p style={{ fontSize: "12px", color: "#334155", margin: "6px 0 0 0" }}>
+              Authorized to file claims, submit evidence, and participate in digital arbitration sessions.
+            </p>
+          </div>
+
+          <div>
+            <div style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b", marginBottom: "6px" }}>Included Features:</div>
+            <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
+              <li>Direct dispute filing against counterparties</li>
+              <li>Attendance in Google Meet virtual hearings</li>
+              <li>Digital awards & settlement enforcement documents</li>
+              <li>Support tickets and case tracking dashboard</li>
+            </ul>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setOpenModal(null)}
+            style={{
+              padding: "10px",
+              backgroundColor: "#0066cc",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Close
+          </button>
+        </div>
       </Modal>
 
       <style>{`

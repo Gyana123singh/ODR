@@ -13,7 +13,10 @@ import {
   MessagesSquare,
   User,
   Loader2,
-  KeyRound
+  KeyRound,
+  Check,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
@@ -39,10 +42,86 @@ export default function Profile() {
     confirmPassword: "",
   });
 
-  const [enableNotifications, setEnableNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [dataSaver, setDataSaver] = useState(false);
+  const [enableNotifications, setEnableNotifications] = useState(
+    () => localStorage.getItem("neutral_notifications") !== "false"
+  );
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("neutral_darkMode") === "true"
+  );
+  const [dataSaver, setDataSaver] = useState(
+    () => localStorage.getItem("neutral_dataSaver") === "true"
+  );
   const [isMobile] = useState(window.innerWidth <= 480);
+
+  // Additional settings
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem("appLanguage") || "English"
+  );
+  const [twoFactorAuth, setTwoFactorAuth] = useState(
+    () => localStorage.getItem("neutral_2fa") === "true"
+  );
+  const [profileVisible, setProfileVisible] = useState(
+    () => localStorage.getItem("neutral_profileVisible") !== "false"
+  );
+  const [sessionTimeout, setSessionTimeout] = useState(
+    () => localStorage.getItem("neutral_sessionTimeout") !== "false"
+  );
+  const [caseAlerts, setCaseAlerts] = useState(
+    () => localStorage.getItem("neutral_caseAlerts") !== "false"
+  );
+  const [expandedFaq, setExpandedFaq] = useState(null);
+
+  const languagesList = [
+    { code: "en", name: "English", native: "English" },
+    { code: "or", name: "Odia", native: "ଓଡ଼ିଆ" },
+    { code: "hi", name: "Hindi", native: "हिन्दी" },
+    { code: "bn", name: "Bengali", native: "বাংলা" },
+    { code: "te", name: "Telugu", native: "తెలుగు" },
+  ];
+
+  const handleSelectLanguage = (lang) => {
+    setLanguage(lang.name);
+    localStorage.setItem("appLanguage", lang.name);
+    toast.success(`Language changed to ${lang.name} (${lang.native})`);
+    setOpenModal(null);
+  };
+
+  const handleSavePrivacy = () => {
+    localStorage.setItem("neutral_2fa", String(twoFactorAuth));
+    localStorage.setItem("neutral_profileVisible", String(profileVisible));
+    localStorage.setItem("neutral_sessionTimeout", String(sessionTimeout));
+    localStorage.setItem("neutral_caseAlerts", String(caseAlerts));
+    toast.success("Privacy settings updated successfully!");
+    setOpenModal(null);
+  };
+
+  const neutralFaqs = [
+    {
+      id: 1,
+      q: "How do I review case submissions and evidentiary documents?",
+      a: "Go to Scrutinize Submissions. You will see assigned dispute dossiers, claimant statements, respondent rejoinders, and attached proofs.",
+    },
+    {
+      id: 2,
+      q: "How do I conduct an online video hearing?",
+      a: "Navigate to Schedule Hearings. Join the designated Google Meet room at the hearing time. Both parties will be admitted through the verified portal.",
+    },
+    {
+      id: 3,
+      q: "How do I draft and publish an arbitral award?",
+      a: "Under Upload Awards, upload your decision document (PDF/DOCX), review the draft summary, and click 'Publish' to issue the final legally enforceable award.",
+    },
+    {
+      id: 4,
+      q: "What should I do if a party fails to attend a hearing?",
+      a: "Note the absence in the hearing record. You may either reschedule with notice or proceed in accordance with applicable institutional arbitration rules.",
+    },
+    {
+      id: 5,
+      q: "Who provides arbiter registry and support assistance?",
+      a: "Contact our arbitration support registrar at support@odrcourtapp.com or call +91 9876543210.",
+    },
+  ];
 
   const fetchProfileData = async () => {
     setLoading(true);
@@ -116,9 +195,9 @@ export default function Profile() {
 
   const accountSettings = [
     { id: 1, icon: Lock, label: "Change Password", color: "#0066cc", onClick: () => setOpenModal("changePassword") },
-    { id: 2, icon: Globe, label: "Language (English)", color: "#2196f3", onClick: () => {} },
-    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2", onClick: () => {} },
-    { id: 4, icon: CreditCard, label: "Manage Subscriptions", color: "#1565c0", onClick: () => {} },
+    { id: 2, icon: Globe, label: `Language (${language})`, color: "#2196f3", onClick: () => setOpenModal("language") },
+    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2", onClick: () => setOpenModal("privacy") },
+    { id: 4, icon: CreditCard, label: "Manage Subscriptions", color: "#1565c0", onClick: () => setOpenModal("subscription") },
   ];
 
   const preferences = [
@@ -127,7 +206,11 @@ export default function Profile() {
       icon: Bell,
       label: "Enable Notifications",
       toggle: enableNotifications,
-      setToggle: setEnableNotifications,
+      setToggle: (val) => {
+        setEnableNotifications(val);
+        localStorage.setItem("neutral_notifications", String(val));
+        toast.info(val ? "Notifications enabled" : "Notifications muted");
+      },
       color: "#ff9900",
     },
     {
@@ -135,7 +218,11 @@ export default function Profile() {
       icon: Moon,
       label: "Dark Mode",
       toggle: darkMode,
-      setToggle: setDarkMode,
+      setToggle: (val) => {
+        setDarkMode(val);
+        localStorage.setItem("neutral_darkMode", String(val));
+        toast.info(val ? "Dark mode enabled" : "Dark mode disabled");
+      },
       color: "#9c27b0",
     },
     {
@@ -143,7 +230,11 @@ export default function Profile() {
       icon: Zap,
       label: "Data Saver",
       toggle: dataSaver,
-      setToggle: setDataSaver,
+      setToggle: (val) => {
+        setDataSaver(val);
+        localStorage.setItem("neutral_dataSaver", String(val));
+        toast.info(val ? "Data saver enabled" : "Data saver disabled");
+      },
       color: "#673ab7",
     },
   ];
@@ -155,6 +246,14 @@ export default function Profile() {
       label: "Email Us",
       desc: "support@odrcourtapp.com",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Opening Gmail compose...");
+        window.open(
+          "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Neutral%20Support%20Request",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      },
     },
     {
       id: 2,
@@ -162,6 +261,10 @@ export default function Profile() {
       label: "Call Us",
       desc: "+91 9876543210",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Calling support: +91 9876543210");
+        window.location.href = "tel:+919876543210";
+      },
     },
     {
       id: 3,
@@ -169,6 +272,10 @@ export default function Profile() {
       label: "Visit Website",
       desc: "www.odrcourtapp.com/help",
       color: "#0066cc",
+      onClick: () => {
+        toast.info("Opening help website...");
+        window.open("https://odrcourtapp.com/help", "_blank");
+      },
     },
     {
       id: 4,
@@ -176,6 +283,7 @@ export default function Profile() {
       label: "FAQs",
       desc: "Find answers to common questions",
       color: "#0066cc",
+      onClick: () => setOpenModal("faqs"),
     },
   ];
 
@@ -472,6 +580,7 @@ export default function Profile() {
             <div
               key={option.id}
               style={styles.settingItem(option.color)}
+              onClick={option.onClick}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
                 e.currentTarget.style.transform = "translateY(-1px)";
@@ -596,6 +705,181 @@ export default function Profile() {
               )}
             </button>
           </form>
+        </ModalComponent>
+      )}
+
+      {/* MODAL: SELECT LANGUAGE */}
+      {openModal === "language" && (
+        <ModalComponent title="Select Interface Language" onClose={() => setOpenModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            {languagesList.map((lang) => {
+              const isSelected = language === lang.name;
+              return (
+                <div
+                  key={lang.code}
+                  onClick={() => handleSelectLanguage(lang)}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "8px",
+                    border: isSelected ? "2px solid #ff9900" : "1px solid #e2e8f0",
+                    backgroundColor: isSelected ? "#fff7ed" : "#fff",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: isSelected ? "700" : "500", color: "#1e293b", fontSize: "14px" }}>
+                      {lang.name}
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#64748b" }}>{lang.native}</div>
+                  </div>
+                  {isSelected && <Check size={18} color="#ff9900" strokeWidth={2.5} />}
+                </div>
+              );
+            })}
+          </div>
+        </ModalComponent>
+      )}
+
+      {/* MODAL: PRIVACY SETTINGS */}
+      {openModal === "privacy" && (
+        <ModalComponent title="Privacy & Security Settings" onClose={() => setOpenModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Two-Factor Authentication (2FA)</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Require OTP code upon signing in</div>
+              </div>
+              <button
+                type="button"
+                style={styles.toggleSwitch(twoFactorAuth)}
+                onClick={() => setTwoFactorAuth(!twoFactorAuth)}
+              >
+                <div style={styles.toggleDot(twoFactorAuth)} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Neutral Profile Visibility</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Allow parties to view accreditation & bio</div>
+              </div>
+              <button
+                type="button"
+                style={styles.toggleSwitch(profileVisible)}
+                onClick={() => setProfileVisible(!profileVisible)}
+              >
+                <div style={styles.toggleDot(profileVisible)} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Auto Session Timeout</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Auto log out after 30 minutes of inactivity</div>
+              </div>
+              <button
+                type="button"
+                style={styles.toggleSwitch(sessionTimeout)}
+                onClick={() => setSessionTimeout(!sessionTimeout)}
+              >
+                <div style={styles.toggleDot(sessionTimeout)} />
+              </button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Hearing & Case Alerts</div>
+                <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Receive real-time notifications for hearing changes</div>
+              </div>
+              <button
+                type="button"
+                style={styles.toggleSwitch(caseAlerts)}
+                onClick={() => setCaseAlerts(!caseAlerts)}
+              >
+                <div style={styles.toggleDot(caseAlerts)} />
+              </button>
+            </div>
+
+            <button type="button" onClick={handleSavePrivacy} style={styles.submitButton}>
+              Save Privacy Settings
+            </button>
+          </div>
+        </ModalComponent>
+      )}
+
+      {/* MODAL: MANAGE SUBSCRIPTION */}
+      {openModal === "subscription" && (
+        <ModalComponent title="Neutral Roster & License Status" onClose={() => setOpenModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "14px", fontWeight: "700", color: "#15803d" }}>
+                  Certified Neutral Arbiter
+                </span>
+                <span style={{ backgroundColor: "#dcfce7", color: "#166534", fontSize: "12px", fontWeight: "700", padding: "2px 8px", borderRadius: "12px" }}>
+                  Active
+                </span>
+              </div>
+              <p style={{ fontSize: "12px", color: "#374151", margin: "6px 0 0 0" }}>
+                Verified by the institutional ODR Registry with full dispute arbitration authorization.
+              </p>
+            </div>
+
+            <div>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#1e293b", marginBottom: "6px" }}>Included Capabilities:</div>
+              <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
+                <li>Adjudicate and manage assigned dispute proceedings</li>
+                <li>Conduct Google Meet online hearings with video recording</li>
+                <li>Draft, review, and legally publish arbitral awards & orders</li>
+                <li>Access AI-assisted legal research and case precedent summaries</li>
+              </ul>
+            </div>
+
+            <button type="button" onClick={() => setOpenModal(null)} style={styles.submitButton}>
+              Close
+            </button>
+          </div>
+        </ModalComponent>
+      )}
+
+      {/* MODAL: FAQS */}
+      {openModal === "faqs" && (
+        <ModalComponent title="Frequently Asked Questions" onClose={() => setOpenModal(null)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {neutralFaqs.map((faq) => {
+              const isOpen = expandedFaq === faq.id;
+              return (
+                <div key={faq.id} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", overflow: "hidden" }}>
+                  <div
+                    onClick={() => setExpandedFaq(isOpen ? null : faq.id)}
+                    style={{
+                      padding: "0.75rem 1rem",
+                      backgroundColor: isOpen ? "#fff7ed" : "#f8fafc",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                      fontSize: "13px",
+                      color: isOpen ? "#ea580c" : "#1e293b",
+                    }}
+                  >
+                    <span>{faq.q}</span>
+                    {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding: "0.75rem 1rem", backgroundColor: "#fff", fontSize: "13px", color: "#475569", lineHeight: "1.5", borderTop: "1px solid #e2e8f0" }}>
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </ModalComponent>
       )}
 

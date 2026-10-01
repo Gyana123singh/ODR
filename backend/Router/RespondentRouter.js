@@ -13,6 +13,8 @@ const {
   getRespondentUsers,
   uploadDocumentForRespondent,
   getDocumentsByUser,
+  updateRespondentProfile,
+  updateRespondentPassword,
 } = require("../Controller/RespondentController");
 const { verifyToken, authorizeRoles } = require("../middlewares/Auth.js");
 
@@ -20,6 +22,8 @@ router.post("/register", RespondentRegister);
 router.post("/login", RespondentLogin);
 
 router.get("/data", verifyToken, authorizeRoles("respondent"), RespondentData);
+router.put("/update-profile", verifyToken, authorizeRoles("respondent"), updateRespondentProfile);
+router.put("/update-password", verifyToken, authorizeRoles("respondent"), updateRespondentPassword);
 router.post("/my-case", getRespondentCase);
 router.post("/get-hearing-by-caseId", getScheduleHearingByCaseId);
 router.post("/get-notification", getCaseNotification);

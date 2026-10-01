@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { allUserApi } from "../../api/AdminApi";
 import ModalComponent from "./Modal/ModalComponent";
 import AddUser from "../../admin/component/Modal/AddUsers";
+import ViewUser from "./Modal/ViewUser";
 import { toast } from "react-toastify";
 
 export default function Users() {
@@ -19,6 +20,7 @@ export default function Users() {
   const [allUsers, setAllUsers] = useState([]);
   const [userData, setUserData] = useState([]);
   const [openModal, setOpenModal] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectAll, setSelectAll] = useState();
 
   useEffect(() => {
@@ -507,14 +509,21 @@ export default function Users() {
                     <div style={styles.actionButtons}>
                       <button
                         style={styles.actionButton("#2196f3")}
-                        title="View"
+                        title="View Details"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setOpenModal("viewUser");
+                        }}
                       >
                         <Eye size={14} />
                       </button>
                       <button
                         style={styles.actionButton("#ff9800")}
                         title="Edit"
-                        onClick={() => setOpenModal("EditUser")}
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setOpenModal("EditUser");
+                        }}
                       >
                         <Edit2 size={14} />
                       </button>
@@ -539,6 +548,24 @@ export default function Users() {
           </div>
           <div>No users found matching your search criteria</div>
         </div>
+      )}
+
+      {openModal === "viewUser" && selectedUser && (
+        <ModalComponent
+          title="User Details"
+          onClose={() => {
+            setOpenModal(null);
+            setSelectedUser(null);
+          }}
+        >
+          <ViewUser
+            user={selectedUser}
+            onClose={() => {
+              setOpenModal(null);
+              setSelectedUser(null);
+            }}
+          />
+        </ModalComponent>
       )}
 
       {openModal === "addUser" && (
