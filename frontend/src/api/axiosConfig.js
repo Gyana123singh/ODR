@@ -1,10 +1,13 @@
 import axios from 'axios';
 
+// Vite exposes env vars prefixed with VITE_ via import.meta.env
+// Set VITE_API_BASE_URL in frontend/.env to change the backend target
+
 /**
  * Dynamically resolves the API base URL.
  * In local dev (localhost/127.0.0.1), uses http://localhost:3636 (or VITE_API_BASE_URL if set).
  * In deployed domain (e.g. gokulanandachaudhurifoundation.com or any cloud host),
- * automatically uses window.location.origin or production VITE_API_BASE_URL.
+ * automatically uses window.location.origin, production VITE_API_BASE_URL, or relative path.
  */
 export const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
@@ -16,7 +19,7 @@ export const getApiBaseUrl = () => {
       if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
         return envUrl.replace(/\/$/, '');
       }
-      return window.location.origin;
+      return window.location.origin || '';
     }
   }
 
@@ -34,13 +37,13 @@ const axiosInstance = axios.create({
   },
 });
 
-// Update baseURL dynamically per request and add token if present
+// Update baseURL dynamically per request and attach token (token or authToken) if present
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (!config.baseURL || config.baseURL === 'http://localhost:3636') {
+    if (!config.baseURL || config.baseURL === 'http://localhost:3636' || config.baseURL === '') {
       config.baseURL = getApiBaseUrl();
     }
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
     if (token) {
       if (config.headers && typeof config.headers.set === 'function') {
         config.headers.set('Authorization', `Bearer ${token}`);

@@ -1,7 +1,7 @@
 import { FilePlus, UploadCloud, Paperclip, CheckCircle, ShieldAlert, UserCircle, Briefcase, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import "./NewCase.css";
-import axios from "axios";
+import axiosInstance from "../../api/axiosConfig";
 import { toast } from "react-toastify";
 import { ClaimantApi } from "../../api/ClaimantApi";
 
@@ -74,9 +74,7 @@ export default function NewCase() {
         if (value) formDataToSend.append(key, value);
       });
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-      const response = await axios.post(
-        `${API_BASE_URL}/claimant/add-new-case`,
+      const response = await axiosInstance.post("/claimant/add-new-case",
         formDataToSend,
         {
           headers: { "Content-Type": "multipart/form-data" },
