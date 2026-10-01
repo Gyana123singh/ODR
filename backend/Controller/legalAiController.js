@@ -198,7 +198,7 @@ exports.legalResearch = async (req, res) => {
     }).lean();
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -233,7 +233,7 @@ exports.contractReview = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -269,7 +269,7 @@ exports.summarizeDoc = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -306,7 +306,7 @@ exports.complianceCheck = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -343,7 +343,7 @@ exports.litigationStrategy = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -378,7 +378,7 @@ exports.predictiveAnalytics = async (req, res) => {
     }).lean();
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -416,7 +416,7 @@ exports.generateDocument = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -476,7 +476,7 @@ exports.translateExplain = async (req, res) => {
     let completion;
     try {
       completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-20b",
         messages: [
           {
             role: "system",
@@ -492,7 +492,7 @@ exports.translateExplain = async (req, res) => {
     } catch (groq70bErr) {
       console.warn("Groq Llama 3.3 70B failed, falling back to Llama 3.1 8B:", groq70bErr.message);
       completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: "openai/gpt-oss-20b",
         messages: [
           {
             role: "system",
@@ -523,7 +523,7 @@ exports.compareContracts = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -563,7 +563,7 @@ exports.legalChat = async (req, res) => {
     const formattedHistory = (chatHistory || []).map(h => `${h.sender === "user" ? "User" : "Assistant"}: ${h.text}`).join("\n");
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -601,7 +601,7 @@ exports.eDiscovery = async (req, res) => {
     }
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
