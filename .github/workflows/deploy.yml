@@ -51,6 +51,7 @@ jobs:
             VITE_FIREBASE_STORAGE_BUCKET=odr-project-e9661.firebasestorage.app
             VITE_FIREBASE_MESSAGING_SENDER_ID=787835897809
             VITE_FIREBASE_APP_ID=1:787835897809:web:3575c48a250f20ccecc2f0
+            VITE_RECAPTCHA_SITE_KEY=6LdCfNktAAAAADAXNOqot87Dc45amIz4FOtKTW9p
             EOF
             sed -i 's/^[[:space:]]*//' .env
             sed -i 's/\r$//' .env
