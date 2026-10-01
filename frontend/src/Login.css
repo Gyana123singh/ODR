@@ -141,10 +141,10 @@
 }
 
 .brand-header-light img {
-  width: 220px;
+  width: 250px;
   max-width: 100%;
   height: auto;
-  max-height: 95px;
+  max-height: 165px;
   object-fit: contain;
   display: block;
 }

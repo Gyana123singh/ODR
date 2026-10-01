@@ -283,7 +283,8 @@ export default function Login({ getRole }) {
               src="/logo.png" 
               alt="Utkal ODR - Online Dispute Resolution" 
               style={{
-                width: "220px",
+                width: "250px",
+                maxHeight: "165px",
                 maxWidth: "100%",
                 height: "auto",
                 objectFit: "contain",
@@ -297,7 +298,7 @@ export default function Login({ getRole }) {
         {/* Middle: Hero Text */}
         <div className="left-middle">
           <h2 className="hero-title" style={{ fontSize: '44px', lineHeight: '1.2' }}>
-            Settle your dispute fairly, without waiting in line.
+            Settle your dispute online, without waiting in line.
           </h2>
           <p className="hero-subtitle" style={{ fontSize: '20px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#ffffff', opacity: '1' }}>
             Arbitration, mediation and conciliation on one secure platform. File your case, share evidence, attend hearings and receive orders online.
