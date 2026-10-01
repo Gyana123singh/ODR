@@ -195,9 +195,8 @@ export default function Profile() {
 
   const accountSettings = [
     { id: 1, icon: Lock, label: "Change Password", color: "#0066cc", onClick: () => setOpenModal("changePassword") },
-    { id: 2, icon: Globe, label: `Language (${language})`, color: "#2196f3", onClick: () => setOpenModal("language") },
-    { id: 3, icon: Shield, label: "Privacy Settings", color: "#1976d2", onClick: () => setOpenModal("privacy") },
-    { id: 4, icon: CreditCard, label: "Manage Subscriptions", color: "#1565c0", onClick: () => setOpenModal("subscription") },
+    { id: 2, icon: Shield, label: "Privacy Settings", color: "#1976d2", onClick: () => setOpenModal("privacy") },
+    { id: 3, icon: CreditCard, label: "Manage Subscriptions", color: "#1565c0", onClick: () => setOpenModal("subscription") },
   ];
 
   const preferences = [
@@ -705,42 +704,6 @@ export default function Profile() {
               )}
             </button>
           </form>
-        </ModalComponent>
-      )}
-
-      {/* MODAL: SELECT LANGUAGE */}
-      {openModal === "language" && (
-        <ModalComponent title="Select Interface Language" onClose={() => setOpenModal(null)}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {languagesList.map((lang) => {
-              const isSelected = language === lang.name;
-              return (
-                <div
-                  key={lang.code}
-                  onClick={() => handleSelectLanguage(lang)}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.75rem 1rem",
-                    borderRadius: "8px",
-                    border: isSelected ? "2px solid #ff9900" : "1px solid #e2e8f0",
-                    backgroundColor: isSelected ? "#fff7ed" : "#fff",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: isSelected ? "700" : "500", color: "#1e293b", fontSize: "14px" }}>
-                      {lang.name}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#64748b" }}>{lang.native}</div>
-                  </div>
-                  {isSelected && <Check size={18} color="#ff9900" strokeWidth={2.5} />}
-                </div>
-              );
-            })}
-          </div>
         </ModalComponent>
       )}
 
