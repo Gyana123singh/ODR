@@ -318,17 +318,31 @@ export default function Login({ getRole }) {
                           <input
                             className="input-field"
                             type="tel"
-                            placeholder="Phone Number"
+                            maxLength={10}
+                            placeholder="10-digit Phone Number"
                             value={phoneForLogin}
                             onChange={(e) => setPhoneForLogin(e.target.value)}
+                            disabled={loading}
                           />
                         </div>
-                        <button type="button" onClick={loginWithPhone} className="btn-success">
-                          Send OTP
+                        <button type="button" onClick={loginWithPhone} className="btn-success" disabled={loading}>
+                          {loading ? "Sending OTP..." : "Send OTP"}
                         </button>
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                          <button
+                            type="button"
+                            onClick={handleCancelPhoneLogin}
+                            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: "13px", padding: "4px" }}
+                          >
+                            ← Back to Login Options
+                          </button>
+                        </div>
                       </>
                     ) : (
                       <>
+                        <div style={{ fontSize: "13px", color: "#475569", textAlign: "center" }}>
+                          Enter the code sent to <strong>+91 {phoneForLogin}</strong>
+                        </div>
                         <div className="otp-input-group">
                           <input
                             className="input-field"
@@ -336,11 +350,28 @@ export default function Login({ getRole }) {
                             placeholder="Enter OTP"
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
+                            disabled={loading}
                           />
                         </div>
-                        <button type="button" onClick={verifyOTP} className="btn-success">
-                          Verify OTP & Login
+                        <button type="button" onClick={verifyOTP} className="btn-success" disabled={loading}>
+                          {loading ? "Verifying..." : "Verify OTP & Login"}
                         </button>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                          <button
+                            type="button"
+                            onClick={handleResendOtp}
+                            style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", padding: "4px" }}
+                          >
+                            Change Number / Resend
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelPhoneLogin}
+                            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: "4px" }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </>
                     )}
                     <div id="recaptcha-container"></div>

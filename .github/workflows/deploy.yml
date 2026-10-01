@@ -74,8 +74,14 @@ jobs:
             curl -I http://127.0.0.1:3636/ || true
             curl -I http://localhost:3636/ || true
 
-            echo ">>> Inspecting Nginx sites and upstream configuration..."
-            cat /etc/nginx/sites-enabled/* || true
-            sudo systemctl reload nginx || systemctl reload nginx || nginx -s reload || true
+            echo ">>> Aligning Nginx proxy port for gokulanandachaudhurifoundation.com to 3636..."
+            sudo grep -rn "gokulanandachaudhurifoundation.com" /etc/nginx/sites-enabled/ /etc/nginx/sites-available/ || true
+            sudo sed -i 's/localhost:3010/localhost:3636/g' /etc/nginx/sites-enabled/* /etc/nginx/sites-available/* || true
+            sudo sed -i 's/127.0.0.1:3010/127.0.0.1:3636/g' /etc/nginx/sites-enabled/* /etc/nginx/sites-available/* || true
+            sudo nginx -t
+            sudo systemctl reload nginx || sudo nginx -s reload || true
+
+            echo ">>> Testing public domain response from VPS..."
+            curl -I https://gokulanandachaudhurifoundation.com/ || true
 
             echo ">>> Deployment successfully completed!"
