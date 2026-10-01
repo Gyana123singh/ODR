@@ -27,34 +27,50 @@ import { useAuth } from "../../context/AuthContext";
 export default function Profile() {
   const { user: authUser } = useAuth();
 
-  const [neutralData, setNeutralData] = useState(() => ({
-    name: localStorage.getItem("username") || authUser?.name || "Neutral User",
-    email: localStorage.getItem("userEmail") || authUser?.email || "",
-    phone: localStorage.getItem("userPhone") || authUser?.phone || "",
-    role: localStorage.getItem("userRole") || authUser?.role || "neutral",
-  }));
+  const [neutralData, setNeutralData] = useState(() => {
+    const rawName = localStorage.getItem("username") || localStorage.getItem("userName") || authUser?.name;
+    const resolvedName = (rawName && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User")
+      ? rawName
+      : (localStorage.getItem("userEmail") || authUser?.email || "Mediator");
+    return {
+      name: resolvedName,
+      email: localStorage.getItem("userEmail") || authUser?.email || "",
+      phone: localStorage.getItem("userPhone") || authUser?.phone || "",
+      role: "Mediator",
+    };
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openModal, setOpenModal] = useState(null); // "editProfile" or "changePassword"
 
   // Form states
-  const [profileForm, setProfileForm] = useState(() => ({
-    name: localStorage.getItem("username") || authUser?.name || "",
-    phone: localStorage.getItem("userPhone") || authUser?.phone || "",
-  }));
+  const [profileForm, setProfileForm] = useState(() => {
+    const rawName = localStorage.getItem("username") || localStorage.getItem("userName") || authUser?.name;
+    const resolvedName = (rawName && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User" && rawName !== "Mediator")
+      ? rawName
+      : (localStorage.getItem("userEmail") || authUser?.email || "");
+    return {
+      name: resolvedName,
+      phone: localStorage.getItem("userPhone") || authUser?.phone || "",
+    };
+  });
 
   // Sync state if auth context updates
   useEffect(() => {
     if (authUser) {
+      const rawName = authUser.name || localStorage.getItem("username") || localStorage.getItem("userName");
+      const resolvedName = (rawName && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User")
+        ? rawName
+        : (authUser.email || localStorage.getItem("userEmail") || "Mediator");
       setNeutralData((prev) => ({
         ...prev,
-        name: authUser.name || prev.name,
+        name: resolvedName,
         email: authUser.email || prev.email,
         phone: authUser.phone || prev.phone,
-        role: authUser.role || prev.role,
+        role: "Mediator",
       }));
       setProfileForm((prev) => ({
-        name: authUser.name || prev.name,
+        name: (resolvedName !== "Mediator" ? resolvedName : (authUser.email || prev.name)),
         phone: authUser.phone || prev.phone,
       }));
     }
@@ -152,31 +168,43 @@ export default function Profile() {
       const res = await axiosInstance.get("/neutral/data");
       if (res.data?.success && res.data.data) {
         const u = res.data.data;
-        setNeutralData(u);
+        const rawName = u.name;
+        const resolvedName = (rawName && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User")
+          ? rawName
+          : (u.email || localStorage.getItem("userEmail") || authUser?.email || "Mediator");
+        setNeutralData({
+          ...u,
+          name: resolvedName,
+          email: u.email || localStorage.getItem("userEmail") || authUser?.email || "",
+          phone: u.phone || localStorage.getItem("userPhone") || authUser?.phone || "",
+          role: "Mediator",
+        });
         setProfileForm({
-          name: u.name || "",
+          name: (resolvedName && resolvedName !== "Mediator") ? resolvedName : (u.email || ""),
           phone: u.phone || "",
         });
-        if (u.name) localStorage.setItem("username", u.name);
+        if (resolvedName) localStorage.setItem("username", resolvedName);
         if (u.email) localStorage.setItem("userEmail", u.email);
         if (u.phone) localStorage.setItem("userPhone", u.phone);
-        if (u.role) localStorage.setItem("userRole", u.role);
+        localStorage.setItem("userRole", "neutral");
       }
     } catch (error) {
       console.error("Fetch neutral data error:", error);
       // Fallback gracefully to localStorage or authUser so email/name still displays
       const savedEmail = localStorage.getItem("userEmail") || authUser?.email || "";
-      const savedName = localStorage.getItem("username") || authUser?.name || "Neutral User";
+      const rawSavedName = localStorage.getItem("username") || localStorage.getItem("userName") || authUser?.name;
+      const savedName = (rawSavedName && rawSavedName !== "Neutral User" && rawSavedName !== "User" && rawSavedName !== "Firebase User")
+        ? rawSavedName
+        : (savedEmail || "Mediator");
       const savedPhone = localStorage.getItem("userPhone") || authUser?.phone || "";
-      const savedRole = localStorage.getItem("userRole") || authUser?.role || "neutral";
       setNeutralData({
         name: savedName,
         email: savedEmail,
         phone: savedPhone,
-        role: savedRole,
+        role: "Mediator",
       });
       setProfileForm({
-        name: savedName,
+        name: (savedName && savedName !== "Mediator") ? savedName : (savedEmail || ""),
         phone: savedPhone,
       });
     } finally {
@@ -290,7 +318,7 @@ export default function Profile() {
       onClick: () => {
         toast.info("Opening Gmail compose...");
         window.open(
-          "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Neutral%20Support%20Request",
+          "https://mail.google.com/mail/?view=cm&fs=1&to=support@odrcourtapp.com&su=ODR%20Mediator%20Support%20Request",
           "_blank",
           "noopener,noreferrer"
         );
@@ -778,7 +806,7 @@ export default function Profile() {
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
               <div>
-                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Neutral Profile Visibility</div>
+                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Mediator Profile Visibility</div>
                 <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Allow parties to view accreditation & bio</div>
               </div>
               <button
@@ -827,19 +855,19 @@ export default function Profile() {
 
       {/* MODAL: MANAGE SUBSCRIPTION */}
       {openModal === "subscription" && (
-        <ModalComponent title="Neutral Roster & License Status" onClose={() => setOpenModal(null)}>
+        <ModalComponent title="Mediator Roster & License Status" onClose={() => setOpenModal(null)}>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "1rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: "14px", fontWeight: "700", color: "#15803d" }}>
-                  Certified Neutral Arbiter
+                  Certified Mediator
                 </span>
                 <span style={{ backgroundColor: "#dcfce7", color: "#166534", fontSize: "12px", fontWeight: "700", padding: "2px 8px", borderRadius: "12px" }}>
                   Active
                 </span>
               </div>
               <p style={{ fontSize: "12px", color: "#374151", margin: "6px 0 0 0" }}>
-                Verified by the institutional ODR Registry with full dispute arbitration authorization.
+                Verified by the institutional ODR Registry with full dispute mediation authorization.
               </p>
             </div>
 

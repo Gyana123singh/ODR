@@ -25,7 +25,7 @@ const firebaseLogin = async (req, res) => {
     // The decoded token will have an email (if Gmail login) or phone_number (if Phone login)
     const email = decodedToken.email;
     const phone = decodedToken.phone_number;
-    const name = decodedToken.name || "Firebase User";
+    const name = decodedToken.name || (email ? email : (phone || "User"));
 
     let user = null;
 

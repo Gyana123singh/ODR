@@ -56,8 +56,8 @@ export default function GoogleMeet() {
   const [chatMessages, setChatMessages] = useState([
     {
       id: 1,
-      sender: "Hon'ble Presiding Neutral",
-      role: "Neutral",
+      sender: "Hon'ble Presiding Mediator",
+      role: "Mediator",
       roleColor: "#8b5cf6",
       text: "Good morning counsels and parties. The virtual dispute hearing is now in formal session. Please state your appearances.",
       time: "10:30 AM",
@@ -279,7 +279,7 @@ export default function GoogleMeet() {
   const [formType, setFormType] = useState("arbitration");
   const [formTime, setFormTime] = useState("10:00 AM");
   const [formDuration, setFormDuration] = useState("60 mins");
-  const [formNeutral, setFormNeutral] = useState("Presiding Arbitrator");
+  const [formNeutral, setFormNeutral] = useState("Presiding Mediator");
 
   // Auto-join if roomId parameter is in the URL
   useEffect(() => {
@@ -485,8 +485,8 @@ export default function GoogleMeet() {
 
     // Realistic participant response in the hearing
     setTimeout(() => {
-      let replySender = "Hon'ble Presiding Neutral";
-      let replyRole = "Neutral";
+      let replySender = "Hon'ble Presiding Mediator";
+      let replyRole = "Mediator";
       let replyColor = "#8b5cf6";
       let replyText = `Noted. Recorded in hearing proceedings: "${text.length > 35 ? text.slice(0, 35) + '...' : text}"`;
 
@@ -557,7 +557,7 @@ export default function GoogleMeet() {
       dateMonth: "November",
       speakerName: formTitle,
       speakerAvatar: "/avatars/speaker1.jpg",
-      leader: formNeutral || "Arbitrator / Neutral",
+      leader: formNeutral || "Mediator",
       tag: typeLabels[formType] || "Hearing",
       time: formTime,
       duration: formDuration,
@@ -567,7 +567,7 @@ export default function GoogleMeet() {
       type: formType,
       typeLabel: typeLabels[formType] || "Hearing",
       description: `Institutional ${formType} hearing scheduled under Utkal ODR institutional dispute rules.`,
-      neutral: formNeutral || "Presiding Arbitrator",
+      neutral: formNeutral || "Presiding Mediator",
     };
 
     setEventScheduleDays((prev) => ({
@@ -584,7 +584,7 @@ export default function GoogleMeet() {
   // Download Schedule Handler
   const handleDownloadSchedule = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Day,Date,Month,Speaker/Party,Leader/Neutral,Category,Time,Duration,Venue,Case ID\n";
+    csvContent += "Day,Date,Month,Speaker/Party,Leader/Mediator,Category,Time,Duration,Venue,Case ID\n";
     
     Object.entries(eventScheduleDays).forEach(([day, items]) => {
       items.forEach((item) => {
@@ -828,7 +828,7 @@ export default function GoogleMeet() {
                     {selectedSessionModal.caseTitle || selectedSessionModal.speakerName}
                   </div>
                   <div style={{ fontSize: "12px", color: "#ea580c", fontWeight: 600, marginTop: "2px" }}>
-                    Presiding Neutral: {selectedSessionModal.neutral || selectedSessionModal.leader}
+                    Presiding Mediator: {selectedSessionModal.neutral || selectedSessionModal.leader}
                   </div>
                   <div style={{ fontSize: "11.5px", color: "var(--uom-text-muted)", marginTop: "2px" }}>
                     {selectedSessionModal.dateDay} {selectedSessionModal.dateMonth} • {selectedSessionModal.time} • {selectedSessionModal.venue}
@@ -963,7 +963,7 @@ export default function GoogleMeet() {
               </div>
 
               <div className="uom-form-group">
-                <label className="uom-form-label">Presiding Arbitrator / Neutral</label>
+                <label className="uom-form-label">Presiding Mediator</label>
                 <input
                   type="text"
                   className="uom-form-input"

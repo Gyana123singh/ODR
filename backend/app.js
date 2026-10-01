@@ -92,6 +92,7 @@ app.get(/(.*)/, (req, res) => {
 // Global Error Handler Middleware (must be registered last)
 app.use(errorHandler);
 
+const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
 const ChatMessage = require("./models/chatMessage");
@@ -127,6 +128,16 @@ io.on("connection", (socket) => {
     console.log("send_message request received on backend:", data);
     try {
       const { caseId, senderId, senderRole, receiverId, receiverRole, message } = data;
+
+      if (!caseId || !senderId || !receiverId || !message) {
+        console.warn("send_message missing required fields:", { caseId, senderId, receiverId, message });
+        return;
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
+        console.warn("send_message rejected: senderId or receiverId is not a valid ObjectId:", { senderId, receiverId });
+        return;
+      }
 
       const savedMsg = await ChatMessage.create({
         caseId,

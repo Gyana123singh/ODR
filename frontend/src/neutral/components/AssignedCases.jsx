@@ -8,33 +8,42 @@ import {
   Users,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../api/axiosConfig";
 import ModalComponent from "../../neutral/components/Modal/ModalComponent";
 import ViewCaseDetails from "../../neutral/components/Modal/ViewCaseDetails";
 import Action from "./Modal/Action";
+import { Loader2, RefreshCw } from "lucide-react";
 
 export default function AssignedCases() {
   const [openModal, setOpenModal] = useState(null);
   const [assignedCases, setAssignedCases] = useState([]);
   const [selectCaseData, setSelectCaseData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const neutralId = localStorage.getItem("userId"); // neutral login id
 
   const fetchAssignedCases = async () => {
+    setLoading(true);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-      const res = await axios.get(
-        `${API_BASE_URL}/admin/get-assign-cases/${neutralId}`
-      );
-      setAssignedCases(res.data.data);
-      console.log(res.data);
+      const targetId = neutralId || "all";
+      const res = await axiosInstance.get(`/admin/get-assign-cases/${targetId}`);
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setAssignedCases(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setAssignedCases(res.data);
+      } else {
+        setAssignedCases([]);
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching assigned cases:", error);
+      setAssignedCases([]);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
     fetchAssignedCases();
-  }, []);
+  }, [neutralId]);
 
   const [isMobile] = useState(window.innerWidth <= 480);
   const [cases] = useState([
@@ -231,111 +240,150 @@ export default function AssignedCases() {
       {/* Header */}
       <div style={styles.header}>
         <MessageSquare size={24} />
-        Assigned Cases Overview
+        <span style={{ flex: 1 }}>Assigned Cases Overview</span>
+        <button
+          onClick={fetchAssignedCases}
+          style={{
+            background: "rgba(255,255,255,0.2)",
+            border: "none",
+            color: "#fff",
+            borderRadius: "6px",
+            padding: "6px 12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "13px",
+            fontWeight: "600",
+          }}
+        >
+          <RefreshCw size={14} /> Refresh
+        </button>
       </div>
 
-      {/* Cases Grid */}
-      <div style={styles.caseGrid}>
-        {assignedCases.map((caseItem) => (
-          <div
-            key={caseItem.id}
-            style={styles.caseCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
-              e.currentTarget.style.transform = "translateY(-4px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-              e.currentTarget.style.transform = "translateY(0)";
+      {loading ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "50vh", gap: "12px" }}>
+          <Loader2 size={36} style={{ animation: "spin 1s linear infinite", color: "#ff9900" }} />
+          <p style={{ fontSize: "14px", color: "#64748b" }}>Loading assigned dispute cases...</p>
+        </div>
+      ) : assignedCases.length === 0 ? (
+        <div style={{ backgroundColor: "#fff", borderRadius: "12px", padding: "3rem 1.5rem", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <MessageSquare size={48} color="#cbd5e1" style={{ margin: "0 auto 1rem" }} />
+          <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#1e293b", margin: "0 0 8px 0" }}>No Cases Assigned Yet</h3>
+          <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 1.5rem 0" }}>
+            New dispute filings assigned to your mediator profile will appear here automatically.
+          </p>
+          <button
+            onClick={fetchAssignedCases}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#ff9900",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
             }}
           >
-            <div style={styles.caseHeader}>
-              <div style={styles.caseTitle}>
-                <div style={styles.caseName}>{caseItem.DisputeType}</div>
-                <div style={styles.caseId}>Case #{caseItem.caseId}</div>
-              </div>
-              <div style={styles.statusBadge(caseItem.statusColor)}>
-                {caseItem.status}
-              </div>
-            </div>
-
-            <div style={styles.caseContent}>
-              {/* Parties */}
-              <div style={styles.parties}>
-                <strong>{caseItem.DisputeName}</strong> vs{" "}
-                <strong>{caseItem.oppositePartyName}</strong>
-              </div>
-
-              {/* Metadata Grid */}
-              <div style={styles.caseMetaGrid}>
-                <div style={styles.metaItem}>
-                  <Calendar size={14} style={styles.metaIcon} />
-                  <div style={styles.metaText}>
-                    <div style={styles.metaLabel}>Assigned</div>
-                    <div style={styles.metaValue}>{caseItem.createdAt}</div>
+            Check for Updates
+          </button>
+        </div>
+      ) : (
+        /* Cases Grid */
+        <div style={styles.caseGrid}>
+          {assignedCases.map((caseItem, idx) => {
+            const rawDate = caseItem.createdAt;
+            const formattedDate = rawDate ? (typeof rawDate === "string" && rawDate.includes("T") ? rawDate.split("T")[0] : rawDate) : "Recent";
+            return (
+              <div
+                key={caseItem._id || caseItem.id || idx}
+                style={styles.caseCard}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                <div style={styles.caseHeader}>
+                  <div style={styles.caseTitle}>
+                    <div style={styles.caseName}>{caseItem.DisputeType || caseItem.DisputeName || "Dispute Case"}</div>
+                    <div style={styles.caseId}>Case #{caseItem.caseId || caseItem._id?.slice(-6)}</div>
+                  </div>
+                  <div style={styles.statusBadge(caseItem.statusColor || "#ff9900")}>
+                    {caseItem.status || "Assigned"}
                   </div>
                 </div>
-                <div style={styles.metaItem}>
-                  <Calendar size={14} style={styles.metaIcon} />
-                  <div style={styles.metaText}>
-                    <div style={styles.metaLabel}>Next Hearing</div>
-                    <div style={styles.metaValue}>{caseItem.nextHearing}</div>
+
+                <div style={styles.caseContent}>
+                  {/* Parties */}
+                  <div style={styles.parties}>
+                    <strong>{caseItem.claimant?.name || caseItem.CustomersName || caseItem.DisputeName || "Claimant"}</strong> vs{" "}
+                    <strong>{caseItem.respondent?.name || caseItem.oppositePartyName || "Respondent"}</strong>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div style={styles.caseMetaGrid}>
+                    <div style={styles.metaItem}>
+                      <Calendar size={14} style={styles.metaIcon} />
+                      <div style={styles.metaText}>
+                        <div style={styles.metaLabel}>Assigned</div>
+                        <div style={styles.metaValue}>{formattedDate}</div>
+                      </div>
+                    </div>
+                    <div style={styles.metaItem}>
+                      <Calendar size={14} style={styles.metaIcon} />
+                      <div style={styles.metaText}>
+                        <div style={styles.metaLabel}>Hearing Status</div>
+                        <div style={styles.metaValue}>{caseItem.nextHearing || "Online Hearing"}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats Section */}
+                  <div style={styles.statsSection}>
+                    <div style={styles.statItem}>
+                      <div style={styles.statNumber}>
+                        {caseItem.submissionsReceived || 1}
+                      </div>
+                      <div style={styles.statLabel}>Submissions</div>
+                    </div>
+                    <div style={styles.statItem}>
+                      <div style={styles.statNumber}>{caseItem.documentsCount || (caseItem.file ? 1 : 0)}</div>
+                      <div style={styles.statLabel}>Documents</div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={styles.actionButtons}>
+                    <button
+                      style={styles.actionButton("#0066cc")}
+                      onClick={() => {
+                        setOpenModal("viewDetails");
+                        setSelectCaseData(caseItem);
+                      }}
+                    >
+                      <Eye size={14} />
+                      View
+                    </button>
+                    <button
+                      style={styles.actionButton("#22bb33")}
+                      onClick={() => {
+                        setSelectCaseData(caseItem);
+                        setOpenModal("Action");
+                      }}
+                    >
+                      Action
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* Stats Section */}
-              <div style={styles.statsSection}>
-                <div style={styles.statItem}>
-                  <div style={styles.statNumber}>
-                    {caseItem.submissionsReceived}
-                  </div>
-                  <div style={styles.statLabel}>Submissions</div>
-                </div>
-                <div style={styles.statItem}>
-                  <div style={styles.statNumber}>{caseItem.documentsCount}</div>
-                  <div style={styles.statLabel}>Documents</div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={styles.actionButtons}>
-                <button
-                  style={styles.actionButton("#0066cc")}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0066cc33";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0066cc22";
-                  }}
-                  onClick={() => {
-                    setOpenModal("viewDetails");
-                    setSelectCaseData(caseItem);
-                  }}
-                >
-                  <Eye size={14} />
-                  View
-                </button>
-                <button
-                  style={styles.actionButton("#22bb33")}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#22bb3333";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#22bb3322";
-                  }}
-                  onClick={() => {
-                    setSelectCaseData(caseItem); // Add this
-                    setOpenModal("Action");
-                  }}
-                >
-                  Action
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* reusable modal for viewDetails  */}
       {openModal === "viewDetails" && (

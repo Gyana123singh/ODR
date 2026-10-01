@@ -29,9 +29,15 @@ export default function Profile() {
   const [isMobile] = useState(window.innerWidth <= 480);
 
   // Profile State
-  const [name, setName] = useState(localStorage.getItem("userName") || "User");
-  const [email, setEmail] = useState(localStorage.getItem("userEmail") || "respondent@email.com");
-  const [phone, setPhone] = useState(localStorage.getItem("userPhone") || "+91 98765 43210");
+  const [name, setName] = useState(
+    () => localStorage.getItem("username") || localStorage.getItem("userName") || localStorage.getItem("userEmail") || "User"
+  );
+  const [email, setEmail] = useState(
+    () => localStorage.getItem("userEmail") || "respondent@email.com"
+  );
+  const [phone, setPhone] = useState(
+    () => localStorage.getItem("userPhone") || ""
+  );
 
   // Preferences State
   const [enableNotifications, setEnableNotifications] = useState(
@@ -92,9 +98,17 @@ export default function Profile() {
       try {
         const res = await axiosInstance.get("/respondent/data");
         if (res.data?.success && res.data.data) {
-          if (res.data.data.name) setName(res.data.data.name);
-          if (res.data.data.email) setEmail(res.data.data.email);
-          if (res.data.data.phone) setPhone(res.data.data.phone);
+          const userD = res.data.data;
+          const resolved = (userD.name && userD.name !== "User" && userD.name !== "Firebase User")
+            ? userD.name
+            : (userD.email || localStorage.getItem("userEmail") || localStorage.getItem("username") || localStorage.getItem("userName") || "User");
+          setName(resolved);
+          if (userD.email) setEmail(userD.email);
+          if (userD.phone) setPhone(userD.phone);
+          localStorage.setItem("username", resolved);
+          localStorage.setItem("userName", resolved);
+          if (userD.email) localStorage.setItem("userEmail", userD.email);
+          if (userD.phone) localStorage.setItem("userPhone", userD.phone);
         }
       } catch (err) {
         // Fallback to localStorage values
@@ -105,9 +119,12 @@ export default function Profile() {
 
   // Open Edit Profile Modal
   const handleOpenEdit = () => {
-    setEditName(name);
-    setEditEmail(email);
-    setEditPhone(phone);
+    const currentName = (name && name !== "User" && name !== "Firebase User")
+      ? name
+      : (email || localStorage.getItem("userEmail") || localStorage.getItem("username") || localStorage.getItem("userName") || "");
+    setEditName(currentName);
+    setEditEmail(email || localStorage.getItem("userEmail") || "");
+    setEditPhone(phone || localStorage.getItem("userPhone") || "");
     setShowEditModal(true);
   };
 
@@ -135,6 +152,7 @@ export default function Profile() {
       setEmail(editEmail);
       setPhone(editPhone);
 
+      localStorage.setItem("username", editName);
       localStorage.setItem("userName", editName);
       localStorage.setItem("userEmail", editEmail);
       localStorage.setItem("userPhone", editPhone);
@@ -1087,7 +1105,7 @@ export default function Profile() {
                     Profile Visibility
                   </div>
                   <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
-                    Allow appointed Arbitrators & Neutrals to view verified contact profile
+                    Allow appointed Mediators to view verified contact profile
                   </div>
                 </div>
                 <button

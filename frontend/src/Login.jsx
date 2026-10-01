@@ -301,7 +301,7 @@ export default function Login({ getRole }) {
             Settle your dispute online, without waiting in line.
           </h2>
           <p className="hero-subtitle" style={{ fontSize: '20px', lineHeight: '1.6', maxWidth: '600px', marginTop: '24px', color: '#ffffff', opacity: '1' }}>
-            Arbitration, mediation and conciliation on one secure platform. File your case, share evidence, attend hearings and receive orders online.
+            Online Mediation Platform
           </p>
         </div>
 

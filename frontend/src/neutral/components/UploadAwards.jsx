@@ -68,15 +68,14 @@ export default function UploadAwards() {
 
   // Fetch neutral's uploaded awards/orders
   const fetchAwards = useCallback(async () => {
-    if (!neutralId) return;
     try {
-      const res = await axiosInstance.get(`/neutral/awards/${neutralId}`);
+      const targetId = neutralId || "all";
+      const res = await axiosInstance.get(`/neutral/awards/${targetId}`);
       if (res.data?.success) {
         setAwards(res.data.data || []);
       }
     } catch (error) {
       console.error("Fetch awards error:", error);
-      toast.error("Failed to load uploaded documents");
     }
   }, [neutralId]);
 

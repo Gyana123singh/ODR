@@ -82,9 +82,9 @@ export default function Help() {
   const faqs = [
     {
       id: 1,
-      question: "What are my responsibilities as a neutral?",
+      question: "What are my responsibilities as a mediator?",
       answer:
-        "As a neutral arbiter, you are responsible for reviewing case submissions from both claimant and respondent, scheduling and conducting fair hearings, and providing impartial judgments based on the evidence presented.",
+        "As an appointed mediator, you are responsible for reviewing dispute submissions from both claimant and respondent, scheduling and facilitating fair mediation sessions, and drafting amicable resolutions or settlement orders.",
     },
     {
       id: 2,

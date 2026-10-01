@@ -222,7 +222,7 @@ export default function RealTimeChat({ role }) {
   const getRoleLabel = (userRole) => {
     switch (userRole) {
       case "admin": return "Court Admin";
-      case "neutral": return "Neutral Arbiter";
+      case "neutral": return "Mediator";
       case "claimant": return "Claimant";
       case "respondent": return "Respondent";
       default: return userRole;

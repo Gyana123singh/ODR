@@ -53,7 +53,7 @@ const uploadAwardDoc = async (req, res) => {
       neutralId,
       documentType,
       fileName: file.originalname,
-      fileUrl: uploadResult.secure_url,
+      fileUrl: fileUrl,
       fileSize: formatBytes(file.size),
       status: "Draft",
       summary: summary || "",
@@ -87,18 +87,24 @@ const uploadAwardDoc = async (req, res) => {
 // 2. Fetch Awards for Neutral
 const getAwardsForNeutral = async (req, res) => {
   try {
-    const neutralId = req.params.neutralId;
+    const mongoose = require("mongoose");
+    const { neutralId } = req.params;
+    let query = {};
 
-    if (!neutralId) {
-      return res.status(400).json({ success: false, message: "neutralId parameter is required" });
+    if (neutralId && neutralId !== "all" && neutralId !== "undefined" && neutralId !== "null") {
+      if (mongoose.Types.ObjectId.isValid(neutralId)) {
+        query = { neutralId: new mongoose.Types.ObjectId(neutralId) };
+      }
+    } else if (req.user?.id) {
+      query = { neutralId: req.user.id };
     }
 
     // Fetch awards and populate case details if needed
-    const awards = await NeutralAward.find({ neutralId }).sort({ uploadedAt: -1 });
+    const awards = await NeutralAward.find(query).sort({ uploadedAt: -1 });
 
     // Fetch related case titles for UI friendliness
     const awardsWithCaseDetails = await Promise.all(
-      awards.map(async (award) => {
+      (awards || []).map(async (award) => {
         const c = await Case.findOne({ caseId: award.caseId }).select("DisputeName CustomersName oppositePartyName");
         return {
           ...award.toObject(),

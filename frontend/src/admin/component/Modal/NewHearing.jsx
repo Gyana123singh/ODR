@@ -133,7 +133,7 @@ export default function ScheduleHearing({ onClose }) {
               </select>
             </div>
             <div className="form-group">
-              <label>Judge</label>
+              <label>Mediator / Judge</label>
               <select
                 name="Judge"
                 value={formData.Judge}
@@ -141,11 +141,11 @@ export default function ScheduleHearing({ onClose }) {
                 className="w-full p-2 border rounded"
                 required
               >
-                <option value="">Select Judge Name</option>
+                <option value="">Select Mediator / Judge</option>
                 {newHearingData &&
                   newHearingData.map((item, index) => (
                     <option key={item._id} value={item.Judge}>
-                      {`${item.neutral?.name}`}
+                      {item.neutral?.name && item.neutral?.name !== "Neutral User" && item.neutral?.name !== "User" && item.neutral?.name !== "Firebase User" ? item.neutral.name : (item.neutral?.email || item.Judge || "Mediator")}
                     </option>
                   ))}
               </select>

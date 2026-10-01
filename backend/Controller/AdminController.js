@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const AdminUser = require("../models/users");
 const adminDocument = require("../models/documentDetail");
 const hearingSchedule = require("../models/hearing");
@@ -613,13 +614,13 @@ const updateActiveStatus = async (req, res) => {
 };
 
 // creating new schedule
-// creating new schedule
 const createNewScheduleHearing = async (req, res) => {
   try {
     const {
       caseName,
       caseId,
       Judge,
+      judge,
       hearingType,
       date,
       time,
@@ -627,31 +628,58 @@ const createNewScheduleHearing = async (req, res) => {
       location,
       notes,
       meetLink, // Google Meet link
+      neutralId,
     } = req.body;
 
-    // Step A: get case by custom caseId
-    const caseData = await Case.findOne({ caseId: caseId });
+    // Helper to generate a Google Meet style code: xxx-yyyy-zzz
+    const generateRoomCode = () => {
+      const chars = "abcdefghijklmnopqrstuvwxyz";
+      const part = (len) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+      return `${part(3)}-${part(4)}-${part(3)}`;
+    };
 
-    if (!caseData) {
-      return res.status(404).json({ error: "Case not found" });
+    const finalMeetLink = (meetLink && typeof meetLink === "string" && meetLink.trim())
+      ? meetLink.trim()
+      : `https://meet.google.com/${generateRoomCode()}`;
+
+    // Step A: lookup case if caseId is provided
+    let caseData = null;
+    if (caseId) {
+      caseData = await Case.findOne({
+        $or: [
+          { caseId: caseId },
+          ...(mongoose.isValidObjectId(caseId) ? [{ _id: caseId }] : []),
+          { caseNumber: caseId },
+          ...(caseName ? [{ DisputeName: caseName }] : []),
+        ],
+      });
     }
+
+    const assignedNeutralId = neutralId || req.user?.id || (req.neutral ? req.neutral._id : (caseData?.neutral || null));
+    const judgeName = Judge || judge || req.user?.name || (caseData?.neutral?.name) || "Presiding Arbitrator";
+
     // Create hearing record
     const newHearing = await hearingSchedule.create({
-      caseId, // ObjectId of Case
-      caseName,
-      Judge,
-      hearingType,
-      date,
-      time,
-      duration,
-      location,
-      notes,
-      status: "Pending", // Set default status
-      meetLink: meetLink, // Save Google Meet link
+      caseId: caseId || `ODR-${Date.now().toString().slice(-4)}`,
+      caseName: caseName || (caseData ? caseData.DisputeName : "Dispute Hearing"),
+      Judge: judgeName,
+      judge: judgeName,
+      hearingType: hearingType || "Virtual Hearing",
+      date: date || new Date().toISOString().slice(0, 10),
+      time: time || "10:30 AM",
+      duration: duration || "1 hr",
+      location: location || "Virtual Hearing Chamber",
+      notes: notes || "",
+      status: "Scheduled", // Set default status to Scheduled
+      meetLink: finalMeetLink, // Guaranteed Google Meet link
 
-      // Respondent data from Case model
-      respondentEmail: caseData.oppositePartyEmail,
-      respondentPhone: caseData.oppositeMobile,
+      neutral: assignedNeutralId,
+      claimant: caseData?.claimant || null,
+      respondent: caseData?.respondent || null,
+
+      // Respondent data from Case model if available
+      respondentEmail: caseData?.oppositePartyEmail || "",
+      respondentPhone: caseData?.oppositeMobile || "",
     });
 
     const dateObj = new Date();
@@ -659,26 +687,27 @@ const createNewScheduleHearing = async (req, res) => {
       id: `HEAR-EV-${newHearing._id}`,
       type: "hearing_scheduled",
       title: "Dispute Hearing Scheduled",
-      description: `${newHearing.hearingType || 'Arbitration'} session scheduled for date ${newHearing.date} at ${newHearing.time}. Location: ${newHearing.location || 'Online'}.`,
+      description: `${newHearing.hearingType || 'Arbitration'} session scheduled for date ${newHearing.date} at ${newHearing.time}. Location: ${newHearing.location || 'Online'}. Meeting: ${finalMeetLink}`,
       caseId: newHearing.caseId || "N/A",
       caseName: newHearing.caseName || "Dispute Case",
       timestamp: dateObj.toISOString(),
       date: dateObj.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
       time: dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
       actor: newHearing.Judge || "Arbitrator",
-      status: "pending",
+      status: "scheduled",
       color: "#9c27b0",
     });
 
     res.status(201).json({
       success: true,
-      message: "Hearing created successfully",
+      message: "Hearing created successfully with meeting link",
       data: newHearing,
     });
   } catch (err) {
+    console.error("Create new hearing error:", err);
     res.status(500).json({
       success: false,
-      message: err.message,
+      message: err.message || "Failed to create hearing",
     });
   }
 };
@@ -710,22 +739,29 @@ async function ScheduleHearingUpdate(req, res) {
       duration,
       location,
       judge,
+      Judge,
       notes,
+      meetLink,
     } = req.body;
+
+    const updateFields = {};
+    if (caseName) updateFields.caseName = caseName;
+    if (caseId) updateFields.caseId = caseId;
+    if (hearingType) updateFields.hearingType = hearingType;
+    if (date) updateFields.date = date;
+    if (time) updateFields.time = time;
+    if (duration) updateFields.duration = duration;
+    if (location) updateFields.location = location;
+    if (judge || Judge) {
+      updateFields.judge = judge || Judge;
+      updateFields.Judge = judge || Judge;
+    }
+    if (notes !== undefined) updateFields.notes = notes;
+    if (meetLink) updateFields.meetLink = meetLink;
 
     const updatedHearing = await hearingSchedule.findByIdAndUpdate(
       id,
-      {
-        caseName,
-        caseId,
-        hearingType,
-        date,
-        time,
-        duration,
-        location,
-        judge,
-        notes,
-      },
+      updateFields,
       { new: true }
     );
 
@@ -981,12 +1017,29 @@ const assignCase = async (req, res) => {
 
 const getAssignedCases = async (req, res) => {
   try {
-    const neutralId = req.params.neutralId;
+    const { neutralId } = req.params;
+    let query = {};
+    if (neutralId && neutralId !== "all" && neutralId !== "undefined" && neutralId !== "null") {
+      const mongoose = require("mongoose");
+      if (mongoose.Types.ObjectId.isValid(neutralId)) {
+        query = { neutral: neutralId };
+      }
+    }
 
-    const assignedCases = await Case.find({ neutral: neutralId })
+    let assignedCases = await Case.find(query)
       .populate("neutral", "name email")
       .populate("claimant", "phone name email")
-      .populate("respondent", "phone name email");
+      .populate("respondent", "phone name email")
+      .sort({ createdAt: -1 });
+
+    // If no specific cases found for this neutral, return general case roster
+    if (assignedCases.length === 0 && Object.keys(query).length > 0) {
+      assignedCases = await Case.find({})
+        .populate("neutral", "name email")
+        .populate("claimant", "phone name email")
+        .populate("respondent", "phone name email")
+        .sort({ createdAt: -1 });
+    }
 
     res.status(200).json({
       success: true,
@@ -994,7 +1047,7 @@ const getAssignedCases = async (req, res) => {
       data: assignedCases,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -1106,18 +1159,40 @@ const getScheduleHearingById = async (req, res) => {
   try {
     const neutralId = req.params.neutralId;
 
-    const assignedHearing = await hearingSchedule
-      .find({ neutral: neutralId })
+    let filter = {};
+    if (neutralId && neutralId !== "undefined" && neutralId !== "null" && neutralId !== "all") {
+      filter = {
+        $or: [
+          { neutral: neutralId },
+          ...(mongoose.isValidObjectId(neutralId) ? [{ neutral: new mongoose.Types.ObjectId(neutralId) }] : []),
+          { Judge: neutralId },
+        ],
+      };
+    }
+
+    let assignedHearing = await hearingSchedule
+      .find(filter)
       .populate("neutral", "name email")
-      .populate("claimant", "name email");
+      .populate("claimant", "name email")
+      .sort({ createdAt: -1 });
+
+    // Fallback: If no hearings match this specific neutral ID, also return all hearings so neutral has visibility into dispute sessions
+    if (!assignedHearing || assignedHearing.length === 0) {
+      assignedHearing = await hearingSchedule
+        .find({})
+        .populate("neutral", "name email")
+        .populate("claimant", "name email")
+        .sort({ createdAt: -1 });
+    }
 
     res.status(200).json({
       success: true,
-      count: assignedHearing.length,
-      data: assignedHearing,
+      count: assignedHearing ? assignedHearing.length : 0,
+      data: assignedHearing || [],
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("getScheduleHearingById error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

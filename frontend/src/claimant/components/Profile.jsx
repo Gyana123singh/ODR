@@ -108,12 +108,18 @@ export default function Profile() {
     setLoadingProfile(true);
     try {
       const response = await axiosInstance.get("/claimant/data");
-      if (response.data?.success) {
-        setProfileData(response.data.data);
+      if (response.data?.success && response.data.data) {
+        const u = response.data.data;
+        setProfileData(u);
+        const resolvedName = (u.name && u.name !== "User" && u.name !== "Firebase User")
+          ? u.name
+          : (u.email || localStorage.getItem("userEmail") || localStorage.getItem("username") || localStorage.getItem("userName") || "");
         setEditForm({
-          name: response.data.data.name || "",
-          phone: response.data.data.phone || ""
+          name: resolvedName,
+          phone: u.phone || localStorage.getItem("userPhone") || "",
         });
+        localStorage.setItem("username", resolvedName);
+        localStorage.setItem("userName", resolvedName);
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -488,7 +494,11 @@ export default function Profile() {
             <div style={styles.profileAvatar}>
               {profileData?.name ? getInitials(profileData.name) : <User size={isMobile ? 40 : 60} />}
             </div>
-            <div style={styles.profileName}>{profileData?.name || "User"}</div>
+            <div style={styles.profileName}>
+              {(profileData?.name && profileData?.name !== "User" && profileData?.name !== "Firebase User")
+                ? profileData.name
+                : (profileData?.email || localStorage.getItem("username") || localStorage.getItem("userName") || localStorage.getItem("userEmail") || "User")}
+            </div>
             <div style={styles.profileRole}>{profileData?.user || "Claimant"}</div>
             <div style={styles.profileEmail}>{profileData?.email || "user@email.com"}</div>
             <div style={{ ...styles.profileEmail, opacity: 0.7, fontSize: "13px", marginTop: "-6px", marginBottom: "15px" }}>
@@ -496,7 +506,16 @@ export default function Profile() {
             </div>
             <button
               style={styles.editButton}
-              onClick={() => setOpenModal("EditProfile")}
+              onClick={() => {
+                const currentName = (profileData?.name && profileData?.name !== "User" && profileData?.name !== "Firebase User")
+                  ? profileData.name
+                  : (profileData?.email || localStorage.getItem("userEmail") || localStorage.getItem("username") || localStorage.getItem("userName") || "");
+                setEditForm({
+                  name: currentName,
+                  phone: profileData?.phone || localStorage.getItem("userPhone") || "",
+                });
+                setOpenModal("EditProfile");
+              }}
             >
               <Edit2 size={16} />
               Edit Profile Info
@@ -985,8 +1004,8 @@ export default function Profile() {
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
             <div>
-              <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Profile Visibility to Arbitrators</div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Allow assigned neutrals to verify claimant identity</div>
+              <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Profile Visibility to Mediators</div>
+              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>Allow assigned mediators to verify claimant identity</div>
             </div>
             <button
               type="button"

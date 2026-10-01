@@ -131,6 +131,8 @@ export default function Users() {
       case "Respondent":
         return { bg: "#fff3e0", text: "#f57c00", border: "#ff9800" };
       case "Neutral":
+      case "neutral":
+      case "Mediator":
         return { bg: "#f3e5f5", text: "#7b1fa2", border: "#9c27b0" };
       default:
         return { bg: "#f0f0f0", text: "#666", border: "#999" };
@@ -379,7 +381,7 @@ export default function Users() {
       <div style={styles.statsGrid}>
         <div style={styles.statCard("#ff9900")}>
           <div style={styles.statValue}>{allUsers.totalNeutral}</div>
-          <div style={styles.statLabel}>Total Neutral</div>
+          <div style={styles.statLabel}>Total Mediators</div>
         </div>
         <div style={styles.statCard("#4caf50")}>
           <div style={styles.statValue}>{allUsers.totalRespondent}</div>
@@ -443,7 +445,7 @@ export default function Users() {
             style={styles.filterButton(filterRole === "neutral")}
             onClick={() => setFilterRole("neutral")}
           >
-            Neutral
+            Mediator
           </button>
         </div>
       </div>
@@ -477,11 +479,13 @@ export default function Users() {
                   }}
                 >
                   <td style={{ ...styles.tableCell, ...styles.nameCell }}>
-                    {user.name}
+                    {user.name && user.name !== "Neutral User" && user.name !== "User" && user.name !== "Firebase User" ? user.name : (user.email || "User")}
                   </td>
                   <td style={styles.tableCell}>{user.email}</td>
                   <td style={styles.tableCell}>
-                    <span style={styles.roleBadge(user.role)}>{user.role}</span>
+                    <span style={styles.roleBadge(user.role)}>
+                      {user.role?.toLowerCase() === "neutral" ? "Mediator" : user.role}
+                    </span>
                   </td>
                   <td style={styles.tableCell}>
                     <span style={styles.statusBadge(user.status)}>

@@ -16,7 +16,7 @@ import EditScheduleHearing from "../../neutral/components/Modal/EditScheduleHear
 import ModalComponent from "../../neutral/components/Modal/ModalComponent";
 import { documentDetailsApi } from "../../api/AdminApi";
 import { toast } from "react-toastify";
-import axios from "axios";
+import axiosInstance from "../../api/axiosConfig";
 
 export default function ScheduleHearings() {
   const [openModal, setOpenModal] = useState(null);
@@ -30,15 +30,17 @@ export default function ScheduleHearings() {
 
   const fetchAssignedCases = async () => {
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-      const res = await axios.get(
-        `${API_BASE_URL}/admin/get-schedule-hearing/${neutralId}`
+      const targetId = neutralId || "all";
+      const res = await axiosInstance.get(
+        `/admin/get-schedule-hearing/${targetId}`
       );
-      setScheduleHearingData(res.data.data);
-      console.log(res.data.data);
-      console.log("Neutral ID:", neutralId);
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        setScheduleHearingData(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setScheduleHearingData(res.data);
+      }
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching hearings:", error);
     }
   };
   useEffect(() => {
@@ -291,126 +293,176 @@ export default function ScheduleHearings() {
 
       {/* Hearings List */}
       <div style={styles.hearingsList}>
-        {ScheduleHearingData.map((hearing) => (
-          <div
-            key={hearing.id}
-            style={styles.hearingCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            <div style={styles.hearingHeader}>
-              <div style={styles.hearingTitle}>
-                <div style={styles.hearingName}>{hearing.caseName}</div>
-                <div style={styles.hearingCaseId}>Case #{hearing.caseId}</div>
-                <div style={styles.hearingType}>⚖️ {hearing.hearingType}</div>
-              </div>
-              <div style={styles.statusBadge(hearing.statusColor)}>
-                {hearing.status}
-              </div>
-            </div>
-
-            <div style={styles.hearingContent}>
-              {/* Parties */}
-              <div style={styles.partiesSection}>
-                <strong>{hearing.caseName}</strong> vs{" "}
-                <strong>{hearing.caseName}</strong>
+        {ScheduleHearingData && ScheduleHearingData.length > 0 ? (
+          ScheduleHearingData.map((hearing) => (
+            <div
+              key={hearing._id || hearing.id}
+              style={styles.hearingCard}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <div style={styles.hearingHeader}>
+                <div style={styles.hearingTitle}>
+                  <div style={styles.hearingName}>{hearing.caseName || "Dispute Hearing"}</div>
+                  <div style={styles.hearingCaseId}>Case #{hearing.caseId}</div>
+                  <div style={styles.hearingType}>⚖️ {hearing.hearingType || "Virtual Hearing"}</div>
+                </div>
+                <div style={styles.statusBadge(hearing.status === "Scheduled" ? "#0284c7" : (hearing.statusColor || "#ff9900"))}>
+                  {hearing.status || "Scheduled"}
+                </div>
               </div>
 
-              {/* Details Grid */}
-              <div style={styles.hearingDetails}>
-                <div style={styles.detailItem}>
-                  <Calendar size={16} style={styles.detailIcon} />
-                  <div style={styles.detailText}>
-                    <div style={styles.detailLabel}>Date</div>
-                    <div style={styles.detailValue}>{hearing.date}</div>
-                  </div>
+              <div style={styles.hearingContent}>
+                {/* Parties */}
+                <div style={styles.partiesSection}>
+                  <strong>{hearing.caseName || "Claimant"}</strong>
+                  {hearing.respondentEmail ? (
+                    <span> • Respondent: <strong>{hearing.respondentEmail}</strong></span>
+                  ) : null}
+                  {hearing.Judge || hearing.judge ? (
+                    <span> • Presiding: <strong>{hearing.Judge || hearing.judge}</strong></span>
+                  ) : null}
                 </div>
-                <div style={styles.detailItem}>
-                  <Clock size={16} style={styles.detailIcon} />
-                  <div style={styles.detailText}>
-                    <div style={styles.detailLabel}>Time</div>
-                    <div style={styles.detailValue}>{hearing.time}</div>
+
+                {/* Details Grid */}
+                <div style={styles.hearingDetails}>
+                  <div style={styles.detailItem}>
+                    <Calendar size={16} style={styles.detailIcon} />
+                    <div style={styles.detailText}>
+                      <div style={styles.detailLabel}>Date</div>
+                      <div style={styles.detailValue}>{hearing.date || "TBD"}</div>
+                    </div>
                   </div>
-                </div>
-                <div style={styles.detailItem}>
-                  <MapPin size={16} style={styles.detailIcon} />
-                  <div style={styles.detailText}>
-                    <div style={styles.detailLabel}>Location</div>
-                    <div style={styles.detailValue}>{hearing.location}</div>
+                  <div style={styles.detailItem}>
+                    <Clock size={16} style={styles.detailIcon} />
+                    <div style={styles.detailText}>
+                      <div style={styles.detailLabel}>Time</div>
+                      <div style={styles.detailValue}>{hearing.time || "10:30 AM"}</div>
+                    </div>
                   </div>
-                </div>
-                <div style={styles.detailItem}>
-                  <Users size={16} style={styles.detailIcon} />
-                  <div style={styles.detailText}>
-                    <div style={styles.detailLabel}>Participants</div>
-                    <div style={styles.detailValue}>
-                      {hearing.participants} people
+                  <div style={styles.detailItem}>
+                    <MapPin size={16} style={styles.detailIcon} />
+                    <div style={styles.detailText}>
+                      <div style={styles.detailLabel}>Location</div>
+                      <div style={styles.detailValue}>{hearing.location || "Virtual Hearing Chamber"}</div>
+                    </div>
+                  </div>
+                  <div style={styles.detailItem}>
+                    <Users size={16} style={styles.detailIcon} />
+                    <div style={styles.detailText}>
+                      <div style={styles.detailLabel}>Duration</div>
+                      <div style={styles.detailValue}>
+                        {hearing.duration || "1"} hr
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div style={styles.hearingActions}>
-              <a
-                href={hearing.meetLink} // <-- Your meeting link from DB
-                target="_blank" // <-- Opens Google Meet in new tab
-                rel="noopener noreferrer"
-                style={styles.actionButton("#0066cc")}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#0066cc33";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#0066cc22";
-                }}
-              >
-                <Video size={14} />
-                Join
-              </a>
+              <div style={styles.hearingActions}>
+                <a
+                  href={hearing.meetLink || `https://meet.google.com/odr-${(hearing.caseId || 'chamber').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.actionButton("#0066cc")}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0066cc33";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0066cc22";
+                  }}
+                >
+                  <Video size={14} />
+                  Join Google Meet
+                </a>
 
-              <button
-                style={styles.actionButton("#ff9900")}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ff990033";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ff990022";
-                }}
-                onClick={() => {
-                  setOpenModal("Edit");
-                  setSelectedHearing(hearing);
-                }}
-              >
-                <Edit size={14} />
-                Edit
-              </button>
-              <button
-                style={styles.actionButton("#ff5555")}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ff555533";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ff555522";
-                }}
-                onClick={() => handleDelete(hearing._id)}
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
+                <button
+                  style={styles.actionButton("#ff9900")}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff990033";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff990022";
+                  }}
+                  onClick={() => {
+                    setOpenModal("Edit");
+                    setSelectedHearing(hearing);
+                  }}
+                >
+                  <Edit size={14} />
+                  Edit
+                </button>
+                <button
+                  style={styles.actionButton("#ff5555")}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff555533";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff555522";
+                  }}
+                  onClick={() => handleDelete(hearing._id)}
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              </div>
             </div>
+          ))
+        ) : (
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "3rem 2rem",
+              textAlign: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            }}
+          >
+            <Calendar size={48} color="#ea580c" style={{ margin: "0 auto 1rem auto" }} />
+            <h3 style={{ fontSize: "18px", color: "#1e293b", margin: "0 0 0.5rem 0" }}>
+              No Hearings Scheduled Yet
+            </h3>
+            <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 1.5rem 0" }}>
+              Schedule your first virtual dispute session with integrated Google Meet link.
+            </p>
+            <button
+              onClick={() => setOpenModal("hearing")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 20px",
+                backgroundColor: "#ff9900",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "700",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(255,153,0,0.3)",
+              }}
+            >
+              <Plus size={16} />
+              Schedule Hearing Now
+            </button>
           </div>
-        ))}
+        )}
       </div>
 
       {openModal === "hearing" && (
         <ModalComponent title="" onClose={() => setOpenModal(null)}>
-          <ScheduleHearingForm onClose={() => setOpenModal(null)} />
+          <ScheduleHearingForm
+            onClose={() => setOpenModal(null)}
+            onSuccess={() => {
+              setOpenModal(null);
+              fetchAssignedCases();
+            }}
+          />
         </ModalComponent>
       )}
       {openModal === "Edit" && selectedHearing && (
@@ -420,6 +472,7 @@ export default function ScheduleHearings() {
             onClose={() => {
               setOpenModal(null);
               setSelectedHearing(null);
+              fetchAssignedCases();
             }}
           />
         </ModalComponent>

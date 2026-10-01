@@ -54,7 +54,14 @@ export default function Dashboard() {
     try {
       const res = await axiosInstance.get(`/neutral/dashboard-stats/${neutralId}`);
       if (res.data?.success) {
-        setNeutralInfo(res.data.neutral || { name: "Neutral", email: "" });
+        const rawName = res.data.neutral?.name;
+        const resolvedName = (rawName && rawName !== "Neutral" && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User")
+          ? rawName
+          : (res.data.neutral?.email || localStorage.getItem("userEmail") || "Mediator");
+        setNeutralInfo({
+          name: resolvedName,
+          email: res.data.neutral?.email || localStorage.getItem("userEmail") || "",
+        });
         setStats(res.data.stats || {});
         setCaseDistribution(res.data.caseDistribution || []);
         setRecentCases(res.data.recentCases || []);
@@ -209,7 +216,7 @@ export default function Dashboard() {
     return (
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", minHeight: "80vh", gap: "12px" }}>
         <Loader2 size={40} style={{ animation: "spin 1s linear infinite", color: "#ff9900" }} />
-        <p style={{ fontSize: "14px", color: "#64748b", fontWeight: "500" }}>Loading neutral dashboard...</p>
+        <p style={{ fontSize: "14px", color: "#64748b", fontWeight: "500" }}>Loading mediator dashboard...</p>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -235,8 +242,8 @@ export default function Dashboard() {
           <UserCircle size={30} />
         </div>
         <div style={styles.welcomeContent}>
-          <div style={styles.welcomeTitle}>Welcome, {neutralInfo.name || "Neutral"}</div>
-          <div style={styles.welcomeSubtitle}>{neutralInfo.email} · Neutral Arbiter Dashboard</div>
+          <div style={styles.welcomeTitle}>Welcome, {neutralInfo.name || "Mediator"}</div>
+          <div style={styles.welcomeSubtitle}>{neutralInfo.email} · Mediator Dashboard</div>
         </div>
         <button onClick={fetchDashboardData} style={{ ...styles.refreshBtn, color: "#fff", borderColor: "rgba(255,255,255,0.4)" }}>
           <RefreshCw size={14} />

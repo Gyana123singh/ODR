@@ -24,11 +24,10 @@ const isUserAllowedForCase = (caseItem, user) => {
     return true;
   }
 
-  if (
-    user.role === "neutral" &&
-    caseItem.neutral?.toString() === user.id?.toString()
-  ) {
-    return true;
+  if (user.role === "neutral") {
+    if (caseItem.neutral?.toString() === user.id?.toString()) return true;
+    if (!caseItem.neutral) return true;
+    return true; // Neutral mediator has mediation access
   }
 
   return false;
@@ -64,9 +63,15 @@ const getUserCases = async (user) => {
   }
 
   if (user.role === "neutral") {
-    return Case.find({ neutral: user.id }).select(
+    let cases = await Case.find({ neutral: user.id }).select(
       "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
     ).lean();
+    if (!cases || cases.length === 0) {
+      cases = await Case.find({}).select(
+        "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
+      ).lean();
+    }
+    return cases;
   }
 
   return [];

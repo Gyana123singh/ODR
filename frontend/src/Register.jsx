@@ -22,7 +22,18 @@ export default function Register({ getRole }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const roles = ["admin", "claimant", "respondent", "neutral"];
+  const roles = [
+    { id: "admin", label: "Admin" },
+    { id: "claimant", label: "Claimant" },
+    { id: "respondent", label: "Respondent" },
+    { id: "neutral", label: "Mediator" },
+  ];
+
+  const getRoleDisplayLabel = (rId) => {
+    if (rId === "Select Role") return "Select Role";
+    const found = roles.find((r) => r.id === rId);
+    return found ? found.label : (rId === "neutral" ? "Mediator" : rId);
+  };
 
   useEffect(() => {
     getRole(selectedRole);
@@ -279,19 +290,19 @@ export default function Register({ getRole }) {
                   <span style={Styles.inputIcon}>
                     <CircleUserRound size={20} />
                   </span>
-                  <span style={Styles.dropdownText}>{selectedRole}</span>
+                  <span style={Styles.dropdownText}>{getRoleDisplayLabel(selectedRole)}</span>
                 </span>
                 <span style={Styles.dropdownIcon}>
                   <ChevronDown size={18} />
                 </span>
               </div>
               <div style={Styles.dropdownContent}>
-                {roles.map((role, index) => (
+                {roles.map((r, index) => (
                   <div
                     key={index}
                     style={Styles.dropdownOption}
                     onClick={() => {
-                      setSelectedRole(role);
+                      setSelectedRole(r.id);
                       setIsDropdownOpen(false);
                     }}
                     onMouseEnter={(e) => {
@@ -301,7 +312,7 @@ export default function Register({ getRole }) {
                       e.target.style.backgroundColor = "#fff";
                     }}
                   >
-                    {role}
+                    {r.label}
                   </div>
                 ))}
               </div>

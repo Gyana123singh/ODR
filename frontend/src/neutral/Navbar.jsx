@@ -24,11 +24,17 @@ export default function Navbar({ isOpen, setIsOpen }) {
   const location = useLocation();
   const [isMobile] = useState(window.innerWidth <= 480);
   const [isClick, setIsClick] = useState(false);
-  const [data, setData] = useState(() => ({
-    name: localStorage.getItem("username") || "Neutral User",
-    email: localStorage.getItem("userEmail") || "",
-    role: localStorage.getItem("userRole") || "neutral",
-  }));
+  const [data, setData] = useState(() => {
+    const rawName = localStorage.getItem("username") || localStorage.getItem("userName");
+    const resolvedName = (rawName && rawName !== "Neutral User" && rawName !== "User" && rawName !== "Firebase User")
+      ? rawName
+      : (localStorage.getItem("userEmail") || "Mediator");
+    return {
+      name: resolvedName,
+      email: localStorage.getItem("userEmail") || "",
+      role: "Mediator",
+    };
+  });
 
   useEffect(() => {
     if (isClick && isMobile) {
@@ -49,14 +55,20 @@ export default function Navbar({ isOpen, setIsOpen }) {
             Authorization: `Bearer ${token}`,
           },
         });
-        const data = await response.json();
-        if (data.success) {
-          setData(data.data);
-        } else {
-          console.error("Failed to fetch admin data:", data.message);
+        const resData = await response.json();
+        if (resData.success && resData.data) {
+          const u = resData.data;
+          const resolvedName = (u.name && u.name !== "Neutral User" && u.name !== "User" && u.name !== "Firebase User")
+            ? u.name
+            : (u.email || localStorage.getItem("userEmail") || "Mediator");
+          setData({
+            ...u,
+            name: resolvedName,
+            role: "Mediator",
+          });
         }
       } catch (error) {
-        console.error("Error fetching admin data:", error);
+        console.error("Error fetching mediator data:", error);
       }
     };
     fetchAdminData();
@@ -129,11 +141,12 @@ export default function Navbar({ isOpen, setIsOpen }) {
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userRole");
     localStorage.removeItem("username");
+    localStorage.removeItem("userName");
     navigate("/login");
   };
 
   const getInitials = (name) => {
-    if (!name) return "";
+    if (!name) return "M";
     return name
       .split(" ")
       .map((n) => n[0])
@@ -218,7 +231,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
               {data && data.name}
             </div>
             <div className="profile-role">
-              {data && data.role}
+              {data?.role === "neutral" ? "Mediator" : (data?.role || "Mediator")}
             </div>
           </div>
         </div>

@@ -194,7 +194,7 @@ export const documentDetailsApi = {
   newScheduleHearing: async (formData) => {
     try {
       const response = await axiosInstance.post(
-        `admin/new-hearing/${caseId}`,
+        "/admin/new-hearing",
         formData
       );
       return response.data;

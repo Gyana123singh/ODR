@@ -20,7 +20,7 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
   // AsignCase.jsx — handleAssignCase
   const handleAssignCase = async () => {
     if (!selectedNeutralId) {
-      toast.warning("Please select a neutral");
+      toast.warning("Please select a mediator");
       return;
     }
 
@@ -35,7 +35,7 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         // add headers if auth required: { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log(res.data);
-      toast.success("Case Assigned Successfully!");
+      toast.success("Case Assigned to Mediator Successfully!");
       reload && reload(); // optional: refresh parent
       onClose();
     } catch (error) {
@@ -64,11 +64,11 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
           textAlign: "center",
         }}
       >
-        Assign Neutral
+        Assign Mediator
       </h3>
 
       <label style={{ fontWeight: "500", color: "#555" }}>
-        Select Neutral:
+        Select Mediator:
       </label>
       <select
         className="form-select"
@@ -81,10 +81,10 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         }}
         onChange={(e) => setSelectedNeutralId(e.target.value)}
       >
-        <option value="">Select Neutral</option>
+        <option value="">Select Mediator</option>
         {neutralData.map((user) => (
           <option key={user._id} value={user._id}>
-            {user.name}
+            {user.name && user.name !== "Neutral User" && user.name !== "User" && user.name !== "Firebase User" ? user.name : (user.email || "Mediator")}
           </option>
         ))}
       </select>

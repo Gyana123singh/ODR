@@ -642,7 +642,7 @@ END:VCALENDAR`;
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Conciliation Hearing with Neutral"
+                  placeholder="e.g. Conciliation Hearing with Mediator"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   style={{

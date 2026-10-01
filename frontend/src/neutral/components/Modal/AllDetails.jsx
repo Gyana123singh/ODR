@@ -85,9 +85,9 @@ export default function AllDetails({ caseData, onclose }) {
         <Item label="Phone" value={caseData.oppositeMobile} />
       </div>
 
-      {/* Neutral */}
+      {/* Mediator */}
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Assigned Neutral</h3>
+        <h3 style={styles.sectionTitle}>Assigned Mediator</h3>
 
         <Item label="Name" value={caseData.neutral?.name} />
         <Item label="Email" value={caseData.neutral?.email} />

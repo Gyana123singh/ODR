@@ -44,10 +44,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData, token) => {
     setUser(userData);
+    const resolvedName = userData.name && userData.name !== "Firebase User" && userData.name !== "User"
+      ? userData.name
+      : (userData.email || userData.phone || "User");
     localStorage.setItem("userRole", userData.role);
     localStorage.setItem("userId", userData._id);
-    localStorage.setItem("username", userData.name);
-    localStorage.setItem("userEmail", userData.email);
+    localStorage.setItem("username", resolvedName);
+    localStorage.setItem("userName", resolvedName);
+    localStorage.setItem("userEmail", userData.email || "");
     if (userData.phone) {
       localStorage.setItem("userPhone", userData.phone);
     }

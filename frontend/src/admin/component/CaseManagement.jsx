@@ -402,7 +402,7 @@ export default function CaseManagement() {
                 <th style={styles.tableHeaderCell}>Case Status</th>
                 <th style={styles.tableHeaderCell}>Date Filed</th>
                 <th style={styles.tableHeaderCell}>Parties</th>
-                <th style={styles.tableHeaderCell}>Judge</th>
+                <th style={styles.tableHeaderCell}>Mediator</th>
                 <th style={styles.tableHeaderCell}>Documents</th>
                 <th style={styles.tableHeaderCell}>Details</th>
                 <th style={styles.tableHeaderCell}>Actions</th>
@@ -434,7 +434,9 @@ export default function CaseManagement() {
                   <td style={styles.tableCell}>{caseItem.createdAt}</td>
                   <td style={styles.tableCell}>{caseItem.DisputeName}</td>
                   <td style={styles.tableCell}>
-                    {caseItem?.neutral?.name || "Not Assigned"}
+                    {caseItem?.neutral?.name && caseItem?.neutral?.name !== "Neutral User" && caseItem?.neutral?.name !== "User" && caseItem?.neutral?.name !== "Firebase User"
+                      ? caseItem.neutral.name
+                      : (caseItem?.neutral?.email || "Not Assigned")}
                   </td>
 
                   <td style={styles.tableCell}>

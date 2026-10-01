@@ -150,7 +150,7 @@ export default function ViewUser({ user, onClose }) {
                 margin: 0,
               }}
             >
-              {user.name || "Unnamed User"}
+              {user.name && user.name !== "Neutral User" && user.name !== "User" && user.name !== "Firebase User" ? user.name : (user.email || "Unnamed User")}
             </h3>
 
             {/* Role Badge */}
@@ -170,7 +170,7 @@ export default function ViewUser({ user, onClose }) {
               }}
             >
               <Shield size={12} />
-              {user.role || "User"}
+              {user.role?.toLowerCase() === "neutral" ? "Mediator" : (user.role || "User")}
             </span>
 
             {/* Status Badge */}

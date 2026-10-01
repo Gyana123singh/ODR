@@ -90,9 +90,9 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
         <Item label="Email" value={assignedCases.oppositePartyEmail} />
       </div>
 
-      {/* Neutral */}
+      {/* Mediator */}
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Assigned Neutral</h3>
+        <h3 style={styles.sectionTitle}>Assigned Mediator</h3>
 
         <Item label="Name" value={assignedCases.neutral?.name} />
         <Item label="Email" value={assignedCases.neutral?.email} />

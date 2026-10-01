@@ -21,7 +21,7 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
 
   // ⭐ Assign Hearing
   const handleAssignHearing = async () => {
-    if (!selectedNeutralId) return toast.warning("Select Neutral");
+    if (!selectedNeutralId) return toast.warning("Select Mediator");
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
@@ -33,7 +33,7 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         }
       );
 
-      toast.success("Hearing Scheduled!");
+      toast.success("Hearing Scheduled with Mediator!");
 
       onClose();
     } catch (error) {
@@ -45,16 +45,16 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
     <div style={{ background: "white", padding: "25px", borderRadius: "12px" }}>
       <h3 style={{ textAlign: "center" }}>Schedule Hearing</h3>
 
-      {/* Neutral Select */}
-      <label>Select Neutral</label>
+      {/* Mediator Select */}
+      <label>Select Mediator</label>
       <select
         className="form-select"
         onChange={(e) => setSelectedNeutralId(e.target.value)}
       >
-        <option value="">Select Neutral</option>
+        <option value="">Select Mediator</option>
         {neutralData.map((n) => (
           <option key={n._id} value={n._id}>
-            {n.name}
+            {n.name && n.name !== "Neutral User" && n.name !== "User" && n.name !== "Firebase User" ? n.name : (n.email || "Mediator")}
           </option>
         ))}
       </select>

@@ -264,7 +264,9 @@ export default function EditCase({ onClose }) {
                   <span style={Styles.inputIcon}>
                     <CircleUserRound size={20} />
                   </span>
-                  <span style={Styles.dropdownText}>{selectedRole}</span>
+                  <span style={Styles.dropdownText}>
+                    {selectedRole === "neutral" ? "Mediator" : selectedRole}
+                  </span>
                 </span>
                 <span style={Styles.dropdownIcon}>
                   <ChevronDown size={18} />
@@ -286,7 +288,7 @@ export default function EditCase({ onClose }) {
                       e.target.style.backgroundColor = "#fff";
                     }}
                   >
-                    {role}
+                    {role === "neutral" ? "Mediator" : role}
                   </div>
                 ))}
               </div>

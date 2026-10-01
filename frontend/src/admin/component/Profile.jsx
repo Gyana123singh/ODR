@@ -169,8 +169,8 @@ export default function Profile() {
   const faqList = [
     {
       id: 1,
-      q: "How do I assign neutral arbitrators to new disputes?",
-      a: "Navigate to the Assigned Cases tab under Admin Controls. Select any incoming case with status 'Pending Assignment' and pick a certified mediator or arbitrator from the institutional roster.",
+      q: "How do I assign mediators to new disputes?",
+      a: "Navigate to the Assigned Cases tab under Admin Controls. Select any incoming case with status 'Pending Assignment' and pick a certified mediator from the institutional roster.",
     },
     {
       id: 2,
@@ -179,8 +179,8 @@ export default function Profile() {
     },
     {
       id: 3,
-      q: "How do I review and publish arbitral awards?",
-      a: "Under the Awards and Orders repository, review draft decisions submitted by appointed neutrals. Once verified, click 'Publish' to make the award legally binding and available to claimants and respondents.",
+      q: "How do I review and publish mediation awards / orders?",
+      a: "Under the Awards and Orders repository, review draft decisions submitted by appointed mediators. Once verified, click 'Publish' to make the order legally binding and available to claimants and respondents.",
     },
     {
       id: 4,
@@ -607,7 +607,16 @@ export default function Profile() {
       {/* EDIT PROFILE MODAL */}
       {openModal === "editProfile" && (
         <ModalComponent title="" onClose={() => setOpenModal(null)}>
-          <EditProfileForm onClose={() => setOpenModal(null)} />
+          <EditProfileForm
+            onClose={() => setOpenModal(null)}
+            currentName={displayName}
+            currentEmail={displayEmail}
+            currentPhone={data?.phone || localStorage.getItem("userPhone") || ""}
+            onSuccess={(updated) => {
+              if (updated.name) setName(updated.name);
+              if (updated.email) setEmail(updated.email);
+            }}
+          />
         </ModalComponent>
       )}
 
@@ -913,7 +922,7 @@ export default function Profile() {
                     Admin Audit Logging
                   </div>
                   <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>
-                    Log case assignments, neutral nominations, and status modifications
+                    Log case assignments, mediator nominations, and status modifications
                   </div>
                 </div>
                 <button
@@ -1054,7 +1063,7 @@ export default function Profile() {
                 </span>
               </div>
               <div style={{ fontSize: "12px", color: "#555", marginTop: "6px" }}>
-                Full institutional administrative control over court registries, neutrals, and hearings.
+                Full institutional administrative control over court registries, mediators, and hearings.
               </div>
             </div>
 
@@ -1064,7 +1073,7 @@ export default function Profile() {
               </div>
               <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "13px", color: "#555", lineHeight: "1.6" }}>
                 <li>Unlimited case filing and dispute management</li>
-                <li>Arbitrator and neutral roster assignment</li>
+                <li>Mediator roster assignment</li>
                 <li>Secure online video hearing rooms (Google Meet)</li>
                 <li>Arbitral award verification and publishing control</li>
                 <li>Institutional reporting and escrow ledger analytics</li>

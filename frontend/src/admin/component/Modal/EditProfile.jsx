@@ -1,11 +1,17 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
+import { User, Mail, Phone, FileText } from "lucide-react";
 
-export default function EditProfileForm() {
+export default function EditProfileForm({ onClose, currentName, currentEmail, currentPhone, onSuccess }) {
+  const initialEmail = currentEmail || localStorage.getItem("userEmail") || "admin@example.com";
+  const rawName = currentName || localStorage.getItem("username") || localStorage.getItem("userName");
+  const initialName = (rawName && rawName !== "System Admin" && rawName !== "User") ? rawName : initialEmail;
+
   const [formData, setFormData] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "9876543210",
-    bio: "React Developer at Beezinfo",
+    name: initialName,
+    email: initialEmail,
+    phone: currentPhone || localStorage.getItem("userPhone") || "",
+    bio: localStorage.getItem("admin_bio") || "Platform Administrator at Utkal ODR",
     profilePic: null,
   });
 
@@ -23,116 +29,204 @@ export default function EditProfileForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Updated Profile Data:", formData);
-    alert("Profile updated successfully!");
+    if (!formData.name.trim()) {
+      toast.warn("Name is required");
+      return;
+    }
+
+    localStorage.setItem("username", formData.name);
+    localStorage.setItem("userName", formData.name);
+    localStorage.setItem("userEmail", formData.email);
+    if (formData.phone) localStorage.setItem("userPhone", formData.phone);
+    if (formData.bio) localStorage.setItem("admin_bio", formData.bio);
+
+    toast.success("Profile updated successfully!");
+    if (onSuccess) onSuccess(formData);
+    if (onClose) onClose();
   };
 
   return (
-    <div className="flex justify-center rounded-2xl items-center h-[85vh]">
-      <div className="   w-2xl  p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Edit Profile
-        </h2>
+    <div style={{ padding: "10px" }}>
+      <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#1e293b", marginBottom: "1.25rem", textAlign: "center" }}>
+        Edit Profile
+      </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Profile Picture */}
-          <div className="flex flex-col items-center">
-            <div className="relative w-24 h-24 mb-3">
-              <img
-                src={
-                  formData.profilePic
-                    ? URL.createObjectURL(formData.profilePic)
-                    : "https://via.placeholder.com/100x100.png?text=Profile"
-                }
-                alt="Profile"
-                className="w-full h-full rounded-full object-cover border-2 border-blue-500"
-              />
-              <label
-                htmlFor="profilePic"
-                className="absolute bottom-0 right-2 bg-blue-500 text-white rounded-full  cursor-pointer text-xs" style={{padding:"5px"}}
-              >
-                ✎
-              </label>
-              <input
-                id="profilePic"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {/* Profile Picture */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "0.5rem" }}>
+          <div style={{ position: "relative", width: "80px", height: "80px" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                backgroundColor: "#e0f2fe",
+                color: "#0284c7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "2px solid #0284c7",
+                fontSize: "24px",
+                fontWeight: "700",
+              }}
+            >
+              {formData.name ? formData.name.charAt(0).toUpperCase() : <User size={36} />}
             </div>
-          </div>
-
-          {/* Name */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-1">
-              Full Name
+            <label
+              htmlFor="profilePic"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                backgroundColor: "#0284c7",
+                color: "#fff",
+                borderRadius: "50%",
+                width: "26px",
+                height: "26px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "12px",
+              }}
+            >
+              ✎
             </label>
             <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Enter your name"
+              id="profilePic"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
             />
           </div>
+        </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-1">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Enter your email"
-            />
-          </div>
+        {/* Full Name */}
+        <div>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+            Full Name / Display Name *
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            placeholder="Enter full name"
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              fontSize: "14px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-1">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Enter your phone number"
-            />
-          </div>
+        {/* Email */}
+        <div>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+            Email Address
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter email address"
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              fontSize: "14px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
 
-          {/* Bio */}
-          <div>
-            <label className="block text-gray-700 font-semibold mb-1">
-              Bio
-            </label>
-            <textarea
-              name="bio"
-              rows="3"
-              value={formData.bio}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
-              placeholder="Write a short bio..."
-            ></textarea>
-          </div>
+        {/* Phone */}
+        <div>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+            Phone Number
+          </label>
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Enter phone number"
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              fontSize: "14px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
 
-          {/* Submit Button */}
+        {/* Bio */}
+        <div>
+          <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+            Designation / Bio
+          </label>
+          <textarea
+            name="bio"
+            rows="2"
+            value={formData.bio}
+            onChange={handleChange}
+            placeholder="Platform Administrator..."
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              fontSize: "13px",
+              boxSizing: "border-box",
+              fontFamily: "inherit",
+            }}
+          />
+        </div>
+
+        {/* Submit */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "0.5rem" }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: "9px 16px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#f8fafc",
+              color: "#475569",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
           <button
             type="submit"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-300"
-            style={{padding:"10px 0px 10px 0px"}}
+            style={{
+              padding: "9px 22px",
+              borderRadius: "6px",
+              border: "none",
+              backgroundColor: "#0066cc",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
           >
             Save Changes
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

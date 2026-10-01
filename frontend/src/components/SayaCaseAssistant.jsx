@@ -233,7 +233,7 @@ export default function SayaCaseAssistant() {
                             textAlign: "left"
                           }}
                         >
-                          👤 Neutral Arbiter
+                          👤 Assigned Mediator
                         </button>
                         <button 
                           onClick={() => sendMessage("What documents have been uploaded in my case?")}
@@ -312,8 +312,8 @@ export default function SayaCaseAssistant() {
             <button onClick={() => sendMessage("When is my hearing?")}>
               Hearing Details
             </button>
-            <button onClick={() => sendMessage("Who is my assigned neutral arbiter?")}>
-              Neutral Arbiter
+            <button onClick={() => sendMessage("Who is my assigned mediator?")}>
+              Mediator
             </button>
             <button onClick={() => sendMessage("What documents have been uploaded in my case?")}>
               My Documents

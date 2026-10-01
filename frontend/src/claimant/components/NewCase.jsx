@@ -184,7 +184,7 @@ export default function NewCase() {
           </div>
 
           <div className="form-group">
-            <label>Assigned Neutral (Arbitrator/Mediator)</label>
+            <label>Assigned Mediator</label>
             <select
               name="neutral"
               value={formData.neutral}
@@ -192,10 +192,10 @@ export default function NewCase() {
               className="form-select"
               required
             >
-              <option value="">Select Neutral Expert</option>
+              <option value="">Select Mediator</option>
               {neutralData && neutralData.map((item) => (
                 <option key={item._id} value={item._id}>
-                  {item.name} ({item.email})
+                  {item.name && item.name !== "Neutral User" && item.name !== "User" && item.name !== "Firebase User" ? item.name : item.email} ({item.email})
                 </option>
               ))}
             </select>
