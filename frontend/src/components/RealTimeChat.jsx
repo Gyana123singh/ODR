@@ -297,6 +297,11 @@ export default function RealTimeChat({ role }) {
     if (e) e.preventDefault();
     if (!inputMessage.trim()) return;
 
+    if (!activeRecipient) {
+      toast.error("No recipient selected to send the message to.");
+      return;
+    }
+
     const sender = currentUserId || localStorage.getItem("userId") || "me";
 
     if (selectedCaseId === "DEMO-CASE" && activeRecipient) {
@@ -322,10 +327,13 @@ export default function RealTimeChat({ role }) {
       return;
     }
 
-    if (!activeRecipient) return;
-
     if (!sender) {
-      alert("Please ensure you are logged in to send messages.");
+      toast.error("Please ensure you are logged in to send messages.");
+      return;
+    }
+
+    if (!socket) {
+      toast.error("Real-time chat is currently disconnected. Please refresh or try again later.");
       return;
     }
 
@@ -595,7 +603,10 @@ export default function RealTimeChat({ role }) {
                 <button
                   key={idx}
                   onClick={() => {
-                    if (!activeRecipient) return;
+                    if (!activeRecipient) {
+                      toast.error("No recipient selected to send the message to.");
+                      return;
+                    }
                     const sender = currentUserId || localStorage.getItem("userId") || "me";
 
                     if (selectedCaseId === "DEMO-CASE") {
@@ -616,7 +627,10 @@ export default function RealTimeChat({ role }) {
                       }, 1000);
                       return;
                     }
-                    if (!socket) return;
+                    if (!socket) {
+                      toast.error("Real-time chat is currently disconnected. Please refresh or try again later.");
+                      return;
+                    }
                     
                     const payload = {
                       caseId: selectedCaseId,
