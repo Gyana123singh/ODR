@@ -38,7 +38,7 @@ const getUserCases = async (user) => {
   if (user.role === "admin") {
     return Case.find({}).select(
       "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).sort({ createdAt: -1 }).lean();
+    ).populate("neutral", "name email").sort({ createdAt: -1 }).lean();
   }
 
   if (user.role === "claimant") {
@@ -53,6 +53,7 @@ const getUserCases = async (user) => {
     }
     return Case.find(orConditions.length ? { $or: orConditions } : { CustomersEmail: userEmail })
       .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+      .populate("neutral", "name email")
       .sort({ createdAt: -1 })
       .lean();
   }
@@ -71,6 +72,7 @@ const getUserCases = async (user) => {
     if (orConditions.length > 0) {
       cases = await Case.find({ $or: orConditions })
         .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+        .populate("neutral", "name email")
         .sort({ createdAt: -1 })
         .lean();
     }
@@ -78,6 +80,7 @@ const getUserCases = async (user) => {
       if (userEmail) {
         cases = await Case.find({ oppositePartyEmail: new RegExp(userEmail, "i") })
           .select("caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt")
+          .populate("neutral", "name email")
           .sort({ createdAt: -1 })
           .lean();
       }
@@ -88,11 +91,11 @@ const getUserCases = async (user) => {
   if (user.role === "neutral") {
     let cases = await Case.find({ neutral: user.id }).select(
       "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-    ).sort({ createdAt: -1 }).lean();
+    ).populate("neutral", "name email").sort({ createdAt: -1 }).lean();
     if (!cases || cases.length === 0) {
       cases = await Case.find({}).select(
         "caseId DisputeName DisputeType status CustomersName CustomersEmail oppositePartyName oppositePartyEmail neutral createdAt"
-      ).sort({ createdAt: -1 }).lean();
+      ).populate("neutral", "name email").sort({ createdAt: -1 }).lean();
     }
     return cases;
   }
