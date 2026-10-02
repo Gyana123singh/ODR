@@ -346,7 +346,12 @@ const updateStatus = async (req, res) => {
 const updateCaseDetails = async (req, res) => {
   try {
     const { caseId } = req.params;
-    const { CustomersMobileNumber, CustomersAadharNumber } = req.body;
+    const { 
+      CustomersMobileNumber, CustomersAadharNumber,
+      DisputeType, DisputeName, DisputeAmount,
+      CustomersName, CustomersEmail,
+      oppositePartyName, oppositePartyEmail
+    } = req.body;
 
     if (!caseId) {
       return res.status(400).json({ error: "caseId is required" });
@@ -357,6 +362,13 @@ const updateCaseDetails = async (req, res) => {
       { 
         ...(CustomersMobileNumber !== undefined && { CustomersMobileNumber }),
         ...(CustomersAadharNumber !== undefined && { CustomersAadharNumber }),
+        ...(DisputeType !== undefined && { DisputeType }),
+        ...(DisputeName !== undefined && { DisputeName }),
+        ...(DisputeAmount !== undefined && { DisputeAmount }),
+        ...(CustomersName !== undefined && { CustomersName }),
+        ...(CustomersEmail !== undefined && { CustomersEmail }),
+        ...(oppositePartyName !== undefined && { oppositePartyName }),
+        ...(oppositePartyEmail !== undefined && { oppositePartyEmail }),
       },
       { new: true }
     );

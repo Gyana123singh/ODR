@@ -10,8 +10,27 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingAadhar, setIsEditingAadhar] = useState(false);
   
+  const [isEditingDisputeType, setIsEditingDisputeType] = useState(false);
+  const [isEditingDisputeName, setIsEditingDisputeName] = useState(false);
+  const [isEditingDisputeAmount, setIsEditingDisputeAmount] = useState(false);
+  const [isEditingCustomersName, setIsEditingCustomersName] = useState(false);
+  const [isEditingCustomersEmail, setIsEditingCustomersEmail] = useState(false);
+  const [isEditingOppositePartyName, setIsEditingOppositePartyName] = useState(false);
+  const [isEditingOppositePartyEmail, setIsEditingOppositePartyEmail] = useState(false);
+
   const [phone, setPhone] = useState(assignedCases.CustomersMobileNumber || "");
   const [aadhar, setAadhar] = useState(assignedCases.CustomersAadharNumber || "");
+  
+  const [disputeType, setDisputeType] = useState(assignedCases.DisputeType || "");
+  const [disputeName, setDisputeName] = useState(assignedCases.DisputeName || "");
+  const [disputeAmount, setDisputeAmount] = useState(assignedCases.DisputeAmount || "");
+  
+  const [customersName, setCustomersName] = useState(assignedCases.CustomersName || "");
+  const [customersEmail, setCustomersEmail] = useState(assignedCases.CustomersEmail || "");
+  
+  const [oppositePartyName, setOppositePartyName] = useState(assignedCases.oppositePartyName || "");
+  const [oppositePartyEmail, setOppositePartyEmail] = useState(assignedCases.oppositePartyEmail || "");
+
   const [loading, setLoading] = useState(false);
 
   const handleUpdate = async (field, value, setEditState) => {
@@ -162,9 +181,37 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Basic Information</h3>
         <Item label="Case ID" value={assignedCases.caseId} />
-        <Item label="Dispute Type" value={assignedCases.DisputeType} />
-        <Item label="Dispute Name" value={assignedCases.DisputeName} />
-        <Item label="Dispute Amount" value={assignedCases.DisputeAmount} />
+        
+        <EditableItem 
+          label="Dispute Type" 
+          value={assignedCases.DisputeType}
+          isEditing={isEditingDisputeType}
+          setEditing={setIsEditingDisputeType}
+          tempValue={disputeType}
+          setTempValue={setDisputeType}
+          onSave={() => handleUpdate("DisputeType", disputeType, setIsEditingDisputeType)}
+        />
+        
+        <EditableItem 
+          label="Dispute Name" 
+          value={assignedCases.DisputeName}
+          isEditing={isEditingDisputeName}
+          setEditing={setIsEditingDisputeName}
+          tempValue={disputeName}
+          setTempValue={setDisputeName}
+          onSave={() => handleUpdate("DisputeName", disputeName, setIsEditingDisputeName)}
+        />
+        
+        <EditableItem 
+          label="Dispute Amount" 
+          value={assignedCases.DisputeAmount}
+          isEditing={isEditingDisputeAmount}
+          setEditing={setIsEditingDisputeAmount}
+          tempValue={disputeAmount}
+          setTempValue={setDisputeAmount}
+          onSave={() => handleUpdate("DisputeAmount", disputeAmount, setIsEditingDisputeAmount)}
+        />
+        
         <Item label="Created At" value={assignedCases.createdAt} />
         <Item label="Status" value={assignedCases.status} />
       </div>
@@ -172,8 +219,26 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
       {/* Customer Info */}
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Customer Information</h3>
-        <Item label="Name" value={assignedCases.CustomersName} />
-        <Item label="Email" value={assignedCases.CustomersEmail} />
+        
+        <EditableItem 
+          label="Name" 
+          value={assignedCases.CustomersName}
+          isEditing={isEditingCustomersName}
+          setEditing={setIsEditingCustomersName}
+          tempValue={customersName}
+          setTempValue={setCustomersName}
+          onSave={() => handleUpdate("CustomersName", customersName, setIsEditingCustomersName)}
+        />
+        
+        <EditableItem 
+          label="Email" 
+          value={assignedCases.CustomersEmail}
+          isEditing={isEditingCustomersEmail}
+          setEditing={setIsEditingCustomersEmail}
+          tempValue={customersEmail}
+          setTempValue={setCustomersEmail}
+          onSave={() => handleUpdate("CustomersEmail", customersEmail, setIsEditingCustomersEmail)}
+        />
         
         <EditableItem 
           label="Mobile Number" 
@@ -199,8 +264,26 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
       {/* Opposite Party */}
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Opposite Party</h3>
-        <Item label="Name" value={assignedCases.oppositePartyName} />
-        <Item label="Email" value={assignedCases.oppositePartyEmail} />
+        
+        <EditableItem 
+          label="Name" 
+          value={assignedCases.oppositePartyName}
+          isEditing={isEditingOppositePartyName}
+          setEditing={setIsEditingOppositePartyName}
+          tempValue={oppositePartyName}
+          setTempValue={setOppositePartyName}
+          onSave={() => handleUpdate("oppositePartyName", oppositePartyName, setIsEditingOppositePartyName)}
+        />
+        
+        <EditableItem 
+          label="Email" 
+          value={assignedCases.oppositePartyEmail}
+          isEditing={isEditingOppositePartyEmail}
+          setEditing={setIsEditingOppositePartyEmail}
+          tempValue={oppositePartyEmail}
+          setTempValue={setOppositePartyEmail}
+          onSave={() => handleUpdate("oppositePartyEmail", oppositePartyEmail, setIsEditingOppositePartyEmail)}
+        />
       </div>
 
       {/* Mediator */}
