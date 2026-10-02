@@ -367,11 +367,30 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
                   style={{ width: "100%", height: "100%", objectFit: "contain" }} 
                 />
               ) : (
-                <iframe
-                  src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(assignedCases.file)}`}
-                  title="Document Preview"
-                  style={{ width: "100%", height: "100%", border: "none" }}
-                />
+              <div style={{ flex: 1, backgroundColor: "#f8f9fa", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "2rem" }}>
+                <FileText size={64} color="#94a3b8" style={{ marginBottom: "1rem" }} />
+                <h3 style={{ color: "#334155", marginBottom: "0.5rem" }}>Document Preview</h3>
+                <p style={{ color: "#64748b", marginBottom: "2rem" }}>Click below to open the document securely in a new tab.</p>
+                <a 
+                  href={assignedCases.file} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "12px 24px",
+                    backgroundColor: "#0f172a",
+                    color: "#fff",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontWeight: "500",
+                  }}
+                >
+                  <ExternalLink size={18} />
+                  Open Document
+                </a>
+              </div>
               )}
             </div>
             
