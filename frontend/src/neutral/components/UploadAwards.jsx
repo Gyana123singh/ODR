@@ -779,7 +779,7 @@ export default function UploadAwards() {
                 />
               ) : (
                 <iframe
-                  src={`https://docs.google.com/gview?url=${encodeURIComponent(viewingAward.fileUrl)}&embedded=true`}
+                  src={viewingAward.fileUrl}
                   title="Document Preview"
                   style={{ width: "100%", height: "100%", border: "none" }}
                 />

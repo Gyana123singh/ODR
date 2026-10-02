@@ -368,7 +368,7 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
                 />
               ) : (
                 <iframe
-                  src={`https://docs.google.com/gview?url=${encodeURIComponent(assignedCases.file)}&embedded=true`}
+                  src={assignedCases.file}
                   title="Document Preview"
                   style={{ width: "100%", height: "100%", border: "none" }}
                 />
