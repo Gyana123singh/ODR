@@ -41,6 +41,7 @@ const uploadAwardDoc = async (req, res) => {
     try {
       const uploadResult = await cloudinary.uploader.upload(file.path, {
         folder: "neutral_awards_orders",
+        resource_type: "raw",
       });
       fileUrl = uploadResult.secure_url;
     } catch (cErr) {
