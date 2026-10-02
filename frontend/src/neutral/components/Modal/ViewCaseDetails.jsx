@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axiosInstance from "../../../api/axiosConfig";
-import { Edit2, Check, X, Loader2 } from "lucide-react";
+import { Edit2, Check, X, Loader2, FileText, ExternalLink } from "lucide-react";
 
 export default function ViewCaseDetails({ assignedCases, onclose }) {
   if (!assignedCases) {

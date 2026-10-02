@@ -10,6 +10,7 @@ import {
   Clock,
   Loader2,
   X,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
