@@ -17,7 +17,7 @@ const serviceRequestSchema = new mongoose.Schema(
     userEmail: { type: String, required: true },
     userRole: {
       type: String,
-      enum: ["claimant", "neutral", "respondent"],
+      enum: ["claimant", "neutral", "respondent", "admin"],
       required: true,
     },
     subject: { type: String, required: true },
