@@ -23,6 +23,7 @@ export default function UploadAwards() {
   const [publishingId, setPublishingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [viewingAward, setViewingAward] = useState(null);
 
   const DEMO_CASES = [
     {
@@ -553,17 +554,14 @@ export default function UploadAwards() {
               </div>
 
               <div style={styles.awardActions}>
-                <a
-                  href={award.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none", flex: 1, display: "flex" }}
+                <button 
+                  style={styles.actionButton("#3b82f6", "#fff")} 
+                  type="button"
+                  onClick={() => setViewingAward(award)}
                 >
-                  <button style={styles.actionButton("#3b82f6", "#fff")} type="button">
-                    <Eye size={14} />
-                    View File
-                  </button>
-                </a>
+                  <Eye size={14} />
+                  View File
+                </button>
 
                 {award.status === "Draft" ? (
                   <button
@@ -725,6 +723,90 @@ export default function UploadAwards() {
             </button>
           </form>
         </ModalComponent>
+      )}
+      {/* Document Preview Overlay */}
+      {viewingAward && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+            padding: "20px"
+          }}
+          onClick={() => setViewingAward(null)}
+        >
+          <div 
+            style={{
+              width: "90%",
+              maxWidth: "1000px",
+              height: "90%",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: "15px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>Document Preview - {viewingAward.fileName}</h3>
+              <button 
+                onClick={() => setViewingAward(null)}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}
+              >
+                <X size={24} color="#666" />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, backgroundColor: "#f8f9fa", position: "relative" }}>
+              {(viewingAward.fileUrl.toLowerCase().endsWith('.png') || 
+                viewingAward.fileUrl.toLowerCase().endsWith('.jpg') || 
+                viewingAward.fileUrl.toLowerCase().endsWith('.jpeg') || 
+                viewingAward.fileUrl.toLowerCase().endsWith('.gif')) ? (
+                <img 
+                  src={viewingAward.fileUrl} 
+                  alt="Document" 
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+                />
+              ) : (
+                <iframe
+                  src={`https://docs.google.com/gview?url=${encodeURIComponent(viewingAward.fileUrl)}&embedded=true`}
+                  title="Document Preview"
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                />
+              )}
+            </div>
+            
+            <div style={{ padding: "10px 15px", borderTop: "1px solid #eee", textAlign: "right" }}>
+              <a 
+                href={viewingAward.fileUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-block",
+                  padding: "8px 16px",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  fontWeight: "500",
+                  fontSize: "14px"
+                }}
+              >
+                Download Original
+              </a>
+            </div>
+          </div>
+        </div>
       )}
 
       <style>{`
