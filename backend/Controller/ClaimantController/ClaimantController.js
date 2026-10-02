@@ -216,9 +216,9 @@ const ClaimantaddNewCase = async (req, res) => {
     const ext = path.extname(file.originalname).toLowerCase();
 
     const resourceType =
-      ext === ".pdf" || ext === ".doc" || ext === ".docx" || ext === ".txt"
+      ext === ".doc" || ext === ".docx" || ext === ".txt"
         ? "raw"
-        : "auto";
+        : ext === ".pdf" ? "image" : "auto";
 
     const uploadResult = await cloudinary.uploader.upload(file.path, {
       folder: "uploads",
