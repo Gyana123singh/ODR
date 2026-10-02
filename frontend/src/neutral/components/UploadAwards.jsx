@@ -779,7 +779,7 @@ export default function UploadAwards() {
                 />
               ) : (
                 <iframe
-                  src={viewingAward.fileUrl}
+                  src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(viewingAward.fileUrl)}`}
                   title="Document Preview"
                   style={{ width: "100%", height: "100%", border: "none" }}
                 />
