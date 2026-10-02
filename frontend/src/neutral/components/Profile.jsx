@@ -336,17 +336,6 @@ export default function Profile() {
       },
     },
     {
-      id: 3,
-      icon: Globe,
-      label: "Visit Website",
-      desc: "www.odrcourtapp.com/help",
-      color: "#0066cc",
-      onClick: () => {
-        toast.info("Opening help website...");
-        window.open("https://odrcourtapp.com/help", "_blank");
-      },
-    },
-    {
       id: 4,
       icon: MessagesSquare,
       label: "FAQs",
