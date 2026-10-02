@@ -9,6 +9,7 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
 
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingAadhar, setIsEditingAadhar] = useState(false);
+  const [isViewingDoc, setIsViewingDoc] = useState(false);
   
   const [isEditingDisputeType, setIsEditingDisputeType] = useState(false);
   const [isEditingDisputeName, setIsEditingDisputeName] = useState(false);
@@ -296,14 +297,104 @@ export default function ViewCaseDetails({ assignedCases, onclose }) {
       {/* File */}
       {assignedCases.file && (
         <div style={styles.section}>
-          <a
-            href={assignedCases.file}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={styles.link}
+          <button
+            onClick={() => setIsViewingDoc(true)}
+            style={{
+              ...styles.link,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              fontSize: "16px"
+            }}
           >
             View Document
-          </a>
+          </button>
+        </div>
+      )}
+
+      {/* Document Preview Overlay */}
+      {isViewingDoc && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+            padding: "20px"
+          }}
+          onClick={() => setIsViewingDoc(false)}
+        >
+          <div 
+            style={{
+              width: "90%",
+              maxWidth: "1000px",
+              height: "90%",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: "15px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0 }}>Document Preview</h3>
+              <button 
+                onClick={() => setIsViewingDoc(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}
+              >
+                <X size={24} color="#666" />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, backgroundColor: "#f8f9fa", position: "relative" }}>
+              {(assignedCases.file.toLowerCase().endsWith('.png') || 
+                assignedCases.file.toLowerCase().endsWith('.jpg') || 
+                assignedCases.file.toLowerCase().endsWith('.jpeg') || 
+                assignedCases.file.toLowerCase().endsWith('.gif')) ? (
+                <img 
+                  src={assignedCases.file} 
+                  alt="Document" 
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+                />
+              ) : (
+                <iframe
+                  src={`https://docs.google.com/gview?url=${encodeURIComponent(assignedCases.file)}&embedded=true`}
+                  title="Document Preview"
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                />
+              )}
+            </div>
+            
+            <div style={{ padding: "10px 15px", borderTop: "1px solid #eee", textAlign: "right" }}>
+              <a 
+                href={assignedCases.file} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-block",
+                  padding: "8px 16px",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  fontWeight: "500",
+                  fontSize: "14px"
+                }}
+              >
+                Download Original
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>
