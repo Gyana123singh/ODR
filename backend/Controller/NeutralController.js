@@ -343,6 +343,35 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const updateCaseDetails = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+    const { CustomersMobileNumber, CustomersAadharNumber } = req.body;
+
+    if (!caseId) {
+      return res.status(400).json({ error: "caseId is required" });
+    }
+
+    const updatedCase = await Case.findByIdAndUpdate(
+      caseId,
+      { 
+        ...(CustomersMobileNumber !== undefined && { CustomersMobileNumber }),
+        ...(CustomersAadharNumber !== undefined && { CustomersAadharNumber }),
+      },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: "Case details updated successfully",
+      data: updatedCase,
+    });
+  } catch (err) {
+    console.error("updateCaseDetails error:", err);
+    res.status(500).json({ error: "Server Error" });
+  }
+};
+
 // ─── Neutral Dashboard Stats (Real-Time) ───────────────────────────
 const getNeutralDashboardStats = async (req, res) => {
   try {
@@ -532,4 +561,5 @@ module.exports = {
   getNeutralDashboardStats,
   updateNeutralProfile,
   updateNeutralPassword,
+  updateCaseDetails,
 };

@@ -14,6 +14,7 @@ const {
   getNeutralDashboardStats,
   updateNeutralProfile,
   updateNeutralPassword,
+  updateCaseDetails,
 } = require("../Controller/NeutralController");
 const { verifyToken, authorizeRoles } = require("../middlewares/Auth.js");
 
@@ -39,6 +40,7 @@ router.delete(
 );
 router.get("/get-status/:caseId", getCaseStatus);
 router.put("/update-status/:caseId", updateStatus);
+router.put("/update-case-details/:caseId", verifyToken, authorizeRoles("neutral"), updateCaseDetails);
 
 // Neutral Dashboard Stats (Real-Time)
 router.get("/dashboard-stats/:neutralId", getNeutralDashboardStats);
