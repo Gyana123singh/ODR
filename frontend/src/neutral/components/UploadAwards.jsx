@@ -779,30 +779,46 @@ export default function UploadAwards() {
                   style={{ width: "100%", height: "100%", objectFit: "contain" }} 
                 />
               ) : (
-              <div style={{ flex: 1, backgroundColor: "#f8f9fa", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "2rem" }}>
-                <FileText size={64} color="#94a3b8" style={{ marginBottom: "1rem" }} />
-                <h3 style={{ color: "#334155", marginBottom: "0.5rem" }}>Document Preview</h3>
-                <p style={{ color: "#64748b", marginBottom: "2rem" }}>Click below to open the document securely in a new tab.</p>
-                <a 
-                  href={viewingAward.fileUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "12px 24px",
-                    backgroundColor: "#0f172a",
-                    color: "#fff",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontWeight: "500",
-                  }}
-                >
-                  <ExternalLink size={18} />
-                  Open Document
-                </a>
-              </div>
+                <div style={{ flex: 1, backgroundColor: "#f8f9fa", position: "relative", overflow: "hidden" }}>
+                  <img 
+                    src={viewingAward.fileUrl.replace(/\.pdf$/i, '.jpg')} 
+                    alt="Document Preview" 
+                    style={{ width: "100%", height: "100%", objectFit: "contain", backgroundColor: "#333" }} 
+                    onError={(e) => {
+                      // Fallback if the image conversion fails
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div style={{ display: "none", width: "100%", height: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "2rem" }}>
+                    <FileText size={64} color="#94a3b8" style={{ marginBottom: "1rem" }} />
+                    <h3 style={{ color: "#334155", marginBottom: "0.5rem" }}>Preview Unavailable</h3>
+                    <p style={{ color: "#64748b", marginBottom: "2rem" }}>Please download the document to view it.</p>
+                  </div>
+                  <a 
+                    href={viewingAward.fileUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{
+                      position: "absolute",
+                      bottom: "20px",
+                      right: "20px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 20px",
+                      backgroundColor: "#0ea5e9",
+                      color: "#fff",
+                      textDecoration: "none",
+                      borderRadius: "6px",
+                      fontWeight: "500",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                    }}
+                  >
+                    <ExternalLink size={18} />
+                    Open Original PDF
+                  </a>
+                </div>
               )}
             </div>
             
