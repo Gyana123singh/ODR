@@ -596,12 +596,14 @@ export default function RealTimeChat({ role }) {
                   key={idx}
                   onClick={() => {
                     if (!activeRecipient) return;
+                    const sender = currentUserId || localStorage.getItem("userId") || "me";
+
                     if (selectedCaseId === "DEMO-CASE") {
                       const newMsg = {
                         _id: Date.now().toString(),
-                        senderId: currentUserId,
+                        senderId: sender,
                         message: sug,
-                        timestamp: new Date()
+                        timestamp: new Date().toISOString()
                       };
                       setChatMessages((prev) => [...prev, newMsg]);
                       setTimeout(() => {
@@ -609,20 +611,30 @@ export default function RealTimeChat({ role }) {
                             _id: (Date.now()+1).toString(),
                             senderId: activeRecipient._id,
                             message: "Thank you for the quick suggestion. I will review it.",
-                            timestamp: new Date()
+                            timestamp: new Date().toISOString()
                          }]);
                       }, 1000);
                       return;
                     }
                     if (!socket) return;
+                    
                     const payload = {
                       caseId: selectedCaseId,
-                      senderId: currentUserId,
+                      senderId: sender,
                       senderRole: role,
                       receiverId: activeRecipient._id,
                       receiverRole: activeRecipient.role,
                       message: sug,
                     };
+
+                    const tempMsg = {
+                      _id: "temp_" + Date.now(),
+                      senderId: sender,
+                      message: sug,
+                      timestamp: new Date().toISOString(),
+                    };
+                    setChatMessages((prev) => [...prev, tempMsg]);
+
                     socket.emit("send_message", payload);
                   }}
                   style={{

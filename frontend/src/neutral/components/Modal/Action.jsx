@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../../api/axiosConfig";
 
 export default function Action({ onClose, caseId }) {
   const statusOptions = [
@@ -19,10 +19,7 @@ export default function Action({ onClose, caseId }) {
       if (!caseId) return;
 
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-        const res = await axios.get(
-          `${API_BASE_URL}/neutral/get-status/${caseId}`
-        );
+        const res = await axiosInstance.get(`/neutral/get-status/${caseId}`);
         setActiveStatus(res.data?.status || "Pending");
       } catch (err) {
         console.log("Error loading status", err);
@@ -37,13 +34,12 @@ export default function Action({ onClose, caseId }) {
     setActiveStatus(newStatus);
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-      await axios.put(
-        `${API_BASE_URL}/neutral/update-status/${caseId}`,
-        { status: newStatus }
-      );
+      await axiosInstance.put(`/neutral/update-status/${caseId}`, {
+        status: newStatus,
+      });
 
       console.log("Status updated successfully");
+      if (onClose) onClose(); // Auto-close modal
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -64,7 +60,7 @@ export default function Action({ onClose, caseId }) {
 
       <div
         className="status-control-group"
-        style={{ display: "flex", gap: 10 }}
+        style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
       >
         {statusOptions.map((status) => (
           <button

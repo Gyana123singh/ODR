@@ -263,10 +263,24 @@ export default function CaseDetails() {
   const handleSubmitResponse = async (e) => {
     e.preventDefault();
     if (!selectedCase) return;
+    
+    // Handle demo cases gracefully
+    const submitId = selectedCase.caseId || selectedCase.id;
+    if (submitId && String(submitId).startsWith("2024-")) {
+      setSubmitting(true);
+      setTimeout(() => {
+        toast.success("Statement & Response submitted to Court Registry!");
+        setOpenModal(null);
+        setResponseForm({ responseText: "", consent: "Yes" });
+        setSubmitting(false);
+      }, 800);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await axiosInstance.post("/respondent/submit-case-response", {
-        caseId: selectedCase.caseId || selectedCase.id,
+        caseId: submitId,
         responseText: responseForm.responseText,
         consent: responseForm.consent,
       });

@@ -46,44 +46,7 @@ export default function AssignedCases() {
   }, [neutralId]);
 
   const [isMobile] = useState(window.innerWidth <= 480);
-  const [cases] = useState([
-    {
-      id: "2024-45",
-      title: "Smith vs. Johnson",
-      claimant: "Smith",
-      respondent: "Johnson",
-      assignedDate: "15 Aug 2025",
-      nextHearing: "25 Sep 2025",
-      status: "In Progress",
-      statusColor: "#22bb33",
-      submissionsReceived: 2,
-      documentsCount: 5,
-    },
-    {
-      id: "2024-52",
-      title: "ABC Corp vs. XYZ Ltd",
-      claimant: "ABC Corp",
-      respondent: "XYZ Ltd",
-      assignedDate: "20 Aug 2025",
-      nextHearing: "28 Sep 2025",
-      status: "Hearing Scheduled",
-      statusColor: "#2196f3",
-      submissionsReceived: 2,
-      documentsCount: 3,
-    },
-    {
-      id: "2024-48",
-      title: "Estate of Brown",
-      claimant: "Brown Estate",
-      respondent: "Beneficiary",
-      assignedDate: "10 Aug 2025",
-      nextHearing: "20 Sep 2025",
-      status: "Under Review",
-      statusColor: "#ff9900",
-      submissionsReceived: 1,
-      documentsCount: 8,
-    },
-  ]);
+
 
   const styles = {
     container: {
@@ -312,7 +275,12 @@ export default function AssignedCases() {
                     <div style={styles.caseName}>{caseItem.DisputeType || caseItem.DisputeName || "Dispute Case"}</div>
                     <div style={styles.caseId}>Case #{caseItem.caseId || caseItem._id?.slice(-6)}</div>
                   </div>
-                  <div style={styles.statusBadge(caseItem.statusColor || "#ff9900")}>
+                  <div style={styles.statusBadge(
+                    caseItem.status === "Verified" || caseItem.status === "Completed" ? "#22bb33" :
+                    caseItem.status === "Active" ? "#2196f3" :
+                    caseItem.status === "Rejected" || caseItem.status === "Closed" ? "#f44336" :
+                    "#ff9900"
+                  )}>
                     {caseItem.status || "Assigned"}
                   </div>
                 </div>
@@ -407,11 +375,13 @@ export default function AssignedCases() {
         <ModalComponent
           onClose={() => {
             setOpenModal(null);
+            fetchAssignedCases();
           }}
         >
           <Action
             onClose={() => {
               setOpenModal(null);
+              fetchAssignedCases();
             }}
             caseId={selectCaseData?._id} // <---- FIX
           />
