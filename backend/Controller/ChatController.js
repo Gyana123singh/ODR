@@ -297,7 +297,20 @@ const getCaseParticipants = async (req, res) => {
       }
     }
 
-    let neutralUser = caseData.neutral;
+    let neutralUser = null;
+    if (caseData.neutral) {
+      const NeutralModel = require("../models/neutral");
+      const foundNeutral = await NeutralModel.findById(caseData.neutral).select("name email user");
+      if (foundNeutral) {
+        neutralUser = {
+          _id: foundNeutral._id,
+          name: foundNeutral.name,
+          email: foundNeutral.email,
+          role: "neutral",
+          phone: ""
+        };
+      }
+    }
     if (!neutralUser) {
       neutralUser = await User.findOne({ role: "neutral" }).select("name email phone role");
     }
