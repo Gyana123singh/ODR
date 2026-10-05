@@ -171,9 +171,8 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
       {/* Sidebar Container */}
       <div
-        className={`sidebar-container ${!isOpen && !isMobile ? "collapsed" : ""} ${
-          isMobile && isOpen ? "mobile-open" : ""
-        }`}
+        className={`sidebar-container ${!isOpen && !isMobile ? "collapsed" : ""} ${isMobile && isOpen ? "mobile-open" : ""
+          }`}
         style={{
           width: isMobile ? (isOpen ? "260px" : "0px") : (isOpen ? "260px" : "72px"),
         }}

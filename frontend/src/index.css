@@ -197,3 +197,42 @@ html.admin-layout-active {
   margin: 0;
 }
 
+
+/* Hide Google Translate top bar */
+.skiptranslate iframe,
+.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+
+/* Hide Google Translate Tooltip Popups */
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.VIpgJd-yAWNEb-VIpgJd-fmcmS-bgnd {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Hide hover styling on translated text */
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Completely hide the Google Translate widget bubble/logo */
+#google_translate_element {
+  position: absolute !important;
+  top: -10000px !important;
+  left: -10000px !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.goog-te-gadget,
+.goog-logo-link {
+  display: none !important;
+}

@@ -121,6 +121,21 @@ export default function Profile() {
   const handleSelectLanguage = (lang) => {
     setLanguage(lang.name);
     localStorage.setItem("appLanguage", lang.name);
+    
+    if (lang.code === "en") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + window.location.hostname + "; path=/;";
+    } else {
+      document.cookie = `googtrans=/en/${lang.code}; path=/`;
+      document.cookie = `googtrans=/en/${lang.code}; domain=${window.location.hostname}; path=/`;
+    }
+    
+    const translateSelect = document.querySelector(".goog-te-combo");
+    if (translateSelect) {
+      translateSelect.value = lang.code;
+      translateSelect.dispatchEvent(new Event("change"));
+    }
+    
     toast.success(`Language changed to ${lang.name} (${lang.native})`);
     setOpenModal(null);
   };

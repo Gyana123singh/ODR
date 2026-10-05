@@ -2,14 +2,29 @@
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Floating Background Icons */
@@ -31,27 +46,74 @@
   animation: floatIcon 20s infinite linear;
 }
 
-.icon-1 { top: 10%; left: 5%; animation-duration: 25s; }
-.icon-2 { bottom: 15%; left: 20%; animation-duration: 22s; animation-direction: reverse; }
-.icon-3 { top: 15%; right: 10%; animation-duration: 28s; }
-.icon-4 { bottom: 20%; right: 25%; animation-duration: 24s; animation-direction: reverse; }
-.icon-5 { top: 45%; left: -2%; animation-duration: 30s; }
+.icon-1 {
+  top: 10%;
+  left: 5%;
+  animation-duration: 25s;
+}
+
+.icon-2 {
+  bottom: 15%;
+  left: 20%;
+  animation-duration: 22s;
+  animation-direction: reverse;
+}
+
+.icon-3 {
+  top: 15%;
+  right: 10%;
+  animation-duration: 28s;
+}
+
+.icon-4 {
+  bottom: 20%;
+  right: 25%;
+  animation-duration: 24s;
+  animation-direction: reverse;
+}
+
+.icon-5 {
+  top: 45%;
+  left: -2%;
+  animation-duration: 30s;
+}
 
 @keyframes floatIcon {
-  0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-25px) rotate(8deg); }
-  100% { transform: translateY(0) rotate(0deg); }
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-25px) rotate(8deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .login-container {
@@ -77,7 +139,7 @@
   max-height: 700px;
   background-color: #ffffff;
   border-radius: 28px;
-  box-shadow: 
+  box-shadow:
     0 25px 60px rgba(15, 23, 42, 0.12),
     0 10px 25px rgba(6, 182, 212, 0.08);
   overflow: hidden;
@@ -100,7 +162,7 @@
   color: #ffffff;
 }
 
-.login-left > * {
+.login-left>* {
   z-index: 1;
 }
 
@@ -211,7 +273,7 @@
   color: #ffffff;
   margin-left: -12px;
   background-color: #334155;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .avatar:first-child {
@@ -579,6 +641,7 @@
   background-color: #ffffff;
   transition: all 0.3s ease;
 }
+
 .otp-input-group:focus-within {
   border-color: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
@@ -597,6 +660,7 @@
   box-shadow: 0 10px 20px -10px rgba(16, 185, 129, 0.5);
   font-family: inherit;
 }
+
 .btn-success:hover {
   transform: translateY(-2px);
   box-shadow: 0 14px 25px -10px rgba(16, 185, 129, 0.6);
@@ -606,4 +670,77 @@
 /* Hide floating reCAPTCHA badge for clean production UI */
 .grecaptcha-badge {
   visibility: hidden !important;
+}
+
+/* -------------------------------------
+   RESPONSIVE DESIGN (Mobile & Tablets)
+   ------------------------------------- */
+
+@media screen and (max-width: 992px) {
+  .login-container {
+    padding: 1rem;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .login-box {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 16px;
+  }
+  
+  .login-left {
+    flex: none !important;
+    min-height: auto;
+    padding: 2rem 1.5rem;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* On mobile, center the logo and hide the massive hero text to save space */
+  .brand-header-light {
+    justify-content: center;
+  }
+  
+  .brand-header-light img {
+    width: 200px !important;
+  }
+  
+  .left-middle {
+    display: none; 
+  }
+  
+  .login-right {
+    flex: 1 !important;
+    padding: 2rem 1.5rem;
+    align-items: flex-start;
+  }
+  
+  .card-header h2 {
+    font-size: 24px;
+  }
+  
+  .card-header p {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .login-container {
+    padding: 0;
+  }
+  
+  .login-box {
+    border-radius: 0;
+  }
+  
+  .login-card {
+    max-width: 100%;
+  }
+  
+  .btn-primary, .btn-outline {
+    font-size: 14px;
+    height: 44px;
+  }
 }
