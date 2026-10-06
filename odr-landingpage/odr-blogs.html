@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UTKAL ODR - Online Dispute Resolution Platform</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700;900&family=Varela+Round:wght@400&family=Lora:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./Style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #be9656;
+      --dark-text: #222222;
+      --light-text: #444444;
+      --border-color: #e1e1e1;
+      --bg-light: #f2f2f2;
+      --button-color: #888888;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: "Varela Round", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      color: var(--light-text);
+      line-height: 1.6;
+      background-color: var(--white);
+    }
+
+    h1,
+    h2,
+    h3,
+    h5,
+    h6 {
+      font-family: "Josefin Sans", Helvetica, Arial, sans-serif;
+      font-weight: 900;
+      color: var(--dark-text);
+    }
+
+    h1 {
+      font-size: 34px;
+    }
+
+    h2 {
+      font-size: 30px;
+    }
+
+    h3 {
+      font-size: 26px;
+    }
+
+    h4 {
+      font-size: 22px;
+    }
+
+    h5 {
+      font-size: 18px;
+    }
+
+    h6 {
+      font-size: 16px;
+    }
+
+    a {
+      color: var(--dark-text);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--primary-color);
+    }
+
+    /* Header & Navigation */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Back Button */
+    .back-btn {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      z-index: 10;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      backdrop-filter: blur(6px);
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: #fff;
+      color: #4338ca;
+    }
+
+    /* Ensure hero position */
+    .hero-slider {
+      position: relative;
+    }
+
+    .top-bar {
+      background: #222222;
+      color: var(--white);
+      padding: 10px 0;
+      font-size: 12px;
+    }
+
+    .top-bar a {
+      color: var(--white);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--dark-text);
+      font-family: "Josefin Sans", sans-serif;
+    }
+
+    .nav {
+      display: flex;
+      list-style: none;
+      gap: 40px;
+    }
+
+    .nav a {
+      font-family: "Josefin Sans", sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--light-text);
+    }
+
+    .nav a:hover {
+      color: var(--dark-text);
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .social-icons a {
+      color: var(--dark-text);
+      font-size: 18px;
+      transition: color 0.3s ease;
+    }
+
+    .social-icons a:hover {
+      color: var(--primary-color);
+    }
+
+    /* Hero Slider */
+    /* ================= HERO SECTION ================= */
+    .hero-slider {
+      position: relative;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      background: url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f") center/cover no-repeat;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+          rgba(17, 24, 39, 0.85),
+          rgba(79, 70, 229, 0.75));
+    }
+
+    .hero-slider .container {
+      position: relative;
+      z-index: 2;
+    }
+
+    .slider-content {
+      max-width: 850px;
+      color: #fff;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: 8px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #a5b4fc, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slider-content h2 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+    }
+
+    .slider-content p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      opacity: 0.95;
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 768px) {
+      .hero-title {
+        letter-spacing: 4px;
+      }
+
+      .slider-content h2 {
+        font-size: 1.6rem;
+      }
+
+      .hero-title {
+        font-size: 1.6rem;
+
+      }
+    }
+
+
+    .category-tag {
+      display: inline-block;
+      color: var(--primary-color);
+      font-family: Lora, Georgia, serif;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    /* Main Content */
+    .main-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 40px;
+      margin: 60px 0;
+    }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+    }
+
+    .post-card {
+      background: var(--white);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid var(--border-color);
+    }
+
+    .post-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-image {
+      width: 100%;
+      height: 250px;
+      background: linear-gradient(135deg, #be9656 0%, #a68142 100%);
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .post-content {
+      padding: 30px;
+    }
+
+    .post-meta {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+
+    .post-meta a {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .post-title {
+      font-size: 20px;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+
+    .post-title a:hover {
+      color: var(--primary-color);
+    }
+
+    .title-break {
+      width: 40px;
+      height: 2px;
+      background: var(--primary-color);
+      border: none;
+      margin: 15px 0;
+    }
+
+    .post-date {
+      font-family: Lora, Georgia, serif;
+      color: var(--light-text);
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .post-excerpt {
+      font-size: 14px;
+      color: var(--light-text);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .read-more {
+      display: inline-block;
+      color: var(--dark-text);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--dark-text);
+      padding-bottom: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .read-more:hover {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .post-comment {
+      font-size: 12px;
+      color: var(--light-text);
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .post-comment a {
+      color: var(--dark-text);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .widget {
+      background: var(--bg-light);
+      padding: 25px;
+      border-radius: 8px;
+    }
+
+    .widget-title {
+      font-family: "Varela Round", sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dark-text);
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .about-widget img {
+      width: 100%;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+
+    .popular-posts {
+      list-style: none;
+    }
+
+    .popular-post-item {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .popular-post-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .post-thumb {
+      width: 80px;
+      height: 60px;
+      background: linear-gradient(135deg, #be9656 0%, #a68142 100%);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .post-info {
+      flex: 1;
+    }
+
+    .post-info a {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .post-info .date {
+      font-family: Lora, Georgia, serif;
+      font-size: 11px;
+      color: var(--light-text);
+      margin-top: 5px;
+    }
+
+    .categories-list {
+      list-style: none;
+    }
+
+    .categories-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .categories-list li:last-child {
+      border-bottom: none;
+    }
+
+    .categories-list a {
+      font-size: 13px;
+    }
+
+    .copyright {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 12px;
+      color: var(--light-text);
+    }
+
+    .copyright a {
+      color: var(--dark-text);
+    }
+
+    .copyright a:hover {
+      color: var(--primary-color);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin: 40px 0;
+    }
+
+    .pagination a {
+      padding: 10px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+      background: var(--bg-light);
+      color: var(--primary-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav {
+        gap: 20px;
+        font-size: 10px;
+      }
+
+      .posts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .main-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-slider {
+        padding: 30px 0;
+      }
+
+      .slider-item {
+        height: 300px;
+      }
+
+      .slider-content h2 {
+        font-size: 28px;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+
+
+    /* ================= HEADER ================= */
+    .blog-header {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      text-align: center;
+      padding: 70px 20px;
+    }
+
+    .blog-header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .blog-header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    /* ================= SEARCH & FILTER ================= */
+    .blog-tools {
+      max-width: 1200px;
+      margin: -35px auto 40px;
+      padding: 20px;
+      display: flex;
+      gap: 15px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .blog-tools input,
+    .blog-tools select {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    /* ================= FEATURED BLOG ================= */
+    .featured-blog {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 45px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      border-radius: 18px;
+    }
+
+    .featured-blog h2 {
+      font-size: 2.1rem;
+      margin: 15px 0;
+    }
+
+    .featured-blog p {
+      max-width: 750px;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    .featured-blog a {
+      display: inline-block;
+      margin-top: 25px;
+      color: #fff;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    /* ================= BLOG GRID ================= */
+    .blog-container {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+
+    .blog-card {
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease;
+    }
+
+    .blog-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .blog-card img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+    }
+
+    .blog-content {
+      padding: 22px;
+    }
+
+    .category {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    .blog-content h3 {
+      font-size: 1.4rem;
+      margin: 12px 0;
+    }
+
+    .blog-content p {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .blog-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 22px;
+      font-size: 0.85rem;
+    }
+
+    .blog-footer a {
+      color: #4f46e5;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* ================= NEWSLETTER ================= */
+    .newsletter {
+      background: #fff;
+      padding: 70px 20px;
+      text-align: center;
+    }
+
+    .newsletter h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .newsletter p {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .newsletter-form {
+      max-width: 520px;
+      margin: auto;
+      display: flex;
+      gap: 12px;
+    }
+
+    .newsletter-form input {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .newsletter-form button {
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      background: #4f46e5;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .newsletter-form button:hover {
+      background: #4338ca;
+    }
+
+    /* ================= FOOTER ================= */
+    .blog-footer-main {
+      background: #111827;
+      color: #9ca3af;
+      text-align: center;
+      padding: 30px;
+      font-size: 0.9rem;
+    }
+
+    .post-image {
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.2rem;
+    }
+
+    .post-thumb {
+      width: 55px;
+      height: 55px;
+      border-radius: 6px;
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+    }
+
+    /* ===== Video Section ===== */
+    .odr-video-section {
+      padding: 80px 0;
+      background: #f9fafb;
+    }
+
+    .video-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .video-content h2 {
+      font-size: 2.3rem;
+      margin-bottom: 15px;
+    }
+
+    .video-content p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #555;
+    }
+
+    .video-box {
+      position: relative;
+      padding-top: 56.25%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .video-box iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .video-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      .slider-content h2 {
+        font-size: 2.2rem;
+      }
+
+      .slider-content .big-text {
+        font-size: 3.2rem;
+      }
+    }
+
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 768px) {
+
+      .blog-tools,
+      .newsletter-form {
+        flex-direction: column;
+      }
+
+      .blog-header h1 {
+        font-size: 2.4rem;
+      }
+
+      .featured-blog h2 {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+
+    <style>
+        /* Hide Google Translate elements */
+        iframe.goog-te-banner-frame,
+        .goog-te-banner-frame,
+        .goog-te-gadget-icon,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf-ti6hGc,
+        .VIpgJd-ZVi9od-ORHb-OEVmcd {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0px !important;
+        }
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+        .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+    </style>
+</head>
+
+
+<body>
+  <!-- Header -->
+
+
+  <!-- Hero Slider -->
+  <section class="hero-slider" id="home">
+    <div class="hero-overlay"></div>
+
+    <!-- Back Button -->
+    <a href="./index.html" class="back-btn">← Back to Home</a>
+
+    <div class="container">
+      <div class="slider-item">
+        <div class="slider-content">
+
+
+          <h1 class="hero-title">
+            COMPLIANCE BLOG
+          </h1>
+
+          <h2></h2>
+
+          <p style="font-size: 24px; text-align: center;">
+            Sociaetal-Corporate-Cultural-National
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Video Section -->
+  <section class="odr-video-section">
+    <div class="container">
+      <div class="video-wrapper">
+
+        <div class="video-content">
+          <h2>Mediation</h2>
+          <p>
+            UTKAL ODR simplifies dispute resolution through secure digital platforms.
+            Parties engage in negotiation, mediation, and arbitration with expert
+            neutrals—saving time, cost, and relationships.
+          </p>
+        </div>
+
+        <div class="video-box">
+          <iframe width="560" height="315" src="https://www.youtube.com/embed/pMfj5y6fdJw?si=K4Hi_OhLCa8XfBrP"
+            title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="main-wrapper" id="posts">
+      <!-- Posts Grid -->
+      <div class="posts-grid">
+
+        <!-- Post 1 -->
+        <article class="post-card">
+          <div class="post-image"
+            style="background-image:url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f');">
+            ODR Overview
+          </div>
+          <div class="post-content">
+            <div class="post-meta">
+              <a href="#">ODR</a> / <a href="#">Services</a>
+            </div>
+            <h5 class="post-title"><a href="#">What is Online Dispute Resolution?</a></h5>
+            <hr class="title-break">
+            <div class="post-date">Updated: January 2026</div>
+            <p class="post-excerpt">
+              Online Dispute Resolution (ODR) is a mechanism for resolving disputes through the
+              use of electronic communications and other information and communication technology.
+              Our UTKAL ODR platform provides secure, cost-effective, and transparent dispute resolution.
+            </p>
+            <a href="#" class="read-more">Learn More</a>
+            <div class="post-comment"><a href="#">Read Our Rules</a></div>
+          </div>
+        </article>
+
+        <!-- Post 2 -->
+        <article class="post-card">
+          <div class="post-image"
+            style="background-image:url('https://images.unsplash.com/photo-1521791055366-0d553872125f');">
+            Our Mission
+          </div>
+          <div class="post-content">
+            <div class="post-meta">
+              <a href="#">Goals</a> / <a href="#">Mission</a>
+            </div>
+            <h5 class="post-title"><a href="#">Our Vision and Goals</a></h5>
+            <hr class="title-break">
+            <div class="post-date">Updated: January 2026</div>
+            <p class="post-excerpt">
+              Making ADR processes more accessible and transparent to the public.
+              Lowering litigation costs for MSMEs and startups.
+              Modernizing dispute resolution for ease of doing business while
+              emphasizing ethical guidelines and digital security.
+            </p>
+            <a href="#" class="read-more">Discover More</a>
+            <div class="post-comment"><a href="#">2 Comments</a></div>
+          </div>
+        </article>
+
+        <!-- Post 3 -->
+        <article class="post-card">
+          <div class="post-image"
+            style="background-image:url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40');">
+            Three Stages
+          </div>
+          <div class="post-content">
+            <div class="post-meta">
+              <a href="#">Process</a> / <a href="#">Stages</a>
+            </div>
+            <h5 class="post-title"><a href="#">Three-Stage Resolution Process</a></h5>
+            <hr class="title-break">
+            <div class="post-date">Updated: January 2026</div>
+            <p class="post-excerpt">
+              Our comprehensive dispute resolution process includes three stages:
+              Negotiation (technology-enabled direct negotiation between parties),
+              Mediation (neutral third party assistance), and Arbitration
+              (final binding decision by an arbitrator).
+            </p>
+            <a href="#" class="read-more">Explore Process</a>
+            <div class="post-comment"><a href="#">No Comments</a></div>
+          </div>
+        </article>
+
+        <!-- Post 4 -->
+        <article class="post-card">
+          <div class="post-image"
+            style="background-image:url('https://images.unsplash.com/photo-1600880292089-90a7e086ee0c');">
+            Principles
+          </div>
+          <div class="post-content">
+            <div class="post-meta">
+              <a href="#">Ethics</a> / <a href="#">Standards</a>
+            </div>
+            <h5 class="post-title"><a href="#">Our Core Principles</a></h5>
+            <hr class="title-break">
+            <div class="post-date">Updated: January 2026</div>
+            <p class="post-excerpt">
+              UTKAL ODR operates on principles of fairness, transparency, due process,
+              and accountability. Our platform ensures relationship preservation,
+              open communication, and fostering collaboration through more flexible
+              and less formal proceedings.
+            </p>
+            <a href="#" class="read-more">Read More</a>
+            <div class="post-comment"><a href="#">No Comments</a></div>
+          </div>
+        </article>
+
+      </div>
+
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- About Widget -->
+        <div class="widget">
+          <h4 class="widget-title">About UTKAL ODR</h4>
+          <p>UTKAL ODR (Utkrusht Vibad Samadhan - Kalashrest Online Dispute Resolution) is a technology-enabled platform
+            designed to provide secure, cost-effective, and transparent mechanisms for resolving disputes efficiently
+            through innovative processes.</p>
+        </div>
+
+        <!-- Key Features Widget -->
+        <div class="widget">
+          <h4 class="widget-title">Key Features</h4>
+          <ul class="categories-list">
+            <li><a href="#">Cost-Effective Solutions</a></li>
+            <li><a href="#">Fast Resolution</a></li>
+            <li><a href="#">Expert Neutrals</a></li>
+            <li><a href="#">Secure Platform</a></li>
+            <li><a href="#">Transparent Process</a></li>
+            <li><a href="#">24/7 Accessibility</a></li>
+          </ul>
+        </div>
+
+        <!-- Services Widget -->
+        <div class="widget">
+          <h4 class="widget-title">Our Services</h4>
+          <ul class="popular-posts">
+
+            <li class="popular-post-item">
+              <div class="post-thumb"
+                style="background-image:url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f');">
+              </div>
+              <div class="post-info">
+                <a href="#">Mediation</a>
+                <div class="date">Neutral guidance</div>
+              </div>
+            </li>
+
+            <li class="popular-post-item">
+              <div class="post-thumb"
+                style="background-image:url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40');">
+              </div>
+              <div class="post-info">
+                <a href="#">Arbitration</a>
+                <div class="date">Binding decisions</div>
+              </div>
+            </li>
+
+            <li class="popular-post-item">
+              <div class="post-thumb"
+                style="background-image:url('https://images.unsplash.com/photo-1600880292089-90a7e086ee0c');">
+              </div>
+              <div class="post-info">
+                <a href="#">Med-Arb</a>
+                <div class="date">Hybrid approach</div>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+
+
+        <!-- Dispute Types Widget -->
+        <div class="widget">
+          <h4 class="widget-title">Dispute Types</h4>
+          <ul class="categories-list">
+            <li><a href="#">Consumer Disputes (C2C)</a></li>
+            <li><a href="#">Business Disputes (B2B)</a></li>
+            <li><a href="#">E-Commerce (B2C)</a></li>
+            <li><a href="#">Property Disputes</a></li>
+            <li><a href="#">Cross-Border Cases</a></li>
+            <li><a href="#">Contract Disputes</a></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <span>1</span>
+      <a href="#">More Articles <i class="fas fa-angle-double-right"></i></a>
+    </div>
+  </div>
+
+
+  <!-- BLOG LIST -->
+  <section class="blog-container">
+
+    <article class="blog-card">
+      <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f" alt="">
+      <div class="blog-content">
+        <span class="category">ODR</span>
+        <h3>What Is Online Dispute Resolution (ODR)?</h3>
+        <p>
+          Understand how ODR enables parties to resolve disputes digitally
+          without court intervention.
+        </p>
+        <div class="blog-footer">
+          <span>🗓 Jan 8, 2026</span>
+          <a href="#">Read More →</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="blog-card">
+      <img src="https://images.unsplash.com/photo-1521791055366-0d553872125f" alt="">
+      <div class="blog-content">
+        <span class="category">Legal Tech</span>
+        <h3>How ODR Is Transforming the Justice System</h3>
+        <p>
+          Explore how technology-driven dispute resolution is making justice
+          faster, affordable, and accessible.
+        </p>
+        <div class="blog-footer">
+          <span>🗓 Jan 6, 2026</span>
+          <a href="#">Read More →</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="blog-card">
+      <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40" alt="">
+      <div class="blog-content">
+        <span class="category">Arbitration</span>
+        <h3>ODR vs Traditional Arbitration: Key Differences</h3>
+        <p>
+          A comparison of online dispute resolution and traditional arbitration
+          methods for modern conflicts.
+        </p>
+        <div class="blog-footer">
+          <span>🗓 Jan 3, 2026</span>
+          <a href="#">Read More →</a>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+
+  <!-- NEWSLETTER -->
+  <section class="newsletter">
+    <h2>Comments</h2>
+    <p>Get the latest blogs and updates directly to your inbox.</p>
+    <div class="newsletter-form">
+      <input type="email" placeholder="Enter your email" />
+      <button>Subscribe</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>About UTKAL ODR</h4>
+        <p style="text-align: left;">Online Dispute Resolution platform providing accessible,
+          cost-effective, and transparent dispute resolution services.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">Negotiation</a></li>
+          <li><a href="#">Mediation</a></li>
+          <li><a href="#">Arbitration</a></li>
+
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Rules</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:connect@utkalodr.com">connect@utkalodr.com</a></li>
+          <li><a href="tel:+91 91871 02299">+91 91871 02299</a></li>
+
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Our aligned partners</h4>
+        <ul>
+          <li><a href="https://www.legalion.co.in">legalion</a></li>
+          <li><a href="https://infotattvabusinesssolutions.com/">InfoTattva</a></li>
+
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 UTKAL ODR - Utkrusht Vibad Samadhan. All rights reserved. | Powered by Gokulananda Chaudhuri
+        Foundation</p>
+    </div>
+  </footer>
+
+
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,or', 
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+
+
+</html>

@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <title>Login &mdash; eDemand - On Demand Services - Get Services On Demand - Get Services On Demand</title>
+    
+
+<meta content="Login to eDemand - On Demand Services. eDemand - On Demand Services is one of the leading " name="description" />
+
+
+
+<meta content="On Demand, Services,On Demand Services, Service Provider" name="keywords" />
+<!-- Favicons -->
+<link href="https://edemand.wrteam.me/public/uploads/site/1657775760_29d5c9510f319bcff33f.svg" rel="icon" />
+<link href="https://edemand.wrteam.me/public/frontend/retro/img/site/apple-touch-icon.png" rel="apple-touch-icon" />
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/backend/assets/css/vendor/iziToast.min.css" />
+
+
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/backend/assets/css/vendor/iziToast.min.css" />
+
+
+<!-- Vendor CSS Files -->
+<link href="https://edemand.wrteam.me/public/frontend/retro/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://edemand.wrteam.me/public/frontend/retro/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+<link href="https://edemand.wrteam.me/public/frontend/retro/vendor/aos/aos.css" rel="stylesheet" />
+<link href="https://edemand.wrteam.me/public/frontend/retro/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" />
+
+<!-- Template Main CSS File -->
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/backend/assets/css/vendor/select2.min.css" />
+<script src="https://edemand.wrteam.me/public/backend/assets/js/vendor/jquery.min.js"></script>
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/fontawesome/css/all.css" />
+<link href="https://edemand.wrteam.me/public/frontend/retro/css/style.css" rel="stylesheet" />
+
+<!-- new styles -->
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/frontend/retro/css/style.css" />
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/frontend/retro/css/components.css" />
+<link rel="stylesheet" href="https://edemand.wrteam.me/public/frontend/retro/css/custom.css" />
+
+<script>
+    var baseUrl = 'https://edemand.wrteam.me/';
+    // var csrfName = '<= csrf_token() ?>';
+    // var csrfHash = '<= csrf_hash() ?>';
+</script>    <script src="https://edemand.wrteam.me/public/frontend/retro/vendor/jQuery/jquery-min.js"></script>
+        <style>
+        body {
+            --primary: #0277FA;
+            --secondary: #fcfcfc;
+            --nav-link: #fcfcfc;
+            --primary-shadow: 0px 5px 30px #ffffff;
+        }
+    </style>
+    <script>
+        var baseUrl = "https://edemand.wrteam.me/";
+        let csrfName = "csrf_test_name";
+        let csrfHash = "0e9655acd74b8dff6db9a96cfdcc2357b9fd975d9177ad35ecf57e0347ee2b56";
+    </script>
+</head>
+<body>
+        
+<!-- Main Content -->
+<style>
+    body {
+        --primary-color: #0277FA;
+        --secondary-color: #fcfcfc;
+    }
+
+    .bg-primary {
+        background-color: #0277FA !important;
+    }
+
+    .input-group .form-control {
+        border: 1px solid #ced4da;
+    }
+
+    .input-group .form-control:focus {
+        border-color: #0277FA;
+        box-shadow: 0 0 0 0.2rem rgba(5, 166, 232, 0.25);
+    }
+
+    .input-group-text {
+        border: 1px solid #ced4da;
+        background-color: #fff;
+    }
+
+    .input-group-text:hover {
+        background-color: #f8f9fa;
+    }
+
+    .toggle-password {
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .toggle-password:hover {
+        color: #0277FA;
+    }
+
+    /* Phone number input group styling */
+    .phone-input-group {
+        display: flex;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .phone-input-group:focus-within {
+        border-color: #0277FA;
+        box-shadow: 0 0 0 0.2rem rgba(5, 166, 232, 0.25);
+    }
+
+    .phone-input-group .country_code {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 120px;
+    }
+
+    .phone-input-group .country_code select {
+        border: none;
+        border-radius: 0;
+        border-right: 1px solid #ced4da;
+        background-color: #f8f9fa;
+        padding: 0.375rem 0.75rem;
+        height: 100%;
+    }
+
+    .phone-input-group .country_code select:focus {
+        border-color: transparent;
+        box-shadow: none;
+        background-color: #fff;
+    }
+
+    .phone-input-group .country_code input[readonly] {
+        border: none;
+        border-radius: 0;
+        border-right: 1px solid #ced4da;
+        background-color: #f8f9fa;
+        padding: 0.375rem 0.75rem;
+        height: 100%;
+        cursor: not-allowed;
+    }
+
+    .phone-input-group .country_code input[readonly]:focus {
+        border-color: transparent;
+        box-shadow: none;
+        background-color: #f8f9fa;
+    }
+
+    /* Ensure read-only country code input is always visible - except when hidden for admin */
+    .phone-input-group .country_code input[readonly]:not(.hidden) {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* When country_code is hidden (admin login), adjust the phone input to take full width */
+    .phone-input-group .country_code.hidden {
+        display: none !important;
+    }
+
+    .phone-input-group.admin-login #identityInputDiv {
+        flex: 1;
+        width: 100%;
+    }
+
+    .phone-input-group.admin-login #identityInputDiv input {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
+
+    .phone-input-group.admin-login #identityInputDiv input:focus {
+        border-color: #0277FA;
+        box-shadow: 0 0 0 0.2rem rgba(5, 166, 232, 0.25);
+    }
+
+    .phone-input-group #identityInputDiv {
+        flex: 1;
+    }
+
+    .phone-input-group #identityInputDiv input {
+        border: none;
+        border-radius: 0;
+        height: 100%;
+    }
+
+    .phone-input-group #identityInputDiv input:focus {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    /* Base styling - smaller on desktop */
+    .phone-input-group .country_code {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 80px;
+        /* compact */
+        max-width: 100px;
+    }
+
+    .phone-input-group .country_code input[readonly],
+    .phone-input-group .country_code select {
+        width: 100%;
+        text-align: center;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Mobile-friendly adjustments */
+    @media (max-width: 576px) {
+        .phone-input-group {
+            flex-direction: column;
+            /* stack vertically */
+        }
+
+        .phone-input-group .country_code {
+            min-width: 100%;
+            /* full width on mobile */
+            max-width: 100%;
+            margin-bottom: 0.5rem;
+            /* spacing before phone number field */
+        }
+
+        .phone-input-group .country_code input[readonly],
+        .phone-input-group .country_code select {
+            text-align: left;
+            font-size: 1rem;
+            /* slightly larger for touch */
+        }
+    }
+</style>
+<div class="auth " style="overflow: hidden;">
+    <div class="login-wrapper">
+        <section class="container-fluid" data-aos='fade-up'>
+            <div class="">
+                <div id="app">
+                    <section class="section">
+                        <div class="container-fluid ">
+                            <div class=" row d-flex justify-content-end">
+                                <div class="col-12 col-lg-6 col-md-8 col-sm-8 col-xl-4 me-md-5   my-lg-3  -offset-sm-2">
+                                    <div class="card" style="border-radius: 8px;padding:30px">
+                                        <div class="row" style="text-align:center;margin-bottom:65px;margin-top:30px;width:100%;padding:0!important;display:block;">
+                                                                                            <img style="width: 60%;" src=" https://edemand.wrteam.me/public/uploads/site/1655699574_7fd61254c6132ebfd8ce.svg" class="" alt="">
+                                                                                    </div>
+                                        <div class="row">
+                                            <div class="col-md">
+                                                <div class="card-body" style="padding: 0!important;">
+                                                    <div class="row">
+                                                        <div class="col-md">
+                                                                                                                        <form action="https://edemand.wrteam.me/auth/login" method="post" class="" accept-charset="utf-8">
+                                                            <div class="form-group">
+                                                                <label class="form-label d-none" for="identity">Email/Username:</label>
+                                                                <label for="email" class="mb-2">Phone Number</label>
+                                                                <div class="phone-input-group">
+                                                                    <div class="country_code">
+                                                                                                                                                    <!-- Show as dropdown when multiple country codes exist -->
+                                                                            <select class="form-control" name="country_code" id="country_code">
+                                                                                <option selected value='+91'>+91 || India</option><option  value='+234'>+234 || Nigeria</option><option  value='+93'>+93 || Afghanistan</option><option  value='+355'>+355 || Albania</option><option  value='+213'>+213 || Algeria</option><option  value='+1684'>+1684 || American Samoa</option><option  value='+376'>+376 || Andorra</option><option  value='+244'>+244 || Angola</option><option  value='+1264'>+1264 || Anguilla</option><option  value='+672'>+672 || Antarctica</option><option  value='+1268'>+1268 || Antigua and Barbuda</option><option  value='+54'>+54 || Argentina</option><option  value='+374'>+374 || Armenia</option><option  value='+297'>+297 || Aruba</option><option  value='+61'>+61 || Australia</option><option  value='+43'>+43 || Austria</option><option  value='+994'>+994 || Azerbaijan</option><option  value='+1242'>+1242 || Bahamas</option><option  value='+973'>+973 || Bahrain</option><option  value='+880'>+880 || Bangladesh</option><option  value='+1246'>+1246 || Barbados</option><option  value='+375'>+375 || Belarus</option><option  value='+32'>+32 || Belgium</option><option  value='+501'>+501 || Belize</option><option  value='+229'>+229 || Benin</option><option  value='+1441'>+1441 || Bermuda</option><option  value='+975'>+975 || Bhutan</option><option  value='+591'>+591 || Bolivia</option><option  value='+387'>+387 || Bosnia and Herzegovina</option><option  value='+267'>+267 || Botswana</option><option  value='+47'>+47 || Bouvet Island</option><option  value='+55'>+55 || Brazil</option><option  value='+246'>+246 || British Indian Ocean Territory</option><option  value='+1284'>+1284 || British Virgin Islands</option><option  value='+673'>+673 || Brunei</option><option  value='+359'>+359 || Bulgaria</option><option  value='+226'>+226 || Burkina Faso</option><option  value='+257'>+257 || Burundi</option><option  value='+855'>+855 || Cambodia</option><option  value='+237'>+237 || Cameroon</option><option  value='+1'>+1 || Canada</option><option  value='+238'>+238 || Cape Verde</option><option  value='+599'>+599 || Caribbean Netherlands</option><option  value='+1345'>+1345 || Cayman Islands</option><option  value='+236'>+236 || Central African Republic</option><option  value='+235'>+235 || Chad</option><option  value='+56'>+56 || Chile</option><option  value='+86'>+86 || China</option><option  value='+57'>+57 || Colombia</option><option  value='+269'>+269 || Comoros</option><option  value='+682'>+682 || Cook Islands</option><option  value='+506'>+506 || Costa Rica</option><option  value='+385'>+385 || Croatia</option><option  value='+53'>+53 || Cuba</option><option  value='+357'>+357 || Cyprus</option><option  value='+420'>+420 || Czechia</option><option  value='+243'>+243 || DR Congo</option><option  value='+45'>+45 || Denmark</option><option  value='+253'>+253 || Djibouti</option><option  value='+1767'>+1767 || Dominica</option><option  value='+1809'>+1809 || Dominican Republic</option><option  value='+593'>+593 || Ecuador</option><option  value='+20'>+20 || Egypt</option><option  value='+503'>+503 || El Salvador</option><option  value='+240'>+240 || Equatorial Guinea</option><option  value='+291'>+291 || Eritrea</option><option  value='+372'>+372 || Estonia</option><option  value='+268'>+268 || Eswatini</option><option  value='+251'>+251 || Ethiopia</option><option  value='+500'>+500 || Falkland Islands</option><option  value='+298'>+298 || Faroe Islands</option><option  value='+679'>+679 || Fiji</option><option  value='+358'>+358 || Finland</option><option  value='+33'>+33 || France</option><option  value='+594'>+594 || French Guiana</option><option  value='+689'>+689 || French Polynesia</option><option  value='+262'>+262 || French Southern and Antarctic Lands</option><option  value='+241'>+241 || Gabon</option><option  value='+220'>+220 || Gambia</option><option  value='+995'>+995 || Georgia</option><option  value='+49'>+49 || Germany</option><option  value='+233'>+233 || Ghana</option><option  value='+350'>+350 || Gibraltar</option><option  value='+30'>+30 || Greece</option><option  value='+299'>+299 || Greenland</option><option  value='+1473'>+1473 || Grenada</option><option  value='+590'>+590 || Guadeloupe</option><option  value='+1671'>+1671 || Guam</option><option  value='+502'>+502 || Guatemala</option><option  value='+44'>+44 || United Kingdom</option><option  value='+224'>+224 || Guinea</option><option  value='+245'>+245 || Guinea-Bissau</option><option  value='+592'>+592 || Guyana</option><option  value='+509'>+509 || Haiti</option><option  value='+504'>+504 || Honduras</option><option  value='+852'>+852 || Hong Kong</option><option  value='+36'>+36 || Hungary</option><option  value='+354'>+354 || Iceland</option><option  value='+62'>+62 || Indonesia</option><option  value='+98'>+98 || Iran</option><option  value='+964'>+964 || Iraq</option><option  value='+353'>+353 || Ireland</option><option  value='+972'>+972 || Israel</option><option  value='+39'>+39 || Italy</option><option  value='+225'>+225 || Ivory Coast</option><option  value='+1876'>+1876 || Jamaica</option><option  value='+81'>+81 || Japan</option><option  value='+962'>+962 || Jordan</option><option  value='+76'>+76 || Kazakhstan</option><option  value='+254'>+254 || Kenya</option><option  value='+686'>+686 || Kiribati</option><option  value='+383'>+383 || Kosovo</option><option  value='+965'>+965 || Kuwait</option><option  value='+996'>+996 || Kyrgyzstan</option><option  value='+856'>+856 || Laos</option><option  value='+371'>+371 || Latvia</option><option  value='+961'>+961 || Lebanon</option><option  value='+266'>+266 || Lesotho</option><option  value='+231'>+231 || Liberia</option><option  value='+218'>+218 || Libya</option><option  value='+423'>+423 || Liechtenstein</option><option  value='+370'>+370 || Lithuania</option><option  value='+352'>+352 || Luxembourg</option><option  value='+853'>+853 || Macau</option><option  value='+261'>+261 || Madagascar</option><option  value='+265'>+265 || Malawi</option><option  value='+60'>+60 || Malaysia</option><option  value='+960'>+960 || Maldives</option><option  value='+223'>+223 || Mali</option><option  value='+356'>+356 || Malta</option><option  value='+692'>+692 || Marshall Islands</option><option  value='+596'>+596 || Martinique</option><option  value='+222'>+222 || Mauritania</option><option  value='+230'>+230 || Mauritius</option><option  value='+52'>+52 || Mexico</option><option  value='+691'>+691 || Micronesia</option><option  value='+373'>+373 || Moldova</option><option  value='+377'>+377 || Monaco</option><option  value='+976'>+976 || Mongolia</option><option  value='+382'>+382 || Montenegro</option><option  value='+1664'>+1664 || Montserrat</option><option  value='+212'>+212 || Morocco</option><option  value='+258'>+258 || Mozambique</option><option  value='+95'>+95 || Myanmar</option><option  value='+264'>+264 || Namibia</option><option  value='+674'>+674 || Nauru</option><option  value='+977'>+977 || Nepal</option><option  value='+31'>+31 || Netherlands</option><option  value='+687'>+687 || New Caledonia</option><option  value='+64'>+64 || New Zealand</option><option  value='+505'>+505 || Nicaragua</option><option  value='+227'>+227 || Niger</option><option  value='+683'>+683 || Niue</option><option  value='+850'>+850 || North Korea</option><option  value='+389'>+389 || North Macedonia</option><option  value='+1670'>+1670 || Northern Mariana Islands</option><option  value='+968'>+968 || Oman</option><option  value='+92'>+92 || Pakistan</option><option  value='+680'>+680 || Palau</option><option  value='+970'>+970 || Palestine</option><option  value='+507'>+507 || Panama</option><option  value='+675'>+675 || Papua New Guinea</option><option  value='+595'>+595 || Paraguay</option><option  value='+51'>+51 || Peru</option><option  value='+63'>+63 || Philippines</option><option  value='+48'>+48 || Poland</option><option  value='+351'>+351 || Portugal</option><option  value='+1787'>+1787 || Puerto Rico</option><option  value='+974'>+974 || Qatar</option><option  value='+242'>+242 || Republic of the Congo</option><option  value='+40'>+40 || Romania</option><option  value='+73'>+73 || Russia</option><option  value='+250'>+250 || Rwanda</option><option  value='+290'>+290 || Saint Helena, Ascension and Tristan da Cunha</option><option  value='+1869'>+1869 || Saint Kitts and Nevis</option><option  value='+1758'>+1758 || Saint Lucia</option><option  value='+508'>+508 || Saint Pierre and Miquelon</option><option  value='+1784'>+1784 || Saint Vincent and the Grenadines</option><option  value='+685'>+685 || Samoa</option><option  value='+378'>+378 || San Marino</option><option  value='+966'>+966 || Saudi Arabia</option><option  value='+221'>+221 || Senegal</option><option  value='+381'>+381 || Serbia</option><option  value='+248'>+248 || Seychelles</option><option  value='+232'>+232 || Sierra Leone</option><option  value='+65'>+65 || Singapore</option><option  value='+1721'>+1721 || Sint Maarten</option><option  value='+421'>+421 || Slovakia</option><option  value='+386'>+386 || Slovenia</option><option  value='+677'>+677 || Solomon Islands</option><option  value='+252'>+252 || Somalia</option><option  value='+27'>+27 || South Africa</option><option  value='+82'>+82 || South Korea</option><option  value='+211'>+211 || South Sudan</option><option  value='+34'>+34 || Spain</option><option  value='+94'>+94 || Sri Lanka</option><option  value='+249'>+249 || Sudan</option><option  value='+597'>+597 || Suriname</option><option  value='+4779'>+4779 || Svalbard and Jan Mayen</option><option  value='+46'>+46 || Sweden</option><option  value='+41'>+41 || Switzerland</option><option  value='+963'>+963 || Syria</option><option  value='+239'>+239 || São Tomé and Príncipe</option><option  value='+886'>+886 || Taiwan</option><option  value='+992'>+992 || Tajikistan</option><option  value='+255'>+255 || Tanzania</option><option  value='+66'>+66 || Thailand</option><option  value='+670'>+670 || Timor-Leste</option><option  value='+228'>+228 || Togo</option><option  value='+690'>+690 || Tokelau</option><option  value='+676'>+676 || Tonga</option><option  value='+1868'>+1868 || Trinidad and Tobago</option><option  value='+216'>+216 || Tunisia</option><option  value='+90'>+90 || Turkey</option><option  value='+993'>+993 || Turkmenistan</option><option  value='+1649'>+1649 || Turks and Caicos Islands</option><option  value='+688'>+688 || Tuvalu</option><option  value='+256'>+256 || Uganda</option><option  value='+380'>+380 || Ukraine</option><option  value='+971'>+971 || United Arab Emirates</option><option  value='+1201'>+1201 || United States</option><option  value='+1340'>+1340 || United States Virgin Islands</option><option  value='+598'>+598 || Uruguay</option><option  value='+998'>+998 || Uzbekistan</option><option  value='+678'>+678 || Vanuatu</option><option  value='+263'>+263 || Zimbabwe</option><option  value='+58'>+58 || Venezuela</option><option  value='+84'>+84 || Vietnam</option><option  value='+681'>+681 || Wallis and Futuna</option><option  value='+967'>+967 || Yemen</option><option  value='+260'>+260 || Zambia</option><option  value='+2125288'>+2125288 || Western Sahara</option>                                                                            </select>
+                                                                                                                                            </div>
+                                                                    <div id="identityInputDiv">
+                                                                        <input id="identity" type="number" class="form-control form-control-new-border" min="0" name="identity" tabindex="1" placeholder="Please enter registered phone number" required autofocus>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="invalid-feedback">
+                                                                    Please fill in your Phone Number                                                                </div>
+                                                            </div>
+                                                            <div class="form-group mb-0">
+                                                                <label class="form-label d-none" for="identity">Email/Username:</label>
+                                                                <label for="email" class="mb-2">Password</label>
+                                                                <div class="input-group mb-2">
+                                                                    <input id="password" type="password" class="form-control form-control-new-border" name="password" tabindex="2" required placeholder="Enter your password" style="border-radius: 8px 0 0 8px; border-right: none;">
+                                                                    <div class="input-group-append">
+                                                                        <span class="input-group-text form-control-new-border" style="border-radius: 0 8px 8px 0; cursor: pointer; background-color: #fff;"><i class="fa-sharp fa-solid fa-eye-slash toggle-password"></i></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="form-group float-start" style="width: 50%;">
+                                                                    <div class="custom-control custom-checkbox">
+                                                                        <input type="checkbox" id="remember" name='remember' value=1 class="form-check-input" />
+                                                                        <label class="form-check-label" for="remember">Remember me</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group" style="width: 50%;">
+                                                                    <div class="float-end">
+                                                                        <a href="#" class="text-small text-new-primary" id="forgot-password-link">
+                                                                            Forgot Password ?                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class=" text-muted text-center mb-4">
+                                                                Don't have an account ? <a class="text-new-primary" href="https://edemand.wrteam.me/auth/create_user"><b>
+                                                                        Join us as provider</b></a>
+                                                            </div>
+                                                            <div class="form-group ">
+                                                                <button type="submit" class="btn bg-primary text-white btn-lg w-100" tabindex="4">
+                                                                    Login                                                                </button>
+                                                            </div>
+                                                                                                                        </form>                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!--  -->
+                                            </div>
+                                                                                            <div class="col-md-12">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card bg-new-primary" style="border-radius: 8px; ">
+                                                                <div class="d-flex justify-content-between align-items-center p-3">
+                                                                    <div class="">
+                                                                        <h6 style="font-size:14px ; margin: 0;">ADMIN LOGIN</h6>
+                                                                        <span style="white-space:nowrap;font-size:12px ;">Mobile : 9876543210</span>
+                                                                        <span style="white-space:nowrap;font-size:12px ;">Password : 12345678</span>
+                                                                    </div>
+                                                                    <div class="card-icon bg-white copy_credentials" onclick="copy_admin_cred()" style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                                        <i class="fa-solid fa-pen-to-square text-new-primary"></i>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card bg-new-secondary" style="border-radius: 8px; ">
+                                                                <div class="d-flex justify-content-between align-items-center p-3">
+                                                                    <div class="">
+                                                                        <h6 style="font-size:14px ; margin: 0;">PROVIDER LOGIN</h6>
+                                                                        <span style="white-space:nowrap;font-size:12px ;">Mobile : 1234567890</span>
+                                                                        <span style="white-space:nowrap;font-size:12px ;">Password : 12345678</span>
+                                                                    </div>
+                                                                    <div class="card-icon bg-white copy_credentials" onclick="copy_provider_cred()" style="width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                                        <i class="fa-solid fa-pen-to-square text-new-secondary"></i>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                                                                <div class="simple-footer " style="margin-bottom: 0!important;margin-top: 0!important;">
+                                                    Copyright © 2025 eDemand. All rights reserved.                                                </div>
+                                                                                                    <div class="col-md-12">
+                                                        <div class="alert bg-warning  mb-0" style="font-size:12px ;">
+                                                            <b>Note:</b> If you cannot login here, please close the codecanyon frame by clicking on <b>x Remove Frame</b> button from top right corner on the page or <a href="https://edemand.wrteam.me/admin/login" target="_blank">&gt;&gt; Click here &lt;&lt;</a>
+                                                        </div>
+                                                    </div>
+                                                                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+        </section>
+    </div>
+</div>
+</section>
+</div>
+</body>
+<script>
+    $(document).ready(function() {
+        var currentURL = window.location.href;
+        var isAdminLogin = (window.location.href.indexOf('/admin/login') !== -1);
+        var isPartnerLogin = (window.location.href.indexOf('/partner/login') !== -1);
+        var forgotPasswordLink = $('#forgot-password-link');
+        var isSingleCountryCode = false;
+
+        // Debug removed for production
+
+        if (isAdminLogin) {
+            // Hide country code for admin login and adjust layout
+            $('.phone-input-group').addClass('admin-login');
+            $('.country_code').addClass('hidden').hide();
+            $('#country_code').val("");
+            // Ensure phone input is visible and properly styled
+            $('#identityInputDiv input').css({
+                'border-radius': '8px',
+                'border': '1px solid #ced4da'
+            });
+            // Update the href attribute for admin login
+            forgotPasswordLink.attr('href', 'https://edemand.wrteam.me//auth/forgot_password?userType=admin');
+        } else if (isPartnerLogin) {
+            if (!isSingleCountryCode) {
+                // Only set dropdown value if it's not a single country code (dropdown exists)
+                var selectedCountryCode = "+91";
+                $('#country_code').val(selectedCountryCode).trigger('change');
+            }
+            // Update the href attribute for partner login
+            forgotPasswordLink.attr('href', 'https://edemand.wrteam.me//auth/forgot_password?userType=partner');
+        }
+
+        // Prevent any interference with single country code display
+        if (isSingleCountryCode) {
+            // Ensure the country code element is an input, not a select
+            var countryCodeElement = $('#country_code');
+            if (countryCodeElement.length > 0 && countryCodeElement.prop('tagName') !== 'INPUT') {
+                // Force it to be an input if it's not
+                var currentValue = countryCodeElement.val();
+                countryCodeElement.replaceWith('<input type="text" class="form-control" name="country_code" id="country_code" value="' + currentValue + '" readonly>');
+            }
+        }
+    });
+    $(document).on('click', '.toggle-password', function() {
+        $(this).toggleClass("fa-eye fa-eye-slash");
+        var input = $("#password");
+        input.attr('type') === 'password' ? input.attr('type', 'text') : input.attr('type', 'password')
+    });
+
+    function copy_admin_cred() {
+        // Hide country code for admin login and adjust layout
+        $('.phone-input-group').addClass('admin-login');
+        $('.country_code').addClass('hidden').hide();
+        $('#country_code').val("");
+        // Ensure phone input is visible and properly styled
+        $('#identityInputDiv input').css({
+            'border-radius': '8px',
+            'border': '1px solid #ced4da'
+        });
+        $('#identity').val('9876543210');
+        $('#password').val('12345678');
+        iziToast.success({
+            title: "",
+            message: "Admin Credentials Copied successfully!",
+            position: "topRight",
+        });
+    }
+
+    function copy_provider_cred() {
+        $('.country_code').show();
+        var isSingleCountryCode = false;
+        var selectedCountryCode = "+91";
+
+        if (isSingleCountryCode) {
+            // For single country code, set the value on the read-only input
+            $('#country_code').val(selectedCountryCode);
+        } else {
+            // For multiple country codes, set the dropdown value
+            $('#country_code').val(selectedCountryCode).trigger('change');
+        }
+
+        $('#identity').val('1234567890');
+        $('#password').val('12345678');
+        iziToast.success({
+            title: "",
+            message: "Provider Credentials Copied successfully!",
+            position: "topRight",
+        });
+    }
+
+    // Check for password changed query parameter and show toast message
+    $(document).ready(function() {
+        // Get query parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const passwordChanged = urlParams.get('password_changed');
+        
+        if (passwordChanged === '1') {
+            // Show success toast message for password change
+            iziToast.success({
+                title: "",
+                message: "Password changed successfully",
+                position: "topRight",
+                timeout: 5000,
+                progressBar: true,
+            });
+            
+            // Clean up URL by removing the query parameter (optional, for cleaner URL)
+            if (window.history && window.history.replaceState) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
+    });
+</script>    <!-- ======= Footer ======= -->
+<footer id="footer" class="footer">
+</footer>
+<!-- End Footer -->
+
+
+<!-- Vendor JS Files -->
+<script src="https://edemand.wrteam.me/public/frontend/retro/vendor/bootstrap/js/bootstrap.bundle.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/vendor/aos/aos.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/vendor/lottie/lottie.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/vendor/swiper/swiper-bundle.min.js"></script>
+<script src="https://edemand.wrteam.me/public/backend/assets/js/vendor/select2.min.js"></script>
+<script src="https://edemand.wrteam.me/public/backend/assets/js/vendor/iziToast.min.js"></script>
+<script src="https://edemand.wrteam.me/public/backend/assets/js/vendor/sweetalert.js"></script>
+
+
+<!-- Template Main JS File -->
+<script src="https://edemand.wrteam.me/public/frontend/retro/js/stisla.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/js/main.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/js/scripts.js"></script>
+
+<script src="https://rawgit.com/RobinHerbots/jquery.inputmask/3.x/dist/jquery.inputmask.bundle.js"></script>
+<!-- firebase thing -->
+
+<!-- JavaScript Translation Variables -->
+<script>
+    // Translation variables used in custom.js
+    // These variables are needed for the frontend JavaScript to work properly
+    let oops = "Oops";
+    let please_enter_otp_before_proceeding_any_further = "Please enter OTP before proceeding any further";
+    let entered_otp_is_wrong_please_confirm_it_and_try_again = "Entered OTP is wrong please confirm it and try again";
+    let select_country_code = "Select Country Code";
+    // Password validation messages (same as system users)
+    let password_mismatch = "Password Mismatch";
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+<script src="https://edemand.wrteam.me/public/frontend/retro/js/custom.js"></script>
+
+
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js"></script>
+
+<!-- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>-->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script>
+
+</script>
+<script>
+    var firebaseConfig = {
+        apiKey: 'AIzaSyAxpgr-x-K0t_UcoOQ0UQ9Uq8C5h38vTzs',
+        authDomain: 'edemand-79907.firebaseapp.com',
+        projectId: 'edemand-79907',
+        storageBucket: 'edemand-79907.appspot.com',
+        messagingSenderId: '811828125363',
+        appId: '1:811828125363:web:5b177d6625c3e3731f5ac6',
+        measurementId: 'G-J4RWHNVBG0'
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    render();
+
+    function render() {
+
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('rec');
+        recaptchaVerifier.render()
+    }
+</script>     
+</body>
+
+</html>

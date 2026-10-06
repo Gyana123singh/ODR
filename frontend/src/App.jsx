@@ -30,6 +30,27 @@ function App() {
     }
   }, []);
 
+  // Sync language from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lang = urlParams.get('lang');
+    if (lang) {
+      const setGoogleLang = () => {
+        const selectField = document.querySelector(".goog-te-combo");
+        if (selectField) {
+          selectField.value = lang;
+          const event = document.createEvent("HTMLEvents");
+          event.initEvent("change", true, true);
+          selectField.dispatchEvent(event);
+        } else {
+          // Retry if the Google Translate element is not yet loaded
+          setTimeout(setGoogleLang, 500);
+        }
+      };
+      setGoogleLang();
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>

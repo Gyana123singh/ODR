@@ -1,4 +1,4 @@
-
+﻿
 .env
 node_modules
 logs
@@ -33,3 +33,5 @@ AI_CHATBOT_INTEGRATION_PLAN.md
 FOLDER_STRUCTURE.md
 README.md
 Credentials.md
+odr-landingpage/assets/Video Project 3.mp4
+*.mp4

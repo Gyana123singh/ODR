@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Center</title>
+  <link rel="stylesheet" href="./Style.css" />
+
+    <style>
+        /* Hide Google Translate elements */
+        iframe.goog-te-banner-frame,
+        .goog-te-banner-frame,
+        .goog-te-gadget-icon,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf-ti6hGc,
+        .VIpgJd-ZVi9od-ORHb-OEVmcd {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0px !important;
+        }
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+        #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+        .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+    </style>
+</head>
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  body {
+    background: #f6f7fb;
+  }
+
+  /* HERO */
+  .banner-acts {
+    position: relative;
+    height: 260px;
+
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.55),
+        rgba(0, 0, 0, 0.55)),
+      url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    color: #fff;
+  }
+
+  /* overlay (optional but recommended) */
+  .banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  /* text content */
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 60px 40px;
+  }
+
+  .hero-content h1 {
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .breadcrumb {
+    font-size: 14px;
+    margin-bottom: 8px;
+    opacity: 0.9;
+  }
+
+  /* back button */
+  .back-btn {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    z-index: 3;
+
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  /* mobile */
+  @media (max-width: 600px) {
+    .banner-acts {
+      height: 200px;
+    }
+
+    .hero-content {
+      padding: 50px 20px;
+    }
+
+    .hero-content h1 {
+      font-size: 26px;
+    }
+  }
+
+
+  /* BACK BUTTON */
+  .back-btn {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    z-index: 3;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  /* GRID */
+  .card-grid {
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px;
+  }
+
+  /* CARD */
+  .card {
+    position: relative;
+    height: 160px;
+    border-radius: 14px;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+  }
+
+  .card .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .card .content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+
+  .icon {
+    width: 52px;
+    height: 52px;
+    background: #ff6a2b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .card h3 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* LAST CARD CENTER */
+  .card.single {
+    grid-column: span 1;
+  }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .hero {
+      height: 220px;
+    }
+
+    .hero-content {
+      padding: 50px 20px;
+    }
+
+    .hero-content h1 {
+      font-size: 26px;
+    }
+
+    .card-grid {
+      padding: 20px;
+    }
+  }
+</style>
+
+<body>
+
+  <!-- HERO HEADER -->
+  <section class="banner-acts">
+    <div class=""></div>
+
+    <div class="hero-content">
+      <div class="breadcrumb">Home › Knowledge Center</div>
+      <h1>Knowledge Center</h1>
+    </div>
+
+    <a href="./index.html" class="back-btn">← Back</a>
+  </section>
+
+  <!-- CARD GRID -->
+  <section class="card-grid">
+
+    <a href="./assets/pdfs/MSMED2006act.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">⚖️</div>
+          <h3>MSMED Act, 2006</h3>
+        </div>
+      </div>
+    </a>
+    <a href="./assets/pdfs/A_&_C_act.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">📜</div>
+          <h3>Arbitration and Conciliation Act, 1996</h3>
+        </div>
+      </div>
+    </a>
+    <a href="./assets/pdfs/Mediation Act.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1515378791036-0648a3ef77b2');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">🔔</div>
+          <h3>Mediation Act, 2023</h3>
+        </div>
+      </div>
+    </a>
+    <a href="./assets//pdfs/Contract_Act_1872.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1521791136064-7986c2920216');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">📖</div>
+          <h3>Contract Act, 1872</h3>
+        </div>
+      </div>
+    </a>
+    <a href="./assets/pdfs/Limitation_Act.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1518770660439-4636190af475');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">🗂️</div>
+          <h3>Limitation Act, 1963</h3>
+        </div>
+      </div>
+    </a>
+    <a href="./assets/pdfs/General_clauses_act,_1897.pdf" target="_blank" class="card-link">
+      <div class="card" style="background-image:url('https://images.unsplash.com/photo-1509099836639-18ba1795216d');">
+        <div class="overlay"></div>
+        <div class="content">
+          <div class="icon">📚</div>
+          <h3>General Clauses Act, 1897</h3>
+        </div>
+      </div>
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+  </section>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>About UTKAL ODR</h4>
+        <p style="text-align: left;">Kalashrest Online Dispute Resolution platform providing accessible,
+          cost-effective, and transparent dispute resolution services.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">Negotiation</a></li>
+          <li><a href="#">Mediation</a></li>
+          <li><a href="#">Arbitration</a></li>
+          <li><a href="#">Med-Arb</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#">How It Works</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Rules</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:info@utkaalodr.com">info@utkaalodr.com</a></li>
+          <li><a href="tel:+91-XXXXXXXXXX">+91-XXXXXXXXXX</a></li>
+          <li>Odisha, India</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 UTKAL ODR - Utkrusht Vibad Samadhan. All rights reserved. | Powered by Gokulananda Chaudhuri
+        Foundation</p>
+    </div>
+  </footer>
+
+
+    <!-- Hidden Google Translate Element -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,or', 
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+
+
+</html>
