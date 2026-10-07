@@ -19,6 +19,7 @@ const LegalAiRouter = require("./Router/legalAiRouter");
 const ServiceRequestRouter = require("./Router/ServiceRequestRouter");
 const PaymentRouter = require("./Router/PaymentRouter");
 const AuthRouter = require("./Router/AuthRouter");
+const LandingRouter = require("./Router/LandingRouter");
 const errorHandler = require("./middlewares/errorHandler");
 
 const app = Express();
@@ -62,6 +63,7 @@ app.use("/api/legal-ai", LegalAiRouter);
 app.use("/api/service-requests", ServiceRequestRouter);
 app.use("/api/payments", PaymentRouter);
 app.use("/api/auth", AuthRouter);
+app.use("/api/landing", LandingRouter);
 
 // Temporary route to reset user password to password123
 app.get("/reset-password/:email", async (req, res) => {
@@ -84,9 +86,17 @@ connectMongoDb();
 // Serve frontend static files
 app.use(Express.static(path.join(__dirname, "../frontend/dist")));
 
+const fs = require('fs');
+
 // For any other route that doesn't match an API route, send the React index.html
 app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+  const indexPath = path.join(__dirname, "../frontend/dist", "index.html");
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Gracefully handle missing frontend build instead of throwing ENOENT error
+    res.status(404).send("Frontend build not found. Please run 'npm run build' in the frontend directory.");
+  }
 });
 
 // Global Error Handler Middleware (must be registered last)

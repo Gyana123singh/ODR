@@ -135,14 +135,14 @@
                                 <i class="bi bi-globe"></i> Language
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-                                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en', 'English')">English</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeLanguage('or', 'ଓଡ଼ିଆ (Odia)')">ଓଡ଼ିଆ (Odia)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="changeLanguage('hi', 'हिंदी (Hindi)')">हिंदी (Hindi)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeLanguage(event, 'en', 'English')">English</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeLanguage(event, 'or', 'ଓଡ଼ିଆ (Odia)')">ଓଡ଼ିଆ (Odia)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="changeLanguage(event, 'hi', 'हिंदी (Hindi)')">हिंदी (Hindi)</a></li>
                             </ul>
                         </li>
 
                         <li class="nav-item">
-                            <a class="btn rounded-pill px-4" href="#cta" style="background-color: white;">
+                            <a id="initiate-odr-link" class="btn rounded-pill px-4" href="https://odr.gokulanandachaudhurifoundation.com/login" style="background-color: white;">
                                 Connect
                             </a>
                         </li>
@@ -631,26 +631,67 @@
             }, 'google_translate_element');
         }
 
-        function changeLanguage(langCode, langName) {
+        function updateAllOdrLinks(langCode) {
+            var links = document.querySelectorAll('a');
+            links.forEach(function(link) {
+                if (link.href && (link.href.includes('odr.gokulanandachaudhurifoundation.com') || link.href.includes('localhost:5173'))) {
+                    var baseUrl = link.href.split('?')[0];
+                    link.href = baseUrl + "?lang=" + langCode;
+                }
+            });
+        }
+
+        function changeLanguage(event, langCode, langName) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            // Save to localStorage
+            localStorage.setItem('odrLangCode', langCode);
+            localStorage.setItem('odrLangName', langName);
+
             // Update the dropdown text to show selected language
             document.getElementById('languageDropdown').innerHTML = '<i class="bi bi-globe"></i> ' + langName;
             
-            // Trigger the Google Translate hidden select box
-            var selectField = document.querySelector(".goog-te-combo");
-            if (selectField) {
-                selectField.value = langCode;
-                // Dispatch a robust change event so Google's script notices it
-                var event = document.createEvent('HTMLEvents');
-                event.initEvent('change', true, true);
-                selectField.dispatchEvent(event);
-            }
+            // Pass the selected language to ALL links pointing to the main ODR platform
+            updateAllOdrLinks(langCode);
 
-            // Pass the selected language to the main ODR platform via URL query parameter
-            var initiateLink = document.getElementById("initiate-odr-link");
-            if (initiateLink) {
-                initiateLink.href = "https://odr.gokulanandachaudhurifoundation.com?lang=" + langCode;
-            }
+            // Trigger the Google Translate hidden select box robustly
+            var setGoogleLang = function() {
+                var selectField = document.querySelector(".goog-te-combo");
+                if (selectField && selectField.options && selectField.options.length > 0) {
+                    selectField.value = langCode;
+                    selectField.dispatchEvent(new Event('change', { bubbles: true }));
+                } else {
+                    setTimeout(setGoogleLang, 200);
+                }
+            };
+            setGoogleLang();
         }
+
+        // Auto-load language on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            var savedLangCode = localStorage.getItem('odrLangCode');
+            var savedLangName = localStorage.getItem('odrLangName');
+
+            if (savedLangCode && savedLangName) {
+                // Update dropdown text
+                document.getElementById('languageDropdown').innerHTML = '<i class="bi bi-globe"></i> ' + savedLangName;
+                
+                // Update all ODR links
+                updateAllOdrLinks(savedLangCode);
+
+                // Keep trying to set Google Translate until it loads its options
+                var checkExist = setInterval(function() {
+                    var selectField = document.querySelector(".goog-te-combo");
+                    if (selectField && selectField.options && selectField.options.length > 0) {
+                        selectField.value = savedLangCode;
+                        selectField.dispatchEvent(new Event('change', { bubbles: true }));
+                        clearInterval(checkExist);
+                    }
+                }, 500); // Check every 500ms
+            }
+        });
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 

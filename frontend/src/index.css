@@ -233,6 +233,12 @@ body {
 }
 
 .goog-te-gadget,
-.goog-logo-link {
+.goog-logo-link,
+.goog-te-gadget-icon,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf-ti6hGc,
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }

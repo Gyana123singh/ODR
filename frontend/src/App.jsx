@@ -30,20 +30,28 @@ function App() {
     }
   }, []);
 
-  // Sync language from URL parameter
+  // Sync language from URL parameter or localStorage
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const lang = urlParams.get('lang');
+    let lang = urlParams.get('lang');
+    
+    if (lang) {
+      localStorage.setItem('odrLangCode', lang);
+    } else {
+      lang = localStorage.getItem('odrLangCode');
+    }
+
     if (lang) {
       const setGoogleLang = () => {
         const selectField = document.querySelector(".goog-te-combo");
-        if (selectField) {
+        // Ensure the select field has options loaded by Google Translate
+        if (selectField && selectField.options && selectField.options.length > 0) {
           selectField.value = lang;
           const event = document.createEvent("HTMLEvents");
           event.initEvent("change", true, true);
           selectField.dispatchEvent(event);
         } else {
-          // Retry if the Google Translate element is not yet loaded
+          // Retry if the Google Translate element is not yet fully loaded
           setTimeout(setGoogleLang, 500);
         }
       };
