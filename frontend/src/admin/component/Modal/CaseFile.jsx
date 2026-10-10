@@ -240,8 +240,8 @@ export default function NewCaseForm({ onClose }) {
                 onChange={handleChangeAdmin}
                 className="form-select"
               >
-                <option value="consentYes">Yes</option>
-                <option value="consentNo">No</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
               </select>
             </div>
 

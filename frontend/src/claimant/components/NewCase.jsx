@@ -32,7 +32,7 @@ export default function NewCase() {
     CustomersEmail: "",
     CustomersMobileNumber: "",
     CustomersAadharNumber: "",
-    consent: "consentYes",
+    consent: "Yes",
     neutral: "",
     file: null,
     claimant: localStorage.getItem("userId"),
@@ -99,7 +99,7 @@ export default function NewCase() {
         CustomersEmail: "",
         CustomersMobileNumber: "",
         CustomersAadharNumber: "",
-        consent: "consentYes",
+        consent: "Yes",
         neutral: "",
         file: null,
         claimant: localStorage.getItem("userId"),
@@ -356,8 +356,8 @@ export default function NewCase() {
               onChange={handleChangeAdmin}
               className="form-select"
             >
-              <option value="consentYes">Yes, I consent to the terms of service and data protection acts</option>
-              <option value="consentNo">No, I do not consent</option>
+              <option value="Yes">Yes, I consent to the terms of service and data protection acts</option>
+              <option value="No">No, I do not consent</option>
             </select>
           </div>
         </div>
