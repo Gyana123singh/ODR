@@ -6,8 +6,15 @@ function Navbar() {
 
   const changeLanguage = (e, langCode) => {
     e.preventDefault();
-    document.cookie = `googtrans=/en/${langCode}; path=/`;
-    document.cookie = `googtrans=/en/${langCode}; domain=.${window.location.hostname}; path=/`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.${window.location.hostname}; path=/;`;
+    if (langCode === 'en') {
+      document.cookie = `googtrans=/en/en; path=/;`;
+      document.cookie = `googtrans=/en/en; domain=.${window.location.hostname}; path=/;`;
+    } else {
+      document.cookie = `googtrans=/en/${langCode}; path=/;`;
+      document.cookie = `googtrans=/en/${langCode}; domain=.${window.location.hostname}; path=/;`;
+    }
     window.location.reload();
   };
 

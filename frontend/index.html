@@ -24,6 +24,7 @@
              document.cookie = 'googtrans=' + cookieVal + '; path=/; domain=' + domain;
              document.cookie = 'googtrans=' + cookieVal + '; path=/;';
           }
+          localStorage.setItem('odrLangCode', langParam);
           urlParams.delete('lang');
           var newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '') + window.location.hash;
           window.history.replaceState({}, '', newUrl);
@@ -39,12 +40,21 @@
                  (targetUrl.hostname.includes('utkalodr.com') || targetUrl.hostname.includes('gokulanandachaudhurifoundation.com'))) {
                 
                 var currentLang = 'en';
-                var match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
-                if (match && match[1]) {
-                  var parts = decodeURIComponent(match[1]).split('/');
-                  var langCookie = parts[parts.length - 1];
-                  if (langCookie && langCookie !== 'auto') {
-                    currentLang = langCookie;
+                var combo = document.querySelector('.goog-te-combo');
+                if (combo && combo.value) {
+                  currentLang = combo.value;
+                } else {
+                  var matches = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/g);
+                  if (matches && matches.length > 0) {
+                    var lastMatch = matches[matches.length - 1];
+                    var val = lastMatch.split('=')[1];
+                    if (val) {
+                      var parts = decodeURIComponent(val).split('/');
+                      var langCookie = parts[parts.length - 1];
+                      if (langCookie && langCookie !== 'auto') {
+                        currentLang = langCookie;
+                      }
+                    }
                   }
                 }
                 targetUrl.searchParams.set('lang', currentLang);
