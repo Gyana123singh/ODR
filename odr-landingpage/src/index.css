@@ -1,0 +1,53 @@
+/* Tailwind CSS removed to prevent overriding Bootstrap styles */
+
+.hero-huge-heading {
+    font-size: 5.5rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1.1 !important;
+    margin-bottom: 1rem !important;
+}
+
+@media (max-width: 768px) {
+    .hero-huge-heading {
+        font-size: 3.5rem !important;
+    }
+}
+
+.hero-bright-subtitle {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 2rem !important;
+    letter-spacing: 1px !important;
+}
+
+@media (max-width: 768px) {
+    .hero-bright-subtitle {
+        font-size: 1.2rem !important;
+    }
+}
+
+.hero-custom-btn {
+    background: #000000 !important;
+    color: #ffffff !important;
+    padding: 20px 60px !important;
+    border-radius: 50px !important;
+    font-weight: 800 !important;
+    font-size: 1.25rem !important;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    cursor: pointer !important;
+    outline: none !important;
+    min-width: 320px !important;
+    text-align: center !important;
+}
+
+.hero-custom-btn:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: #fff  !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 30px rgba(255, 107, 107, 0.3) !important;
+}

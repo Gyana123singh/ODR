@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    server_name utkalodr.com www.utkalodr.com 191.215.37.241;
+    root /var/www/odr-landingpage/dist;
+    index index.html;
+    location / {
+        try_files  / /index.html;
+    }
+}

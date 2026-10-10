@@ -1,0 +1,10 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    root /var/www/odr-landingpage/dist;
+    index index.html;
+    server_name _;
+    location / {
+        try_files  / /index.html;
+    }
+}
