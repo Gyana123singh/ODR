@@ -83,21 +83,27 @@ export default function Profile() {
   const [showNewPass, setShowNewPass] = useState(false);
   const [isChangingPass, setIsChangingPass] = useState(false);
 
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const response = await axiosInstance.get("/admin/data");
-        if (response.data?.success && response.data.data) {
-          setData(response.data.data);
-          if (response.data.data.name) setName(response.data.data.name);
-          if (response.data.data.email) setEmail(response.data.data.email);
-          if (response.data.data.role) setRole(response.data.data.role);
-        }
-      } catch (error) {
-        console.error("Error fetching admin data:", error);
+  const fetchAdminData = async () => {
+    try {
+      const response = await axiosInstance.get("/admin/data");
+      if (response.data?.success && response.data.data) {
+        setData(response.data.data);
+        if (response.data.data.name) setName(response.data.data.name);
+        if (response.data.data.email) setEmail(response.data.data.email);
+        if (response.data.data.role) setRole(response.data.data.role);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchAdminData();
+    const handleProfileUpdate = () => fetchAdminData();
+    window.addEventListener("adminProfileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("adminProfileUpdated", handleProfileUpdate);
+    };
   }, []);
 
   // Submit Password Change
@@ -495,8 +501,16 @@ export default function Profile() {
 
       {/* Profile Card */}
       <div style={styles.profileCard}>
-        <div style={styles.profileAvatar}>
-          <User size={isMobile ? 40 : 60} strokeWidth={2.2} />
+        <div style={{ ...styles.profileAvatar, overflow: "hidden" }}>
+          {data?.profilePic ? (
+            <img
+              src={data.profilePic}
+              alt={displayName}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <User size={isMobile ? 40 : 60} strokeWidth={2.2} />
+          )}
         </div>
         <div style={styles.profileName}>{displayName}</div>
         <div style={styles.profileRole}>{displayRole}</div>
@@ -629,7 +643,13 @@ export default function Profile() {
             currentName={displayName}
             currentEmail={displayEmail}
             currentPhone={data?.phone || localStorage.getItem("userPhone") || ""}
+            currentBio={data?.bio || localStorage.getItem("admin_bio") || ""}
+            currentPic={data?.profilePic || null}
             onSuccess={(updated) => {
+              setData((prev) => ({
+                ...(prev || {}),
+                ...updated,
+              }));
               if (updated.name) setName(updated.name);
               if (updated.email) setEmail(updated.email);
             }}

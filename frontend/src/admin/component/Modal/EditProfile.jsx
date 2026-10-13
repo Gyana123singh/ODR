@@ -1,19 +1,32 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { User, Mail, Phone, FileText } from "lucide-react";
+import { User } from "lucide-react";
+import axiosInstance from "../../../api/axiosConfig";
 
-export default function EditProfileForm({ onClose, currentName, currentEmail, currentPhone, onSuccess }) {
-  const initialEmail = currentEmail || localStorage.getItem("userEmail") || "admin@example.com";
-  const rawName = currentName || localStorage.getItem("username") || localStorage.getItem("userName");
-  const initialName = (rawName && rawName !== "System Admin" && rawName !== "User") ? rawName : initialEmail;
+export default function EditProfileForm({
+  onClose,
+  currentName,
+  currentEmail,
+  currentPhone,
+  currentBio,
+  currentPic,
+  onSuccess,
+}) {
+  const initialEmail = currentEmail || localStorage.getItem("userEmail") || "";
+  const initialName = currentName || localStorage.getItem("userName") || localStorage.getItem("username") || "";
+  const initialPhone = currentPhone || localStorage.getItem("userPhone") || "";
+  const initialBio = currentBio || localStorage.getItem("admin_bio") || "Platform Administrator at Utkal ODR";
 
   const [formData, setFormData] = useState({
     name: initialName,
     email: initialEmail,
-    phone: currentPhone || localStorage.getItem("userPhone") || "",
-    bio: localStorage.getItem("admin_bio") || "Platform Administrator at Utkal ODR",
+    phone: initialPhone,
+    bio: initialBio,
     profilePic: null,
   });
+
+  const [previewPic, setPreviewPic] = useState(currentPic || null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,28 +34,70 @@ export default function EditProfileForm({ onClose, currentName, currentEmail, cu
   };
 
   const handleFileChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      profilePic: e.target.files[0],
-    }));
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        profilePic: file,
+      }));
+      setPreviewPic(URL.createObjectURL(file));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       toast.warn("Name is required");
       return;
     }
 
-    localStorage.setItem("username", formData.name);
-    localStorage.setItem("userName", formData.name);
-    localStorage.setItem("userEmail", formData.email);
-    if (formData.phone) localStorage.setItem("userPhone", formData.phone);
-    if (formData.bio) localStorage.setItem("admin_bio", formData.bio);
+    setLoading(true);
+    try {
+      const dataToSend = new FormData();
+      dataToSend.append("name", formData.name.trim());
+      dataToSend.append("email", formData.email.trim());
+      dataToSend.append("phone", formData.phone.trim());
+      dataToSend.append("bio", formData.bio || "");
+      if (formData.profilePic instanceof File) {
+        dataToSend.append("profilePic", formData.profilePic);
+      }
 
-    toast.success("Profile updated successfully!");
-    if (onSuccess) onSuccess(formData);
-    if (onClose) onClose();
+      const response = await axiosInstance.put("/admin/update-profile", dataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data?.success) {
+        const updated = response.data.data;
+        if (updated.name) {
+          localStorage.setItem("username", updated.name);
+          localStorage.setItem("userName", updated.name);
+        }
+        if (updated.email) {
+          localStorage.setItem("userEmail", updated.email);
+        }
+        if (updated.phone) {
+          localStorage.setItem("userPhone", updated.phone);
+        }
+        if (updated.bio) {
+          localStorage.setItem("admin_bio", updated.bio);
+        }
+
+        window.dispatchEvent(new Event("adminProfileUpdated"));
+        toast.success(response.data.message || "Profile updated successfully!");
+
+        if (onSuccess) onSuccess(updated);
+        if (onClose) onClose();
+      } else {
+        toast.error(response.data?.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error("Admin update profile error:", err);
+      toast.error(err.response?.data?.message || "Failed to update profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,9 +123,20 @@ export default function EditProfileForm({ onClose, currentName, currentEmail, cu
                 border: "2px solid #0284c7",
                 fontSize: "24px",
                 fontWeight: "700",
+                overflow: "hidden",
               }}
             >
-              {formData.name ? formData.name.charAt(0).toUpperCase() : <User size={36} />}
+              {previewPic ? (
+                <img
+                  src={previewPic}
+                  alt="Profile"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : formData.name ? (
+                formData.name.charAt(0).toUpperCase()
+              ) : (
+                <User size={36} />
+              )}
             </div>
             <label
               htmlFor="profilePic"
@@ -89,6 +155,7 @@ export default function EditProfileForm({ onClose, currentName, currentEmail, cu
                 cursor: "pointer",
                 fontSize: "12px",
               }}
+              title="Change Profile Photo"
             >
               ✎
             </label>
@@ -197,6 +264,7 @@ export default function EditProfileForm({ onClose, currentName, currentEmail, cu
           <button
             type="button"
             onClick={onClose}
+            disabled={loading}
             style={{
               padding: "9px 16px",
               borderRadius: "6px",
@@ -212,18 +280,19 @@ export default function EditProfileForm({ onClose, currentName, currentEmail, cu
           </button>
           <button
             type="submit"
+            disabled={loading}
             style={{
               padding: "9px 22px",
               borderRadius: "6px",
               border: "none",
-              backgroundColor: "#0066cc",
+              backgroundColor: loading ? "#93c5fd" : "#0066cc",
               color: "#fff",
               fontSize: "14px",
               fontWeight: "600",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            Save Changes
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </form>

@@ -140,6 +140,16 @@ export default function Login({ getRole }) {
     }
   };
 
+  const getRecaptchaContainer = () => {
+    let container = document.getElementById("recaptcha-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "recaptcha-container";
+      document.body.appendChild(container);
+    }
+    return container;
+  };
+
   const clearRecaptcha = () => {
     if (window.recaptchaVerifier) {
       try {
@@ -148,6 +158,13 @@ export default function Login({ getRole }) {
         console.warn("Error clearing RecaptchaVerifier:", err);
       }
       window.recaptchaVerifier = null;
+    }
+    if (window.grecaptcha && typeof window.grecaptcha.reset === "function") {
+      try {
+        window.grecaptcha.reset();
+      } catch (err) {
+        // ignore
+      }
     }
     const container = document.getElementById("recaptcha-container");
     if (container) {
@@ -158,18 +175,17 @@ export default function Login({ getRole }) {
   useEffect(() => {
     return () => {
       clearRecaptcha();
+      const container = document.getElementById("recaptcha-container");
+      if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
     };
   }, []);
 
   const setupRecaptcha = () => {
-    if (window.recaptchaVerifier) {
-      return window.recaptchaVerifier;
-    }
     clearRecaptcha();
-    const container = document.getElementById("recaptcha-container");
-    if (!container) {
-      throw new Error("reCAPTCHA container element not found. Please try again.");
-    }
+    getRecaptchaContainer();
+
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
       size: "invisible",
       callback: () => {
@@ -180,6 +196,7 @@ export default function Login({ getRole }) {
         clearRecaptcha();
       }
     });
+
     return window.recaptchaVerifier;
   };
 
@@ -198,11 +215,11 @@ export default function Login({ getRole }) {
 
     const fullPhoneNumber = `+91${cleanNumber}`;
 
-    setLoading(true);
     setError("");
 
     try {
       const verifier = setupRecaptcha();
+      setLoading(true);
       const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
       window.confirmationResult = confirmationResult;
       setIsOtpSent(true);
@@ -211,7 +228,11 @@ export default function Login({ getRole }) {
       console.error("Phone sign-in error:", err);
       clearRecaptcha();
 
-      if (err.code === "auth/captcha-check-failed" || (err.message && err.message.includes("Hostname match not found"))) {
+      if (err.code === "auth/invalid-app-credential") {
+        setError(
+          `Firebase app verification failed (auth/invalid-app-credential). Please ensure: 1) "${window.location.hostname}" is added to Firebase Console -> Authentication -> Settings -> Authorized Domains. 2) If using Firebase free Spark plan, use a registered test phone number (e.g. +91 99999 99999 with OTP 123456).`
+        );
+      } else if (err.code === "auth/captcha-check-failed" || (err.message && err.message.includes("Hostname match not found"))) {
         setError(
           `reCAPTCHA verification failed for hostname "${window.location.hostname}". Please ensure this domain is added to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
         );
@@ -489,7 +510,6 @@ export default function Login({ getRole }) {
                           </div>
                         </>
                       )}
-                      <div id="recaptcha-container"></div>
                       <div style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", marginTop: "4px" }}>
                         Protected by reCAPTCHA (<a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: "#64748b" }}>Privacy</a> &amp; <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: "#64748b" }}>Terms</a>)
                       </div>
@@ -497,6 +517,9 @@ export default function Login({ getRole }) {
                   )}
                 </div>
               )}
+
+              {/* Persistent reCAPTCHA container */}
+              <div id="recaptcha-container"></div>
 
               <div className="register-prompt">
                 <span>Don't have an account?</span>

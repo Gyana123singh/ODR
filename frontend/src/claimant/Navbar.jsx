@@ -35,9 +35,9 @@ export default function Navbar({ isOpen, setIsOpen }) {
   }, [isClick, isMobile, setIsOpen]);
 
   useEffect(() => {
-    const fetchAdminData = async () => {
+    const fetchClaimantData = async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("authToken") || localStorage.getItem("token");
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
         const response = await fetch(`${API_BASE_URL}/claimant/data`, {
           method: "GET",
@@ -50,13 +50,18 @@ export default function Navbar({ isOpen, setIsOpen }) {
         if (data.success) {
           setData(data.data);
         } else {
-          console.error("Failed to fetch admin data:", data.message);
+          console.error("Failed to fetch claimant data:", data.message);
         }
       } catch (error) {
-        console.error("Error fetching admin data:", error);
+        console.error("Error fetching claimant data:", error);
       }
     };
-    fetchAdminData();
+    fetchClaimantData();
+
+    window.addEventListener("profileUpdated", fetchClaimantData);
+    return () => {
+      window.removeEventListener("profileUpdated", fetchClaimantData);
+    };
   }, []);
 
   const menuItems = [

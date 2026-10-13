@@ -46,7 +46,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("authToken") || localStorage.getItem("token");
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
         const response = await fetch(`${API_BASE_URL}/neutral/data`, {
           method: "GET",
@@ -72,6 +72,11 @@ export default function Navbar({ isOpen, setIsOpen }) {
       }
     };
     fetchAdminData();
+
+    window.addEventListener("profileUpdated", fetchAdminData);
+    return () => {
+      window.removeEventListener("profileUpdated", fetchAdminData);
+    };
   }, []);
 
   const menuItems = [

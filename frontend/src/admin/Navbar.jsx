@@ -54,6 +54,11 @@ export default function Navbar({ isOpen, setIsOpen }) {
       }
     };
     fetchAdminData();
+    const handleProfileUpdate = () => fetchAdminData();
+    window.addEventListener("adminProfileUpdated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("adminProfileUpdated", handleProfileUpdate);
+    };
   }, []);
 
   const menuItems = [
@@ -239,8 +244,18 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
         {/* User Profile Info */}
         <div className="sidebar-profile">
-          <div className="profile-avatar">
-            {data && data.name ? getInitials(data.name) : <User size={14} />}
+          <div className="profile-avatar" style={{ overflow: "hidden" }}>
+            {data && data.profilePic ? (
+              <img
+                src={data.profilePic}
+                alt={data.name || "Admin"}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : data && data.name ? (
+              getInitials(data.name)
+            ) : (
+              <User size={14} />
+            )}
           </div>
           <div className="profile-info">
             <div className="profile-name" title={data && data.name}>

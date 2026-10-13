@@ -51,6 +51,7 @@ export default function Profile() {
       : (localStorage.getItem("userEmail") || authUser?.email || "");
     return {
       name: resolvedName,
+      email: localStorage.getItem("userEmail") || authUser?.email || "",
       phone: localStorage.getItem("userPhone") || authUser?.phone || "",
     };
   });
@@ -71,7 +72,8 @@ export default function Profile() {
       }));
       setProfileForm((prev) => ({
         name: (resolvedName !== "Mediator" ? resolvedName : (authUser.email || prev.name)),
-        phone: authUser.phone || prev.phone,
+        email: authUser.email || prev.email || "",
+        phone: authUser.phone || prev.phone || "",
       }));
     }
   }, [authUser]);
@@ -196,6 +198,7 @@ export default function Profile() {
         });
         setProfileForm({
           name: (resolvedName && resolvedName !== "Mediator") ? resolvedName : (u.email || ""),
+          email: u.email || localStorage.getItem("userEmail") || authUser?.email || "",
           phone: u.phone || "",
         });
         if (resolvedName) localStorage.setItem("username", resolvedName);
@@ -220,6 +223,7 @@ export default function Profile() {
       });
       setProfileForm({
         name: (savedName && savedName !== "Mediator") ? savedName : (savedEmail || ""),
+        email: savedEmail,
         phone: savedPhone,
       });
     } finally {
@@ -238,12 +242,29 @@ export default function Profile() {
       const res = await axiosInstance.put("/neutral/update-profile", profileForm);
       if (res.data?.success) {
         toast.success("Profile details updated successfully!");
+        const updated = res.data.data || {};
+        const newName = updated.name || profileForm.name;
+        const newEmail = updated.email || profileForm.email;
+        const newPhone = updated.phone || profileForm.phone;
         setNeutralData((prev) => ({
           ...prev,
-          name: profileForm.name,
-          phone: profileForm.phone,
+          name: newName,
+          email: newEmail,
+          phone: newPhone,
         }));
+        if (newName) {
+          localStorage.setItem("username", newName);
+          localStorage.setItem("userName", newName);
+        }
+        if (newEmail) {
+          localStorage.setItem("userEmail", newEmail);
+        }
+        if (newPhone) {
+          localStorage.setItem("userPhone", newPhone);
+        }
+        window.dispatchEvent(new Event("profileUpdated"));
         setOpenModal(null);
+        fetchProfileData();
       }
     } catch (error) {
       console.error("Update profile error:", error);
@@ -564,12 +585,24 @@ export default function Profile() {
         <div style={styles.profileAvatar}>
           <User size={isMobile ? 40 : 50} strokeWidth={2} />
         </div>
-        <div style={styles.profileName}>{neutralData.name}</div>
-        <div style={styles.profileRole}>{neutralData.role}</div>
-        <div style={styles.profileEmail}>{neutralData.email}</div>
+        <div style={styles.profileName}>{neutralData.name || neutralData.email || neutralData.phone || "Mediator"}</div>
+        <div style={styles.profileRole}>{neutralData.role || "Mediator"}</div>
+        <div style={styles.profileEmail}>{neutralData.email || "No email added"}</div>
+        {neutralData.phone && (
+          <div style={{ ...styles.profileEmail, opacity: 0.8, fontSize: "13px", marginTop: "-6px", marginBottom: "12px" }}>
+            Phone: {neutralData.phone}
+          </div>
+        )}
         <button
           style={styles.editButton}
-          onClick={() => setOpenModal("editProfile")}
+          onClick={() => {
+            setProfileForm({
+              name: neutralData.name && neutralData.name !== "Mediator" ? neutralData.name : (neutralData.email || ""),
+              email: neutralData.email || "",
+              phone: neutralData.phone || "",
+            });
+            setOpenModal("editProfile");
+          }}
           onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
           onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
@@ -684,18 +717,20 @@ export default function Profile() {
         >
           <form onSubmit={handleUpdateProfile} style={styles.form}>
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Email Address (Google Account)</label>
+              <label style={styles.label}>Email Address</label>
               <input
                 type="email"
-                value={neutralData.email || ""}
-                disabled
-                style={{ ...styles.input, backgroundColor: "#f1f5f9", cursor: "not-allowed", color: "#64748b" }}
+                placeholder="Enter email address"
+                value={profileForm.email || ""}
+                onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))}
+                style={styles.input}
               />
             </div>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Full Name</label>
               <input
                 type="text"
+                placeholder="Enter full name"
                 value={profileForm.name}
                 onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
                 style={styles.input}
@@ -707,6 +742,7 @@ export default function Profile() {
               <label style={styles.label}>Phone Number</label>
               <input
                 type="text"
+                placeholder="Enter phone number"
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
                 style={styles.input}

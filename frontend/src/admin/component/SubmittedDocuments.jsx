@@ -205,17 +205,18 @@ export default function SubmittedDocuments() {
     }
   };
 
+  const fetchDocumentDetals = async () => {
+    try {
+      const data = await documentDetailsApi.getAllDocumentsDetails();
+      setDocumentData(data.data.documents || []);
+      setTotalDoc(data.data.stats || {});
+      console.log("all documents data", data.data);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchDocumentDetals = async () => {
-      try {
-        const data = await documentDetailsApi.getAllDocumentsDetails();
-        setDocumentData(data.data.documents);
-        setTotalDoc(data.data.stats);
-        console.log("all documents data", data.data);
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-      }
-    };
     fetchDocumentDetals();
   }, []);
 
@@ -685,8 +686,14 @@ export default function SubmittedDocuments() {
       )}
 
       {openModal === "upload" && (
-        <ModalComponent tittle="" onClose={() => setOpenModal(null)}>
-          <UploadDocument onClose={() => setOpenModal(null)} />
+        <ModalComponent title="" onClose={() => setOpenModal(null)}>
+          <UploadDocument
+            onClose={() => setOpenModal(null)}
+            onSuccess={() => {
+              setOpenModal(null);
+              fetchDocumentDetals();
+            }}
+          />
         </ModalComponent>
       )}
     </div>

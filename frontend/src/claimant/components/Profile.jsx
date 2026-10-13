@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Modal from "./Modal/Modal";
 import axiosInstance from "../../api/axiosConfig";
 import "../../claimant/components/NewCase.css";
@@ -171,13 +172,16 @@ export default function Profile() {
     try {
       const response = await axiosInstance.post("/api/service-requests", newTicket);
       if (response.data?.success) {
+        toast.success("Support ticket submitted successfully!");
         setOpenModal(null);
         setNewTicket({ subject: "", description: "", priority: "Medium" });
         fetchMyRequests();
+      } else {
+        toast.error(response.data?.message || "Failed to submit support ticket.");
       }
     } catch (err) {
       console.error("Error submitting ticket:", err);
-      alert("Failed to submit support ticket.");
+      toast.error(err.response?.data?.message || "Failed to submit support ticket.");
     } finally {
       setSubmittingRequest(false);
     }
@@ -189,13 +193,28 @@ export default function Profile() {
     try {
       const response = await axiosInstance.put("/claimant/update-profile", editForm);
       if (response.data?.success) {
-        alert("Profile updated successfully!");
+        const updated = response.data?.data;
+        if (updated) {
+          setProfileData((prev) => ({ ...prev, ...updated }));
+          if (updated.name) {
+            localStorage.setItem("username", updated.name);
+            localStorage.setItem("userName", updated.name);
+          }
+          if (updated.phone) {
+            localStorage.setItem("userPhone", updated.phone);
+          }
+        }
+        toast.success("Profile updated successfully!");
         setOpenModal(null);
+        window.dispatchEvent(new Event("profileUpdated"));
         fetchProfile();
+      } else {
+        toast.error(response.data?.message || "Failed to update profile settings.");
       }
     } catch (err) {
       console.error("Profile update failed:", err);
-      alert("Failed to update profile settings.");
+      const errMsg = err.response?.data?.message || err.message || "Failed to update profile settings.";
+      toast.error(errMsg);
     } finally {
       setUpdatingProfile(false);
     }
@@ -207,13 +226,15 @@ export default function Profile() {
     try {
       const response = await axiosInstance.put("/claimant/update-password", passwordForm);
       if (response.data?.success) {
-        alert("Password changed successfully!");
+        toast.success("Password changed successfully!");
         setOpenModal(null);
         setPasswordForm({ oldPassword: "", newPassword: "" });
+      } else {
+        toast.error(response.data?.message || "Failed to update password.");
       }
     } catch (err) {
       console.error("Password change failed:", err);
-      alert(err.response?.data?.message || "Failed to change password. Check your old password.");
+      toast.error(err.response?.data?.message || "Failed to change password. Check your old password.");
     } finally {
       setUpdatingPassword(false);
     }

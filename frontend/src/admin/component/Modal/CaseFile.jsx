@@ -1,282 +1,675 @@
-// src/admin/component/Modal/NewCaseForm.jsx
-import { useState, useEffect } from "react";
-import axios from "axios";
+// src/admin/component/Modal/CaseFile.jsx
+import { useState, useRef } from "react";
 import { toast } from "react-toastify";
-import { Menu, Plus, Paperclip } from "lucide-react";
-import { caseApi } from "../../../api/AdminApi";
+import { Paperclip, UploadCloud, CheckCircle2, Trash2, FileText } from "lucide-react";
+import axiosInstance from "../../../api/axiosConfig";
 
-export default function NewCaseForm({ onClose }) {
-  const [claimantData, setClaimantData] = useState([]);
+export default function CaseFile({ onClose, onSuccess }) {
+  const fileInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
-    DisputeType: "Dispute",
+    DisputeType: "Civil",
     DisputeName: "",
-    DisputeAmount: "",
+    DisputeAmount: "AmountOneCror",
     oppositePartyName: "",
     oppositePartyEmail: "",
     mobileNumber: "",
+    oppositeMobile: "",
     CustomersName: "",
     CustomersEmail: "",
     CustomersMobileNumber: "",
     CustomersAadharNumber: "",
-    consent: "",
+    consent: "Yes",
     file: null,
   });
 
-  useEffect(() => {
-    const getNewHearingData = async () => {
-      try {
-        const response = await caseApi.getAllCases();
-        setClaimantData(response.data);
-        // setTotalData(response);
-        console.log(response.data);
-      } catch (error) {
-        console.log("data fetched error", error);
-      }
-    };
-    getNewHearingData();
-  }, []);
   const handleChangeAdmin = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "mobileNumber" ? { oppositeMobile: value } : {}),
+    }));
+  };
+
+  const handleSelectedFile = (selectedFile) => {
+    if (!selectedFile) return;
+
+    // Optional client-side file size check (15MB max)
+    if (selectedFile.size > 15 * 1024 * 1024) {
+      toast.error("File is too large. Please select a file under 15MB.");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      file: selectedFile,
     }));
   };
 
   const handleFileChangeAdmin = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      file: e.target.files[0],
-    }));
+    const file = e.target.files?.[0];
+    if (file) {
+      handleSelectedFile(file);
+    }
   };
 
-  // handle submit using axios to post form data
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleSelectedFile(file);
+    }
+  };
+
+  const handleRemoveFile = (e) => {
+    e.stopPropagation();
+    setFormData((prev) => ({
+      ...prev,
+      file: null,
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  };
+
   const handleSubmitAdmin = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
 
+    if (!formData.DisputeName.trim()) {
+      toast.warn("Please enter a dispute name");
+      return;
+    }
+
+    if (!formData.file) {
+      toast.warn("Please attach a supporting case file (PDF, DOC, or Image)");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value) formDataToSend.append(key, value);
+      formDataToSend.append("DisputeType", formData.DisputeType);
+      formDataToSend.append("DisputeName", formData.DisputeName.trim());
+      formDataToSend.append("DisputeAmount", formData.DisputeAmount);
+      formDataToSend.append("CustomersName", formData.CustomersName.trim());
+      formDataToSend.append("CustomersEmail", formData.CustomersEmail.trim());
+      formDataToSend.append("CustomersMobileNumber", formData.CustomersMobileNumber.trim());
+      formDataToSend.append("CustomersAadharNumber", formData.CustomersAadharNumber.trim());
+      formDataToSend.append("oppositePartyName", formData.oppositePartyName.trim());
+      formDataToSend.append("oppositePartyEmail", formData.oppositePartyEmail.trim());
+      formDataToSend.append("oppositeMobile", (formData.oppositeMobile || formData.mobileNumber).trim());
+      formDataToSend.append("mobileNumber", (formData.mobileNumber || formData.oppositeMobile).trim());
+      formDataToSend.append("consent", formData.consent || "Yes");
+      formDataToSend.append("file", formData.file);
+
+      const response = await axiosInstance.post("/claimant/add-new-case", formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3636";
-      const response = await axios.post(
-        `${API_BASE_URL}/claimant/add-new-case`,
-        formDataToSend,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      toast.success("Case submitted successfully!");
-      onClose(); // 💡 Now close after success
+      if (response.data?.success || response.status === 201) {
+        toast.success("Case created successfully!");
+        if (onSuccess) onSuccess(response.data);
+        if (onClose) onClose();
+      } else {
+        toast.error(response.data?.message || "Failed to submit case!");
+      }
     } catch (error) {
       console.error("Error submitting case:", error);
-      toast.error(error.response?.data?.message || "Failed to submit case!");
+      toast.error(error.response?.data?.message || "Failed to submit case. Please check all fields.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div
       className="responsive-container"
-      style={{ maxHeight: "95vh", overflowY: "auto" }}
+      style={{ maxHeight: "88vh", overflowY: "auto", padding: "10px" }}
     >
       <div
         className="responsive-container-inside"
-        style={{ border: "2px solid black", borderRadius: "10px" }}
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: "12px",
+          padding: "1.5rem",
+        }}
       >
-        <div className="px-20">
-          <h2 className=" text-3xl " style={{ marginBottom: "30px" }}>
-            Dispute Details
-          </h2>
-
-          <form onSubmit={handleSubmitAdmin}>
-            <div className="form-group text-black">
-              <label>Dispute type</label>
-              <select
-                name="DisputeType"
-                value={formData.DisputeType}
-                onChange={handleChangeAdmin}
-                className="form-select"
-              >
-                <option value="Dispute">Select Dispute</option>
-                <option value="Criminal">Criminal Dispute</option>
-                <option value="Civil">Civil Dispute</option>
-                <option value="Corporate">Corporate Dispute</option>
-                <option value="Familly">Familly Dispute</option>
-                <option value="RealEstate">Real Estate Dispute</option>
-                <option value="Financial">Financial Dispute</option>
-              </select>
+        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1.5rem" }}>
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "8px",
+                backgroundColor: "#e0f2fe",
+                color: "#0284c7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Paperclip size={22} />
             </div>
-
-            <div className="form-group">
-              <label>Dispute Name</label>
-              <input
-                type="text"
-                name="DisputeName"
-                placeholder="Enter Dispute Name"
-                value={formData.DisputeName}
-                onChange={handleChangeAdmin}
-                className="form-input"
-              />
+            <div>
+              <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#1e293b", margin: 0 }}>
+                Add New Case
+              </h2>
+              <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+                Create and file a new dispute case with evidentiary attachments
+              </p>
             </div>
+          </div>
 
-            <div className="form-group text-black">
-              <label>Dispute Amount</label>
-              <select
-                name="DisputeAmount"
-                value={formData.DisputeAmount}
-                onChange={handleChangeAdmin}
-                className="form-select"
-              >
-                <option value="DisputeAmount">Select Amount</option>
-                <option value="AmountOneCror">Less than ₹1 Cr</option>
-                <option value="AmountFiveCror">₹1 Cr to ₹5 Cr</option>
-                <option value="AmountAboveCror">Above ₹5 Cr</option>
-              </select>
-            </div>
-
-            <div className="mt-10 p-5 rounded-xl border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-600 mb-4">
-                Customer Details
+          <form onSubmit={handleSubmitAdmin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {/* Dispute Details Section */}
+            <div style={{ backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#334155", marginBottom: "1rem" }}>
+                1. Dispute Information
               </h3>
 
-              <div className="form-group">
-                <label> Customers Name</label>
-                <input
-                  type="text"
-                  name="CustomersName"
-                  placeholder="Enter Opposite Party Name"
-                  value={formData.CustomersName}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Dispute Type *
+                  </label>
+                  <select
+                    name="DisputeType"
+                    value={formData.DisputeType}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      backgroundColor: "#fff",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="Civil">Civil Dispute</option>
+                    <option value="Criminal">Criminal Dispute</option>
+                    <option value="Corporate">Corporate Dispute</option>
+                    <option value="Familly">Family Dispute</option>
+                    <option value="RealEstate">Real Estate Dispute</option>
+                    <option value="Financial">Financial Dispute</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Dispute Amount *
+                  </label>
+                  <select
+                    name="DisputeAmount"
+                    value={formData.DisputeAmount}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      backgroundColor: "#fff",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="AmountOneCror">Less than ₹1 Cr</option>
+                    <option value="AmountFiveCror">₹1 Cr to ₹5 Cr</option>
+                    <option value="AmountAboveCror">Above ₹5 Cr</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="CustomersEmail"
-                  placeholder="Enter Opposite Party Email"
-                  value={formData.CustomersEmail}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>MobileNumber</label>
-                <input
-                  type="text"
-                  name="CustomersMobileNumber"
-                  placeholder="Enter Opposite Party Mobile Number"
-                  value={formData.CustomersMobileNumber}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label>AadharNumber</label>
-                <input
-                  type="text"
-                  name="CustomersAadharNumber"
-                  placeholder="Enter Opposite Party Mobile Number"
-                  value={formData.CustomersAadharNumber}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-            </div>
-            <div className="mt-10 p-5 rounded-xl border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-600 mb-4">
-                Opposite Party Details
-              </h3>
-
-              <div className="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  name="oppositePartyName"
-                  placeholder="Enter Opposite Party Name"
-                  value={formData.oppositePartyName}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="oppositePartyEmail"
-                  placeholder="Enter Opposite Party Email"
-                  value={formData.oppositePartyEmail}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Mobile Number</label>
-                <input
-                  type="text"
-                  name="mobileNumber"
-                  placeholder="Enter Opposite Party Mobile Number"
-                  value={formData.mobileNumber}
-                  onChange={handleChangeAdmin}
-                  className="form-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-group text-black">
-              <label>Consent as Per Data Protection Acts</label>
-              <select
-                name="consent"
-                value={formData.consent}
-                onChange={handleChangeAdmin}
-                className="form-select"
-              >
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
-            </div>
-
-            <div className="form-group file-group">
-              <div className="file-input-wrapper text-black">
-                <Paperclip size={20} />
-                <span>
-                  {formData.file ? "File attached" : "No file attached"}
-                </span>
-                <label htmlFor="file-input" className="attach-file-label">
-                  Attach File
+              <div style={{ marginTop: "1rem" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                  Dispute Name / Title *
                 </label>
                 <input
-                  id="file-input"
-                  type="file"
-                  onChange={handleFileChangeAdmin}
-                  style={{ display: "none" }}
+                  type="text"
+                  name="DisputeName"
+                  placeholder="e.g. Ramesh Kumar vs ABC Tech Pvt Ltd"
+                  value={formData.DisputeName}
+                  onChange={handleChangeAdmin}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    boxSizing: "border-box",
+                  }}
                 />
               </div>
+            </div>
 
-              {formData.file && (
-                <p className="file-name">Attached: {formData.file.name}</p>
+            {/* Claimant / Customer Details */}
+            <div style={{ backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#334155", marginBottom: "1rem" }}>
+                2. Claimant (Customer) Details
+              </h3>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Customer / Claimant Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="CustomersName"
+                    placeholder="Enter claimant name"
+                    value={formData.CustomersName}
+                    onChange={handleChangeAdmin}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    name="CustomersEmail"
+                    placeholder="Enter claimant email"
+                    value={formData.CustomersEmail}
+                    onChange={handleChangeAdmin}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Mobile Number *
+                  </label>
+                  <input
+                    type="text"
+                    name="CustomersMobileNumber"
+                    placeholder="Enter mobile number"
+                    value={formData.CustomersMobileNumber}
+                    onChange={handleChangeAdmin}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Aadhar / ID Number
+                  </label>
+                  <input
+                    type="text"
+                    name="CustomersAadharNumber"
+                    placeholder="Enter 12-digit Aadhar number"
+                    value={formData.CustomersAadharNumber}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Opposite Party Details */}
+            <div style={{ backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#334155", marginBottom: "1rem" }}>
+                3. Opposite Party (Respondent) Details
+              </h3>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Opposite Party Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="oppositePartyName"
+                    placeholder="Enter opposite party name"
+                    value={formData.oppositePartyName}
+                    onChange={handleChangeAdmin}
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Opposite Party Email
+                  </label>
+                  <input
+                    type="email"
+                    name="oppositePartyEmail"
+                    placeholder="Enter opposite party email"
+                    value={formData.oppositePartyEmail}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Opposite Party Mobile
+                  </label>
+                  <input
+                    type="text"
+                    name="mobileNumber"
+                    placeholder="Enter mobile number"
+                    value={formData.mobileNumber}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      fontSize: "14px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#475569", marginBottom: "4px" }}>
+                    Data Protection Consent
+                  </label>
+                  <select
+                    name="consent"
+                    value={formData.consent}
+                    onChange={handleChangeAdmin}
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #cbd5e1",
+                      backgroundColor: "#fff",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <option value="Yes">Yes, Consent Granted</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* ATTACH FILE SECTION */}
+            <div style={{ backgroundColor: "#f8fafc", padding: "1.25rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <h3 style={{ fontSize: "15px", fontWeight: "700", color: "#334155", margin: 0 }}>
+                  4. Attach Supporting Document / Evidence *
+                </h3>
+                {formData.file && (
+                  <span style={{ fontSize: "12px", color: "#16a34a", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <CheckCircle2 size={15} /> Ready to upload
+                  </span>
+                )}
+              </div>
+
+              {/* Hidden File Input with guaranteed ref */}
+              <input
+                ref={fileInputRef}
+                id="admin-case-file-upload-input"
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
+                onChange={handleFileChangeAdmin}
+                style={{ display: "none" }}
+              />
+
+              {!formData.file ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    border: `2px dashed ${isDragging ? "#0284c7" : "#94a3b8"}`,
+                    backgroundColor: isDragging ? "#f0f9ff" : "#ffffff",
+                    borderRadius: "8px",
+                    padding: "1.75rem 1rem",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "50%",
+                      backgroundColor: "#e0f2fe",
+                      color: "#0284c7",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 0.75rem",
+                    }}
+                  >
+                    <UploadCloud size={24} />
+                  </div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b", marginBottom: "4px" }}>
+                    Click to browse or drag & drop case file
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "1rem" }}>
+                    PDF, DOC, DOCX, JPG, PNG up to 15MB
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    style={{
+                      padding: "8px 18px",
+                      backgroundColor: "#0284c7",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <Paperclip size={15} />
+                    Attach File
+                  </button>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "8px",
+                    padding: "1rem 1.25rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "8px",
+                        backgroundColor: "#ecfdf5",
+                        color: "#059669",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <FileText size={22} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#1e293b",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={formData.file.name}
+                      >
+                        {formData.file.name}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>
+                        {formatFileSize(formData.file.size)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        padding: "6px 12px",
+                        backgroundColor: "#f1f5f9",
+                        color: "#334155",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      style={{
+                        padding: "6px 10px",
+                        backgroundColor: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1px solid #fecaca",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                      title="Remove attached file"
+                    >
+                      <Trash2 size={14} />
+                      Remove
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 
-            <button
-              type="submit"
-              className="submit-btn"
-              style={{ width: "100%" }}
-            >
-              Submit
-            </button>
+            {/* Buttons */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
+                  backgroundColor: "#f8fafc",
+                  color: "#475569",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={{
+                  padding: "10px 28px",
+                  borderRadius: "6px",
+                  border: "none",
+                  backgroundColor: isSubmitting ? "#93c5fd" : "#0066cc",
+                  color: "#fff",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                }}
+              >
+                {isSubmitting ? "Creating Case & Uploading..." : "Submit Case"}
+              </button>
+            </div>
           </form>
         </div>
       </div>
     </div>
   );
 }
+

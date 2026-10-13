@@ -29,18 +29,18 @@ export default function CaseManagement() {
   const [openModal, setOpenModal] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
 
+  const fetchCases = async () => {
+    try {
+      const data = await caseApi.getAllCases();
+      setCaseData(data.data || []);
+      setTotalUsers(data.totalUsers || (data.data ? data.data.length : 0));
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+    }
+  };
+
   // all case data fetching here
   useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const data = await caseApi.getAllCases();
-        setCaseData(data.data);
-        console.log(data.data);
-        setTotalUsers(data.totalUsers);
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-      }
-    };
     fetchCases();
   }, []);
 
@@ -538,7 +538,13 @@ export default function CaseManagement() {
 
       {openModal === "new" && (
         <ModalComponent title="" onClose={() => setOpenModal(null)}>
-          <CaseFile onClose={() => setOpenModal(null)} />
+          <CaseFile
+            onClose={() => setOpenModal(null)}
+            onSuccess={() => {
+              setOpenModal(null);
+              fetchCases();
+            }}
+          />
         </ModalComponent>
       )}
 
@@ -549,6 +555,11 @@ export default function CaseManagement() {
             onClose={() => {
               setOpenModal(null);
               setSelectedCase(null);
+            }}
+            onSuccess={() => {
+              setOpenModal(null);
+              setSelectedCase(null);
+              fetchCases();
             }}
           />
         </ModalComponent>
