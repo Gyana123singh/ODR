@@ -9,7 +9,7 @@ const cloudinary = require("../config/cloudinary");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const transporter = require("../config/smtp");
 const mongoose = require("mongoose");
 
 const RespondentRegister = async (req, res) => {
@@ -39,19 +39,11 @@ const RespondentRegister = async (req, res) => {
     await newUser.save();
 
     // Send Verification Email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || "https://gokulanandachaudhurifoundation.com";
     const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
 
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_FROM || `"Utkal ODR" <${process.env.SMTP_USER || process.env.EMAIL}>`,
       to: email,
       subject: "Verify Your ODR Account Email",
       html: `

@@ -697,7 +697,7 @@ export default function GoogleMeet() {
             onClick={() => setShowScheduleModal(true)}
           >
             <Plus size={15} />
-            <span>Schedule Hearing</span>
+            <span>Schedule Session</span>
           </button>
         </div>
       </header>
@@ -842,14 +842,14 @@ export default function GoogleMeet() {
                   </div>
                   <h4 className="uom-empty-title">No events scheduled for {activeDayTab}</h4>
                   <p className="uom-empty-desc">
-                    Click "Schedule Hearing" to add a hearing to this day.
+                    Click "Schedule Session" to add a session to this day.
                   </p>
                   <button
                     className="uom-btn-primary"
                     onClick={() => setShowScheduleModal(true)}
                   >
                     <Plus size={14} />
-                    <span>Schedule Hearing</span>
+                    <span>Schedule Session</span>
                   </button>
                 </div>
               )}
@@ -957,7 +957,7 @@ export default function GoogleMeet() {
         <div className="uom-modal-overlay">
           <div className="uom-modal">
             <div className="uom-modal-header">
-              <h3 className="uom-modal-title">Schedule Hearing</h3>
+              <h3 className="uom-modal-title">Schedule Session</h3>
               <button
                 className="uom-close-btn"
                 onClick={() => setShowScheduleModal(false)}

@@ -271,7 +271,7 @@ export default function Profile() {
     {
       id: 5,
       q: "Who can I contact for urgent technical assistance?",
-      a: "You can email support@odrcourtapp.com or call our toll-free support line at +91 9876543210 during working hours.",
+      a: "You can email support@odrcourtapp.com or call our toll-free support line at +91 9187102299 during working hours.",
     },
   ];
 
@@ -372,12 +372,12 @@ export default function Profile() {
     {
       id: 2,
       icon: Phone,
-      label: "Call Us",
-      desc: "+91 9876543210",
+      label: "Contact Us",
+      desc: "+91 9187102299",
       color: "#0066cc",
       onClick: () => {
-        toast.info("Calling support: +91 9876543210");
-        window.location.href = "tel:+919876543210";
+        toast.info("Connecting to support: +91 9187102299");
+        window.location.href = "tel:+919187102299";
       },
     },
     {

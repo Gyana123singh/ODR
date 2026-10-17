@@ -53,7 +53,7 @@ export default function ScheduleHearing({ onClose }) {
         formData
       );
 
-      toast.success("Hearing Scheduled Successfully!");
+      toast.success("Session Scheduled Successfully!");
 
       console.log(response.data);
 
@@ -75,7 +75,7 @@ export default function ScheduleHearing({ onClose }) {
       }
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to schedule hearing!"
+        error.response?.data?.message || "Failed to schedule session!"
       );
       console.error(error);
     }
@@ -93,7 +93,7 @@ export default function ScheduleHearing({ onClose }) {
       <div className="">
         <div className="px-20">
           <h2 className=" text-3xl " style={{ marginBottom: "30px" }}>
-            Hearing Details
+            Session Details
           </h2>
           <form onSubmit={submitHearing} className="">
             <div className="form-group">
@@ -151,7 +151,7 @@ export default function ScheduleHearing({ onClose }) {
               </select>
             </div>
             <div className="form-group">
-              <label>Hearing Type</label>
+              <label>Session Type</label>
               <select
                 name="hearingType"
                 value={formData.hearingType}
@@ -160,10 +160,10 @@ export default function ScheduleHearing({ onClose }) {
                 required
               >
                 <option value="">Select Type</option>
-                <option value="InitialHearing">Initial Hearing</option>
-                <option value="PreTrialConference">Pre-trial Conference</option>
-                <option value="EvidenceHearing">Evidence Hearing</option>
-                <option value="FinalHearing">Final Hearing</option>
+                <option value="InitialHearing">Initial Session / Consultation</option>
+                <option value="PreTrialConference">Joint Mediation Session</option>
+                <option value="EvidenceHearing">Evidence & Review Session</option>
+                <option value="FinalHearing">Final Resolution Session</option>
               </select>
             </div>
             <div className="form-group text-black">
@@ -253,7 +253,7 @@ export default function ScheduleHearing({ onClose }) {
               style={{ width: "100%" }}
             >
               {/* <Plus size={20} /> */}
-              Create Hearing
+              Schedule Session
             </button>
           </form>
         </div>

@@ -21,6 +21,39 @@ export default function NewCase() {
     getAllNeutral();
   }, []);
 
+  // Filter out all demo/test mediator accounts from dropdown options
+  const validNeutrals = (neutralData || []).filter((item) => {
+    if (!item) return false;
+    const name = (item.name || "").trim().toLowerCase();
+    const email = (item.email || "").trim().toLowerCase();
+
+    const demoKeywords = [
+      "neutral",
+      "neutrals",
+      "neutral user",
+      "user",
+      "firebase user",
+      "test",
+      "demo",
+      "admin",
+    ];
+    if (demoKeywords.includes(name) || name.startsWith("neutral") || name.startsWith("test ") || name.startsWith("demo ")) {
+      return false;
+    }
+
+    // Filter raw phone numbers used as names (e.g. +919999999999, +919348038244)
+    if (/^\+?\d{7,15}$/.test(name.replace(/[\s-]/g, ""))) {
+      return false;
+    }
+
+    // Filter demo / empty emails
+    if (!email || email.includes("neutral@") || email.includes("neutrals@") || email.includes("test@") || email.includes("example.com")) {
+      return false;
+    }
+
+    return true;
+  });
+
   const [formData, setFormData] = useState({
     DisputeType: "Dispute",
     DisputeName: "",
@@ -188,12 +221,15 @@ export default function NewCase() {
               value={formData.neutral}
               onChange={handleChangeAdmin}
               className="form-select"
-              required
             >
-              <option value="">Select Mediator</option>
-              {neutralData && neutralData.map((item) => (
+              <option value="">
+                {validNeutrals.length > 0
+                  ? "Select Mediator"
+                  : "Auto-assign by Admin (Will be allocated upon review)"}
+              </option>
+              {validNeutrals.map((item) => (
                 <option key={item._id} value={item._id}>
-                  {item.name && item.name !== "Neutral User" && item.name !== "User" && item.name !== "Firebase User" ? item.name : item.email} ({item.email})
+                  {item.name} ({item.email})
                 </option>
               ))}
             </select>

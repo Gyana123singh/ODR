@@ -113,7 +113,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
     },
     {
       icon: Calendar,
-      label: "Schedule Hearings",
+      label: "Schedule Sessions",
       path: "/schedule-hearings",
       color: "#8b5cf6",
     },

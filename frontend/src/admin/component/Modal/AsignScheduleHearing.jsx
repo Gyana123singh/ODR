@@ -33,17 +33,28 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         }
       );
 
-      toast.success("Hearing Scheduled with Mediator!");
+      toast.success("Session Scheduled with Mediator!");
 
       onClose();
     } catch (error) {
-      toast.error("Error scheduling hearing");
+      toast.error("Error scheduling session");
     }
   };
 
+  const validNeutrals = (neutralData || []).filter((item) => {
+    if (!item) return false;
+    const name = (item.name || "").trim().toLowerCase();
+    const email = (item.email || "").trim().toLowerCase();
+    const demoKeywords = ["neutral", "neutrals", "neutral user", "user", "firebase user", "test", "demo", "admin"];
+    if (demoKeywords.includes(name) || name.startsWith("neutral") || name.startsWith("test ") || name.startsWith("demo ")) return false;
+    if (/^\+?\d{7,15}$/.test(name.replace(/[\s-]/g, ""))) return false;
+    if (!email || email.includes("neutral@") || email.includes("neutrals@") || email.includes("test@") || email.includes("example.com")) return false;
+    return true;
+  });
+
   return (
     <div style={{ background: "white", padding: "25px", borderRadius: "12px" }}>
-      <h3 style={{ textAlign: "center" }}>Schedule Hearing</h3>
+      <h3 style={{ textAlign: "center" }}>Schedule Session</h3>
 
       {/* Mediator Select */}
       <label>Select Mediator</label>
@@ -51,10 +62,10 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         className="form-select"
         onChange={(e) => setSelectedNeutralId(e.target.value)}
       >
-        <option value="">Select Mediator</option>
-        {neutralData.map((n) => (
+        <option value="">{validNeutrals.length > 0 ? "Select Mediator" : "No verified mediators available"}</option>
+        {validNeutrals.map((n) => (
           <option key={n._id} value={n._id}>
-            {n.name && n.name !== "Neutral User" && n.name !== "User" && n.name !== "Firebase User" ? n.name : (n.email || "Mediator")}
+            {n.name} ({n.email})
           </option>
         ))}
       </select>
@@ -70,7 +81,7 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         }}
         onClick={handleAssignHearing}
       >
-        Schedule Hearing
+        Schedule Session
       </button>
 
       <button

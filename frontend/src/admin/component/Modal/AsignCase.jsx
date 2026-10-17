@@ -47,6 +47,17 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
     }
   };
 
+  const validNeutrals = (neutralData || []).filter((item) => {
+    if (!item) return false;
+    const name = (item.name || "").trim().toLowerCase();
+    const email = (item.email || "").trim().toLowerCase();
+    const demoKeywords = ["neutral", "neutrals", "neutral user", "user", "firebase user", "test", "demo", "admin"];
+    if (demoKeywords.includes(name) || name.startsWith("neutral") || name.startsWith("test ") || name.startsWith("demo ")) return false;
+    if (/^\+?\d{7,15}$/.test(name.replace(/[\s-]/g, ""))) return false;
+    if (!email || email.includes("neutral@") || email.includes("neutrals@") || email.includes("test@") || email.includes("example.com")) return false;
+    return true;
+  });
+
   return (
     <div
       style={{
@@ -81,10 +92,10 @@ const AsignCase = ({ selectedCaseId, onClose, reload }) => {
         }}
         onChange={(e) => setSelectedNeutralId(e.target.value)}
       >
-        <option value="">Select Mediator</option>
-        {neutralData.map((user) => (
+        <option value="">{validNeutrals.length > 0 ? "Select Mediator" : "No verified mediators available"}</option>
+        {validNeutrals.map((user) => (
           <option key={user._id} value={user._id}>
-            {user.name && user.name !== "Neutral User" && user.name !== "User" && user.name !== "Firebase User" ? user.name : (user.email || "Mediator")}
+            {user.name} ({user.email})
           </option>
         ))}
       </select>

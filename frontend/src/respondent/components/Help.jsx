@@ -50,7 +50,7 @@ export default function Help() {
       id: 2,
       icon: Phone,
       title: "Phone Support",
-      description: "+91 9876543210",
+      description: "+91 9187102299",
       color: "#22bb33",
     },
     {
@@ -192,7 +192,7 @@ export default function Help() {
                 style={styles.contactCard(method.color)}
                 onClick={() => {
                   if (method.title === "Live Chat") {
-                    const phoneNumber = "919876543210";
+                    const phoneNumber = "919187102299";
                     const message = "Hello, I need support regarding my case.";
                     window.open(
                       `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -207,7 +207,7 @@ export default function Help() {
                       "noopener,noreferrer"
                     );
                   } else if (method.title === "Phone Support") {
-                    window.location.href = "tel:+919876543210";
+                    window.location.href = "tel:+919187102299";
                   }
                 }}
                 onMouseEnter={(e) => {

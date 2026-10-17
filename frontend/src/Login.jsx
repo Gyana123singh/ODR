@@ -290,13 +290,14 @@ export default function Login({ getRole }) {
                 src="/logo.png"
                 alt="Utkal ODR - Online Dispute Resolution"
                 style={{
-                  width: "250px",
-                  maxHeight: "165px",
+                  width: "280px",
+                  maxHeight: "100px",
                   maxWidth: "100%",
                   height: "auto",
                   objectFit: "contain",
                   display: "block",
-                  filter: "drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35))"
+                  borderRadius: "6px",
+                  filter: "drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45))"
                 }}
               />
             </div>

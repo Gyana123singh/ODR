@@ -287,7 +287,7 @@ export default function ScheduleHearings() {
           }}
         >
           <Plus size={16} />
-          Schedule Hearing
+          Schedule Session
         </button>
       </div>
 
@@ -448,7 +448,7 @@ export default function ScheduleHearings() {
               }}
             >
               <Plus size={16} />
-              Schedule Hearing Now
+              Schedule Session Now
             </button>
           </div>
         )}

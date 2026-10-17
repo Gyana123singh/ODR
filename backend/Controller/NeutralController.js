@@ -8,7 +8,7 @@ const ClaimantDocument = require("../models/documentDetail");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const transporter = require("../config/smtp");
 
 const NeutralRegister = async (req, res) => {
   const { role, phone, name, email, password } = req.body;
@@ -38,19 +38,11 @@ const NeutralRegister = async (req, res) => {
     await newUser.save();
 
     // Send Verification Email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const baseUrl = process.env.APP_URL || process.env.BASE_URL || "https://gokulanandachaudhurifoundation.com";
     const verificationUrl = `${baseUrl}/api/auth/verify-email/${verificationToken}`;
 
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_FROM || `"Utkal ODR" <${process.env.SMTP_USER || process.env.EMAIL}>`,
       to: email,
       subject: "Verify Your ODR Account Email",
       html: `
@@ -191,10 +183,42 @@ const getAllNeutral = async (req, res) => {
       .find({ role: "neutral" })
       .select("name email role"); // optional: only needed fields
 
+    // Filter out demo/test mediator accounts
+    const filtered = neutrals.filter((n) => {
+      const name = (n.name || "").trim().toLowerCase();
+      const email = (n.email || "").trim().toLowerCase();
+
+      const demoKeywords = [
+        "neutral",
+        "neutrals",
+        "neutral user",
+        "user",
+        "firebase user",
+        "test",
+        "demo",
+        "admin",
+      ];
+      if (demoKeywords.includes(name) || name.startsWith("neutral") || name.startsWith("test ") || name.startsWith("demo ")) {
+        return false;
+      }
+
+      // Filter raw phone numbers used as names
+      if (/^\+?\d{7,15}$/.test(name.replace(/[\s-]/g, ""))) {
+        return false;
+      }
+
+      // Filter demo / dummy emails
+      if (!email || email.includes("neutral@") || email.includes("neutrals@") || email.includes("test@") || email.includes("example.com")) {
+        return false;
+      }
+
+      return true;
+    });
+
     res.status(200).json({
       success: true,
-      count: neutrals.length,
-      data: neutrals,
+      count: filtered.length,
+      data: filtered,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -124,7 +124,7 @@ export default function Help() {
       id: 2,
       icon: Phone,
       title: "Phone Support",
-      description: "+91 9876543210",
+      description: "+91 9187102299",
       color: "#22bb33",
     },
     {
@@ -134,7 +134,7 @@ export default function Help() {
       description: "Available Mon-Fri, 9 AM - 6 PM",
       color: "#ff9900",
       whatsapp: true,
-      link: "https://wa.me/919876543210",
+      link: "https://wa.me/919187102299",
     },
   ];
 

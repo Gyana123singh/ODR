@@ -29,9 +29,17 @@ function Navbar() {
         <nav className="navbar navbar-expand-lg navbar-dark bg-black">
             <div className="container">
                 {/* LOGO */}
-                <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-                    <img src="/assets/WhatsApp Image 2025-12-24 at 10.17.53 AM.jpeg" width="80" alt="Logo" />
-                    <span>UTKAL ODR</span>
+                <Link className="navbar-brand d-flex align-items-center" to="/">
+                    <img 
+                        src="/assets/logo.png" 
+                        alt="UTKAL ODR - Online Dispute Resolution" 
+                        style={{ 
+                            height: "46px", 
+                            width: "auto", 
+                            objectFit: "contain",
+                            display: "block"
+                        }} 
+                    />
                 </Link>
 
                 {/* TOGGLER */}
@@ -47,6 +55,9 @@ function Navbar() {
                         </li>
                         <li className="nav-item">
                             <Link className="nav-link" to="/#services">Services</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/#people">People</Link>
                         </li>
                         <li className="nav-item">
                             <Link className="nav-link" to="/blog">Blog</Link>

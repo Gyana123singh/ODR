@@ -252,7 +252,7 @@ export default function Register({ getRole }) {
       <div style={Styles.wrapper}>
         {/* Logo Section */}
         <div style={Styles.logo}>
-          <img src="/logo.png" alt="UTKAL ODR Logo" style={{ width: "120px", height: "120px", objectFit: "contain", margin: "0 auto", display: "block" }} />
+          <img src="/logo.png" alt="UTKAL ODR Logo" style={{ width: "220px", height: "auto", maxHeight: "80px", objectFit: "contain", margin: "0 auto 12px auto", display: "block", borderRadius: "6px" }} />
           <h1 style={Styles.logoTitle}>UTKAL ODR</h1>
           <p style={Styles.logoSubtitle}>Utkrust Vivad Samadhan</p>
           <p style={Styles.logoSubtitle}>Online Dispute Resolution Platform</p>
