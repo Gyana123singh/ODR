@@ -88,6 +88,7 @@ export default function Admin() {
             <Route path="controls" element={<AdminControls />} />
             <Route path="timeline" element={<Timeline />} />
             <Route path="hearings" element={<ScheduleHearings />} />
+            <Route path="sessions" element={<ScheduleHearings />} />
             <Route path="meet" element={<GoogleMeet />} />
             <Route path="google-meet" element={<GoogleMeet />} />
             <Route path="online-meeting" element={<GoogleMeet />} />

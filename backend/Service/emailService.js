@@ -1,18 +1,5 @@
-const nodemailer = require("nodemailer");
+const transporter = require("../config/smtp");
 const { assignNeutralTemplate } = require("../utils/emailTemplates");
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
 
 async function sendAssignEmail(
   to,
@@ -35,7 +22,7 @@ async function sendAssignEmail(
   );
 
   const info = await transporter.sendMail({
-    from: process.env.EMAIL,
+    from: process.env.SMTP_FROM || process.env.EMAIL,
     to,
     subject: `Neutral Assigned - Case ${caseNumber}`,
     html,

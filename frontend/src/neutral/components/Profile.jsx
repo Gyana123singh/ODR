@@ -175,7 +175,7 @@ export default function Profile() {
     {
       id: 5,
       q: "Who provides arbiter registry and support assistance?",
-      a: "Contact our arbitration support registrar at support@odrcourtapp.com or call +91 9876543210.",
+      a: "Contact our arbitration support registrar at support@odrcourtapp.com or call +91 9187102299.",
     },
   ];
 
@@ -363,12 +363,12 @@ export default function Profile() {
     {
       id: 2,
       icon: Phone,
-      label: "Call Us",
-      desc: "+91 9876543210",
+      label: "Contact Us",
+      desc: "+91 9187102299",
       color: "#0066cc",
       onClick: () => {
-        toast.info("Calling support: +91 9876543210");
-        window.location.href = "tel:+919876543210";
+        toast.info("Connecting to support: +91 9187102299");
+        window.location.href = "tel:+919187102299";
       },
     },
     {

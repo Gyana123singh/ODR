@@ -130,6 +130,105 @@ function Home() {
         </div>
     </section>
 
+    {/* PEOPLE & PANEL SECTION */}
+    <section className="people-section" id="people">
+        <div className="people-container">
+            <div className="people-header">
+                <h2 className="section-title">Our People</h2>
+                <p>
+                    Guided by distinguished jurists, accredited neutrals, and the leadership of Gokulananda Chaudhuri Foundation to deliver accessible, institutional dispute resolution.
+                </p>
+            </div>
+
+            {/* Leadership & Advisory Card */}
+            <div className="people-leadership">
+                <div className="people-lead-text">
+                    <h3>Gokulananda Chaudhuri Foundation & Advisory Jurists</h3>
+                    <p>
+                        Rooted in an esteemed legacy of justice and social welfare, the Gokulananda Chaudhuri Foundation champions innovation in dispute resolution. Our advisory council includes veteran advocates, former judicial officers, and academic experts who ensure strict procedural fairness, legal integrity, and modern digital standards across all proceedings.
+                    </p>
+                    <div className="people-badges">
+                        <div className="people-badge-item">
+                            <i className="bi bi-shield-check"></i>
+                            <span>Senior Judicial & High Court Bar Association Guidance</span>
+                        </div>
+                        <div className="people-badge-item">
+                            <i className="bi bi-award"></i>
+                            <span>Strict Institutional Neutrality & Ethical Governance</span>
+                        </div>
+                        <div className="people-badge-item">
+                            <i className="bi bi-diagram-3"></i>
+                            <span>Empaneled Experts Across Commercial, MSME & Civil Domains</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="people-lead-img-wrapper">
+                    <img 
+                        src="/assets/WhatsApp Image 2025-12-23 at 12.08.56 PM.jpeg" 
+                        alt="High Court Bar Association Orissa & Advisory Council" 
+                        className="people-lead-img" 
+                    />
+                    <div className="people-lead-img-caption">
+                        High Court Bar Association Orissa & Advisory Council Symposium
+                    </div>
+                </div>
+            </div>
+
+            {/* Neutrals Panel Grid */}
+            <div className="people-grid">
+                <div className="people-card">
+                    <div className="people-card-icon">
+                        <i className="bi bi-bank"></i>
+                    </div>
+                    <h4>Arbitrators Panel</h4>
+                    <p>
+                        Senior advocates, retired judicial officers, and specialized legal practitioners handling domestic, commercial, construction, and contract disputes with institutional rigor.
+                    </p>
+                    <span className="people-tag">Empaneled Arbitrators</span>
+                </div>
+
+                <div className="people-card">
+                    <div className="people-card-icon">
+                        <i className="bi bi-people-fill"></i>
+                    </div>
+                    <h4>Mediators Panel</h4>
+                    <p>
+                        Certified, empathetic mediators skilled in facilitative, commercial, MSME, family, and online mediation techniques to achieve mutually agreeable settlements without litigation.
+                    </p>
+                    <span className="people-tag">Certified Mediators</span>
+                </div>
+
+                <div className="people-card">
+                    <div className="people-card-icon">
+                        <i className="bi bi-person-badge"></i>
+                    </div>
+                    <h4>Conciliators & Case Managers</h4>
+                    <p>
+                        Dedicated resolution professionals and case administrators ensuring seamless party communications, scheduling, document exchange, and full compliance with ADR rules.
+                    </p>
+                    <span className="people-tag">Secretariat & Management</span>
+                </div>
+            </div>
+
+            {/* Empanelment CTA */}
+            <div className="people-cta-box">
+                <div>
+                    <h4>Are you a qualified Mediator or Arbitrator?</h4>
+                    <p>Join UTKAL ODR’s institutional panel of neutrals and resolve disputes with state-of-the-art digital tools.</p>
+                </div>
+                <a 
+                    href="https://odr.gokulanandachaudhurifoundation.com" 
+                    className="people-cta-btn"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                >
+                    <span>Apply for Empanelment</span>
+                    <i className="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
 
     {/* GOALS SECTION */}
     <section className="goals" id="goals">
@@ -316,9 +415,14 @@ function Home() {
                 <form action="#" method="post">
                     <div className="form-grid">
                         <div className="form-group">
+                            <label htmlFor="name">Name</label>
+                            <input type="text" id="name" name="name" placeholder="Enter Your Name" required />
+                        </div>
+
+                        <div className="form-group">
                             <label htmlFor="subject">Types of Dispute</label>
-                            <select id="subject" name="subject" required>
-                                <option value="" disabled selected>Select dispute type</option>
+                            <select id="subject" name="subject" defaultValue="" required>
+                                <option value="" disabled>Select dispute type</option>
                                 <option value="commercial">Commercial Dispute</option>
                                 <option value="contract">Contract Dispute</option>
                                 <option value="property">Property Dispute</option>
@@ -332,42 +436,25 @@ function Home() {
                             </select>
                         </div>
 
-
-                        <div className="form-group">
-
-                            <div className="form-group">
-                                <label htmlFor="amountCategory">Amounts of dispute</label>
-                                <select id="amountCategory" name="amountCategory">
-                                    <option value="upto_5_lakhs">Upto Rs. 5 lakhs</option>
-                                    <option value="5_to_20_lakhs">Rs. 5 lakhs to 20 lakhs</option>
-                                    <option value="20_lakhs_to_1_crore">Rs. 20 lakhs to 1 Crore</option>
-                                    <option value="1_to_10_crore">Rs. 1 Crore to 10 Crore</option>
-                                    <option value="10_to_20_crore">Rs. 10 Crore to 20 Crore</option>
-                                    <option value="above_20_crore">Above Rs. 20 Crore</option>
-                                </select>
-                            </div>
-                        </div>
-
                         <div className="form-group">
                             <label htmlFor="phone">Phone</label>
-                            <input type="tel" id="phone" name="phone" placeholder="Enter Your Number" />
+                            <input type="tel" id="phone" name="phone" placeholder="Enter Your Number" required />
                         </div>
-
 
                         <div className="form-group">
-                            <label htmlFor="phone">Email</label>
-                            <input type="email" id="email" name="email" placeholder="Enter Your Email" />
+                            <label htmlFor="email">Email</label>
+                            <input type="email" id="email" name="email" placeholder="Enter Your Email" required />
                         </div>
-
-
                     </div>
 
 
                 </form>
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                    <a href="./contact-form.html"><button className="btn-submit">
+                    <Link to="/contact">
+                        <button className="btn-submit" type="button">
                             More details about your dispute
-                        </button></a>
+                        </button>
+                    </Link>
 
 
                 </div>
@@ -377,7 +464,7 @@ function Home() {
     {/* FOOTER */}
     
     {/* Floating WhatsApp CTA */}
-    <a href="https://wa.me/918280057771" className="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <a href="https://wa.me/919187102299" className="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
         <i className="fab fa-whatsapp"></i>
     </a>
 

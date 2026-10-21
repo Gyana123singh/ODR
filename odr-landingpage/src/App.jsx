@@ -22,6 +22,13 @@ function App() {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+    } else if (location.pathname === '/people') {
+      setTimeout(() => {
+        const element = document.getElementById('people');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     } else {
       window.scrollTo(0, 0);
     }
@@ -34,6 +41,7 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/people" element={<Home />} />
           <Route path="/blog" element={<Blogs />} />
           <Route path="/odr-act" element={<OdrAct />} />
           <Route path="/rules" element={<OdrRules />} />
@@ -44,7 +52,7 @@ function App() {
       <Footer />
       
       {/* Floating WhatsApp CTA */}
-      <a href="https://wa.me/918280057771" className="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+      <a href="https://wa.me/919187102299" className="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
           <i className="fab fa-whatsapp"></i>
       </a>
 

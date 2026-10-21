@@ -568,6 +568,243 @@ nav a:hover {
   font-size: 4rem;
 }
 
+/* ===== PEOPLE & PANEL SECTION ===== */
+.people-section {
+  padding: 90px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  position: relative;
+}
+
+.people-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.people-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.people-header h2 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--color-primary, #0f2438);
+  margin-bottom: 0.75rem;
+}
+
+.people-header p {
+  color: #64748b;
+  font-size: 1.15rem;
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.people-leadership {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: center;
+  background: #ffffff;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 3rem;
+}
+
+.people-lead-text h3 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--color-primary, #0f2438);
+  margin-bottom: 1.25rem;
+  line-height: 1.3;
+}
+
+.people-lead-text p {
+  color: #475569;
+  line-height: 1.85;
+  margin-bottom: 1.75rem;
+  font-size: 1.02rem;
+  text-align: justify;
+}
+
+.people-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.people-badge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.98rem;
+}
+
+.people-badge-item i {
+  font-size: 1.35rem;
+  color: var(--color-secondary, #2ba5d7);
+  flex-shrink: 0;
+}
+
+.people-lead-img-wrapper {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.people-lead-img {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  display: block;
+}
+
+.people-lead-img-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0) 100%);
+  color: #ffffff;
+  padding: 30px 16px 14px 16px;
+  font-size: 0.88rem;
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.people-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2.2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.35s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.people-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.09);
+  border-color: var(--color-secondary, #2ba5d7);
+}
+
+.people-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(43, 165, 215, 0.12);
+  color: var(--color-secondary, #2ba5d7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  margin-bottom: 1.25rem;
+}
+
+.people-card h4 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-primary, #0f2438);
+  margin-bottom: 0.85rem;
+}
+
+.people-card p {
+  color: #64748b;
+  font-size: 0.96rem;
+  line-height: 1.65;
+  flex-grow: 1;
+}
+
+.people-card .people-tag {
+  align-self: flex-start;
+  margin-top: 1.25rem;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.people-cta-box {
+  background: linear-gradient(135deg, #0f2438 0%, #173752 100%);
+  color: #ffffff;
+  border-radius: 18px;
+  padding: 2.2rem 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  box-shadow: 0 12px 32px rgba(15, 36, 56, 0.22);
+}
+
+.people-cta-box h4 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: #ffffff;
+}
+
+.people-cta-box p {
+  color: #cbd5e1;
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.people-cta-btn {
+  background: #ffffff;
+  color: #0f2438 !important;
+  padding: 13px 30px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.96rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.people-cta-btn:hover {
+  background: var(--color-secondary, #2ba5d7);
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(43, 165, 215, 0.4);
+}
+
+@media (max-width: 992px) {
+  .people-leadership {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2rem;
+  }
+  .people-lead-img {
+    height: 270px;
+  }
+  .people-cta-box {
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+}
+
 /* ===== ABOUT GOKULANANDA SECTION ===== */
 .about-founder {
   padding: 80px 20px;
@@ -1002,7 +1239,7 @@ footer::before {
 
 .hero-buttons-custom {
   z-index: 10;
-  margin-top: 30vh;
+  margin-top: 20vh;
 }
 
 @media (max-width: 768px) {
@@ -1013,7 +1250,7 @@ footer::before {
     font-size: 1.2rem;
   }
   .hero-buttons-custom {
-    margin-top: 15vh;
+    margin-top: 12vh;
   }
 }
 
@@ -1025,7 +1262,7 @@ footer::before {
     font-size: 1rem;
   }
   .hero-buttons-custom {
-    margin-top: 10vh;
+    margin-top: 8vh;
   }
 }
 
@@ -1445,13 +1682,14 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
-  padding: 10px 11px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.4);
-  background: white;
-  color: #e5e7eb;
+  background: #ffffff;
+  color: #111827;
   font-size: 14px;
   outline: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease,
@@ -1464,12 +1702,12 @@ textarea::placeholder {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: #22c55e;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.9),
-    0 0 0 6px rgba(34, 197, 94, 0.15);
-  background: rgba(15, 23, 42, 0.95);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  background: #ffffff;
+  color: #111827;
 }
 
 textarea {

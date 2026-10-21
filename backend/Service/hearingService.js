@@ -1,18 +1,5 @@
-const nodemailer = require("nodemailer");
+const transporter = require("../config/smtp");
 const { assignHearingTemplate } = require("../utils/hearingEmailTemplate");
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
 
 async function sendAssignHearingEmail(
   to,
@@ -39,7 +26,7 @@ async function sendAssignHearingEmail(
   );
 
   return await transporter.sendMail({
-    from: process.env.EMAIL,
+    from: process.env.SMTP_FROM || process.env.EMAIL,
     to,
     subject: `Hearing Scheduled - Case ${caseId}`,
     html,

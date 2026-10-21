@@ -197,8 +197,8 @@ export default function Profile() {
     },
     {
       id: 2,
-      q: "How are hearing schedules coordinated?",
-      a: "Admins can oversee online video hearing sessions via Schedule Hearings. Automatic invites and Google Meet links are generated and dispatched to all parties.",
+      q: "How are session schedules coordinated?",
+      a: "Admins can oversee online video dispute resolution sessions via Schedule Sessions. Automatic invites and Google Meet links are generated and dispatched to all parties.",
     },
     {
       id: 3,
@@ -213,7 +213,7 @@ export default function Profile() {
     {
       id: 5,
       q: "Who provides emergency administrative infrastructure support?",
-      a: "You can reach out to our platform operations team directly at support@odrcourtapp.com or call +91 9876543210.",
+      a: "You can reach out to our platform operations team directly at support@odrcourtapp.com or call +91 9187102299.",
     },
   ];
 
@@ -311,12 +311,12 @@ export default function Profile() {
     {
       id: 2,
       icon: Phone,
-      label: "Call Us",
-      desc: "+91 9876543210",
+      label: "Contact Us",
+      desc: "+91 9187102299",
       color: "#0066cc",
       onClick: () => {
-        toast.info("Calling support: +91 9876543210");
-        window.location.href = "tel:+919876543210";
+        toast.info("Connecting to support: +91 9187102299");
+        window.location.href = "tel:+919187102299";
       },
     },
     {

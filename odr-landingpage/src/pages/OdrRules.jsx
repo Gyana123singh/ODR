@@ -13,10 +13,19 @@ function OdrRules() {
       <div className="container">
 
         {/*  LOGO  */}
-        <a className="navbar-brand d-flex align-items-center gap-2" href="#">
-          <img src="assets/WhatsApp Image 2025-12-24 at 10.17.53 AM.jpeg" width="80" alt=""/>
-          <span>UTKAL ODR</span>
-        </a>
+        <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
+          <img 
+            src="/assets/logo.png" 
+            alt="UTKAL ODR Logo" 
+            style={{ 
+              height: "46px", 
+              width: "auto", 
+              objectFit: "contain",
+              filter: "drop-shadow(0 0 1px rgba(255, 255, 255, 0.45))" 
+            }} 
+          />
+          <span className="brand-text fw-bold text-white fs-5" style={{ letterSpacing: "0.5px" }}>UTKAL ODR</span>
+        </Link>
 
         {/*  TOGGLER  */}
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">

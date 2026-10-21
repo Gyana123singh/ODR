@@ -373,7 +373,7 @@ export default function ScheduleHearings() {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerTitle}>📅 Schedule Hearings</div>
+        <div style={styles.headerTitle}>📅 Schedule Sessions</div>
         <button
           style={styles.scheduleButton}
           onMouseEnter={(e) => {
@@ -387,14 +387,14 @@ export default function ScheduleHearings() {
           }}
         >
           <Plus size={18} />
-          New Hearing
+          New Session
         </button>
       </div>
       {/* Stats Grid */}
       <div style={styles.statsGrid}>
         <div style={styles.statCard("#2196f3")}>
           <div style={styles.statValue}>{""}</div>
-          <div style={styles.statLabel}>Total Hearings</div>
+          <div style={styles.statLabel}>Total Sessions</div>
         </div>
         <div style={styles.statCard("#4caf50")}>
           <div style={styles.statValue}>{""}</div>
@@ -415,7 +415,7 @@ export default function ScheduleHearings() {
           <Search size={18} color="#999" />
           <input
             type="text"
-            placeholder="Search by case, judge, location, or hearing type..."
+            placeholder="Search by case, mediator/judge, location, or session type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -457,7 +457,7 @@ export default function ScheduleHearings() {
               <tr>
                 <th style={styles.tableHeaderCell}>Case Name</th>
                 <th style={styles.tableHeaderCell}>Case Id</th>
-                <th style={styles.tableHeaderCell}>Hearing Type</th>
+                <th style={styles.tableHeaderCell}>Session Type</th>
                 <th style={styles.tableHeaderCell}>Date</th>
                 <th style={styles.tableHeaderCell}>Time</th>
                 <th style={styles.tableHeaderCell}>Duration</th>
@@ -622,7 +622,7 @@ export default function ScheduleHearings() {
       ) : (
         <div style={styles.emptyState}>
           <div style={styles.emptyIcon}>📅</div>
-          <div>No hearings found matching your search criteria</div>
+          <div>No sessions found matching your search criteria</div>
         </div>
       )}
       {openModal === "newHearing" && (
