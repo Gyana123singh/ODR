@@ -39,6 +39,13 @@ function App() {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+    } else if (location.pathname === '/people') {
+      setTimeout(() => {
+        const element = document.getElementById('people');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     } else {
       window.scrollTo(0, 0);
     }
