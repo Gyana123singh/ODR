@@ -19,6 +19,9 @@ export const getApiBaseUrl = () => {
       if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
         return envUrl.replace(/\/$/, '');
       }
+      if (hostname.includes('gokulanandachaudhurifoundation.com') || hostname.includes('utkalodr.com')) {
+        return 'https://gokulanandachaudhurifoundation.com';
+      }
       return window.location.origin || '';
     }
   }
