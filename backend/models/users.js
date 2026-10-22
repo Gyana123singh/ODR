@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     },
 
     phone: { type: String },
+    bio: { type: String },
+    profilePic: { type: String },
 
     joinDate: { type: Date, default: Date.now },
     lastActive: { type: Date, default: Date.now },

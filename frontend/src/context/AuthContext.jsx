@@ -57,22 +57,42 @@ export const AuthProvider = ({ children }) => {
     }
     if (token) {
       localStorage.setItem("authToken", token);
+      localStorage.setItem("token", token);
     }
+  };
+
+  const updateUser = (userData) => {
+    setUser((prev) => {
+      const merged = { ...(prev || {}), ...userData };
+      if (merged.name) {
+        localStorage.setItem("username", merged.name);
+        localStorage.setItem("userName", merged.name);
+      }
+      if (merged.email !== undefined) {
+        localStorage.setItem("userEmail", merged.email || "");
+      }
+      if (merged.phone !== undefined) {
+        localStorage.setItem("userPhone", merged.phone || "");
+      }
+      return merged;
+    });
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("authToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
+    localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userPhone");
     localStorage.removeItem("caseId");
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

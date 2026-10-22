@@ -27,9 +27,9 @@ const upload = require("../../middlewares/multer.js");
 
 router.post("/register", ClaimantRegister);
 router.post("/login", ClaimantLogin);
-router.get("/data", verifyToken, authorizeRoles("claimant"), ClaimantData);
+router.get("/data", verifyToken, authorizeRoles("claimant", "admin"), ClaimantData);
 router.post("/add-new-case", upload.single("file"), ClaimantaddNewCase);
-router.get("/claimant-case-stats", verifyToken, authorizeRoles("claimant"), ClaimantCaseStats);
+router.get("/claimant-case-stats", verifyToken, authorizeRoles("claimant", "admin"), ClaimantCaseStats);
 router.get("/get-claimant-users", getClaimantUsers);
 
 router.post(
@@ -51,9 +51,9 @@ router.delete(
 );
 
 // Secure authenticated routes
-router.get("/my-cases", verifyToken, authorizeRoles("claimant"), getClaimantOwnCasesSecure);
-router.get("/my-documents", verifyToken, authorizeRoles("claimant"), getClaimantDocumentsSecure);
-router.put("/update-profile", verifyToken, authorizeRoles("claimant"), updateClaimantProfile);
-router.put("/update-password", verifyToken, authorizeRoles("claimant"), updateClaimantPassword);
+router.get("/my-cases", verifyToken, authorizeRoles("claimant", "admin"), getClaimantOwnCasesSecure);
+router.get("/my-documents", verifyToken, authorizeRoles("claimant", "admin"), getClaimantDocumentsSecure);
+router.put("/update-profile", verifyToken, authorizeRoles("claimant", "admin"), updateClaimantProfile);
+router.put("/update-password", verifyToken, authorizeRoles("claimant", "admin"), updateClaimantPassword);
 
 module.exports = router;

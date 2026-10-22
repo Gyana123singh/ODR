@@ -167,7 +167,11 @@ const ClaimantLogin = async (req, res) => {
 // api for get claimant data
 const ClaimantData = async (req, res) => {
   try {
-    const claimant = await User.findById(req.claimant.id).select("-password");
+    const claimantId = req.claimant?._id || req.claimant?.id || req.user?._id || req.user?.id;
+    if (!claimantId) {
+      return res.status(401).json({ success: false, message: "Claimant session not found" });
+    }
+    const claimant = await User.findById(claimantId).select("-password");
     if (!claimant) {
       return res
         .status(404)
@@ -237,10 +241,30 @@ const ClaimantaddNewCase = async (req, res) => {
     const formattedNumber = String(nextNumber).padStart(4, "0");
     const caseId = `CASE-${year}-${formattedNumber}`;
 
+    const oppMobile = oppositeMobile || req.body.mobileNumber;
+
     // FIND RESPONDENT BASED ON EMAIL OR PHONE
-    const respondentUser = await User.findOne({
-      $or: [{ email: oppositePartyEmail }, { phone: oppositeMobile }],
-    });
+    let respondentUser = null;
+    if (oppositePartyEmail || oppMobile) {
+      respondentUser = await User.findOne({
+        $or: [
+          ...(oppositePartyEmail ? [{ email: oppositePartyEmail }] : []),
+          ...(oppMobile ? [{ phone: oppMobile }] : []),
+        ],
+      });
+    }
+
+    // FIND CLAIMANT BASED ON EMAIL OR PHONE IF NOT EXPLICITLY PROVIDED
+    let claimantId = claimant;
+    if (!claimantId && (CustomersEmail || CustomersMobileNumber)) {
+      const claimantUser = await User.findOne({
+        $or: [
+          ...(CustomersEmail ? [{ email: CustomersEmail }] : []),
+          ...(CustomersMobileNumber ? [{ phone: CustomersMobileNumber }] : []),
+        ],
+      });
+      if (claimantUser) claimantId = claimantUser._id;
+    }
 
     // Save in MongoDB
     const newCase = new Case({
@@ -250,16 +274,16 @@ const ClaimantaddNewCase = async (req, res) => {
       DisputeAmount,
       oppositePartyName,
       oppositePartyEmail,
-      oppositeMobile,
+      oppositeMobile: oppMobile,
       CustomersName,
       CustomersEmail,
       CustomersMobileNumber,
       CustomersAadharNumber,
-      consent,
+      consent: consent === "No" ? "No" : "Yes",
       file: uploadResult.secure_url,
       date: Date.now(),
       status: "Pending",
-      claimant,
+      claimant: claimantId || null,
       neutral: neutral || null,
       respondent: respondentUser ? respondentUser._id : null,
     });
@@ -673,15 +697,18 @@ const getDocumentSingleDetails = async (req, res) => {
 
 const getClaimantOwnCasesSecure = async (req, res) => {
   try {
-    if (!req.claimant) {
+    const claimantUser = req.claimant || req.user;
+    if (!claimantUser) {
       return res.status(401).json({ success: false, message: "Unauthorized. Claimant session not found." });
     }
+    const claimantId = claimantUser._id || claimantUser.id;
+    const claimantEmail = claimantUser.email;
 
     // Find all cases matching claimant ID or matching user's email case-insensitively
     const claimantCase = await Case.find({
       $or: [
-        { claimant: req.claimant._id },
-        { CustomersEmail: req.claimant.email }
+        { claimant: claimantId },
+        { CustomersEmail: claimantEmail }
       ]
     }).collation({ locale: "en", strength: 2 });
 
@@ -702,15 +729,18 @@ const getClaimantOwnCasesSecure = async (req, res) => {
 
 const getClaimantDocumentsSecure = async (req, res) => {
   try {
-    if (!req.claimant) {
+    const claimantUser = req.claimant || req.user;
+    if (!claimantUser) {
       return res.status(401).json({ success: false, message: "Unauthorized. Claimant session not found." });
     }
+    const claimantId = claimantUser._id || claimantUser.id;
+    const claimantEmail = claimantUser.email;
 
     // First find claimant's own cases to get their caseIds
     const cases = await Case.find({
       $or: [
-        { claimant: req.claimant._id },
-        { CustomersEmail: req.claimant.email }
+        { claimant: claimantId },
+        { CustomersEmail: claimantEmail }
       ]
     }).collation({ locale: "en", strength: 2 });
 
@@ -719,7 +749,7 @@ const getClaimantDocumentsSecure = async (req, res) => {
     // Find documents matching either claimant's email or caseIds
     const documents = await ClaimantDocument.find({
       $or: [
-        { claimantEmail: req.claimant.email },
+        { claimantEmail: claimantEmail },
         { caseId: { $in: caseIds } }
       ]
     }).collation({ locale: "en", strength: 2 });
@@ -742,24 +772,54 @@ const getClaimantDocumentsSecure = async (req, res) => {
 const updateClaimantProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
-    const claimant = await User.findById(req.claimant.id);
+    const claimantId = req.claimant?._id || req.claimant?.id || req.user?._id || req.user?.id;
+    if (!claimantId) {
+      return res.status(401).json({ success: false, message: "Claimant session not found" });
+    }
+
+    const claimant = await User.findById(claimantId);
     if (!claimant) {
       return res.status(404).json({ success: false, message: "Claimant not found" });
     }
 
-    if (name) claimant.name = name;
-    if (phone) claimant.phone = phone;
+    if (name !== undefined) claimant.name = String(name).trim();
+    if (phone !== undefined) claimant.phone = String(phone).trim();
+    if (email !== undefined) {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      if (normalizedEmail) {
+        if (normalizedEmail !== (claimant.email || "").toLowerCase()) {
+          const existing = await User.findOne({
+            _id: { $ne: claimant._id },
+            email: normalizedEmail,
+          });
+          if (existing) {
+            return res.status(400).json({
+              success: false,
+              message: "This email address is already in use by another account.",
+            });
+          }
+          claimant.email = normalizedEmail;
+        }
+      }
+    }
 
     await claimant.save();
 
     return res.json({
       success: true,
       message: "Profile updated successfully",
-      data: claimant
+      data: {
+        id: claimant._id,
+        _id: claimant._id,
+        name: claimant.name,
+        email: claimant.email,
+        phone: claimant.phone,
+        role: claimant.role,
+      }
     });
   } catch (err) {
     console.error("Update profile error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: err.message || "Internal server error" });
   }
 };
 
@@ -770,7 +830,12 @@ const updateClaimantPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Both old and new passwords are required" });
     }
 
-    const claimant = await User.findById(req.claimant.id);
+    const claimantId = req.claimant?._id || req.claimant?.id || req.user?._id || req.user?.id;
+    if (!claimantId) {
+      return res.status(401).json({ success: false, message: "Claimant session not found" });
+    }
+
+    const claimant = await User.findById(claimantId);
     if (!claimant) {
       return res.status(404).json({ success: false, message: "Claimant not found" });
     }
@@ -790,7 +855,7 @@ const updateClaimantPassword = async (req, res) => {
     });
   } catch (err) {
     console.error("Change password error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: err.message || "Internal server error" });
   }
 };
 

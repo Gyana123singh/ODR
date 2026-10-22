@@ -517,18 +517,39 @@ const getNeutralDashboardStats = async (req, res) => {
 
 const updateNeutralProfile = async (req, res) => {
   try {
-    const { name, phone } = req.body;
-    if (!req.neutral && !req.user) {
+    const { name, phone, email } = req.body;
+    const neutralId = req.neutral?._id || req.neutral?.id || req.user?._id || req.user?.id;
+    if (!neutralId) {
       return res.status(401).json({ success: false, message: "Unauthorized. Neutral session not found." });
     }
 
-    const neutral = await neutralUser.findById(req.neutral?._id || req.neutral?.id || req.user?.id);
+    const neutral = await neutralUser.findById(neutralId);
     if (!neutral) {
       return res.status(404).json({ success: false, message: "Neutral not found" });
     }
 
-    if (name) neutral.name = name;
-    if (phone) neutral.phone = phone;
+    if (name !== undefined) neutral.name = String(name).trim();
+    if (phone !== undefined) neutral.phone = String(phone).trim();
+    if (email !== undefined) {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      if (normalizedEmail) {
+        if (normalizedEmail !== (neutral.email || "").toLowerCase()) {
+          const existingUser = await neutralUser.findOne({
+            _id: { $ne: neutral._id },
+            email: normalizedEmail,
+          });
+          if (existingUser) {
+            return res.status(400).json({
+              success: false,
+              message: "This email address is already in use by another account.",
+            });
+          }
+          neutral.email = normalizedEmail;
+        }
+      } else {
+        neutral.email = "";
+      }
+    }
 
     await neutral.save();
 
@@ -536,15 +557,17 @@ const updateNeutralProfile = async (req, res) => {
       success: true,
       message: "Profile updated successfully",
       data: {
+        id: neutral._id,
+        _id: neutral._id,
         name: neutral.name,
         phone: neutral.phone,
         email: neutral.email,
-        role: neutral.role
+        role: neutral.role || "neutral"
       }
     });
   } catch (err) {
     console.error("Update neutral profile error:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: err.message || "Internal server error" });
   }
 };
 

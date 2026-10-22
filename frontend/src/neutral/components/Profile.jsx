@@ -25,7 +25,7 @@ import axiosInstance from "../../api/axiosConfig";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser, checkAuth } = useAuth();
 
   const [neutralData, setNeutralData] = useState(() => {
     const rawName = localStorage.getItem("username") || localStorage.getItem("userName") || authUser?.name;
@@ -66,14 +66,14 @@ export default function Profile() {
       setNeutralData((prev) => ({
         ...prev,
         name: resolvedName,
-        email: authUser.email || prev.email,
-        phone: authUser.phone || prev.phone,
+        email: authUser.email !== undefined ? authUser.email : prev.email,
+        phone: authUser.phone !== undefined ? authUser.phone : prev.phone,
         role: "Mediator",
       }));
       setProfileForm((prev) => ({
         name: (resolvedName !== "Mediator" ? resolvedName : (authUser.email || prev.name)),
-        email: authUser.email || prev.email || "",
-        phone: authUser.phone || prev.phone || "",
+        email: authUser.email !== undefined ? authUser.email : (prev.email || ""),
+        phone: authUser.phone !== undefined ? authUser.phone : (prev.phone || ""),
       }));
     }
   }, [authUser]);
@@ -261,6 +261,16 @@ export default function Profile() {
         }
         if (newPhone) {
           localStorage.setItem("userPhone", newPhone);
+        }
+        if (updateUser) {
+          updateUser({
+            name: newName,
+            email: newEmail,
+            phone: newPhone,
+          });
+        }
+        if (checkAuth) {
+          checkAuth();
         }
         window.dispatchEvent(new Event("profileUpdated"));
         setOpenModal(null);

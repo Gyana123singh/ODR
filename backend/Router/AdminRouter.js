@@ -33,11 +33,13 @@ const {
   timelineEventsStream,
   getDashboardStats,
   updateAdminPassword,
+  updateAdminProfile,
 } = require("../Controller/AdminController");
 
 router.post("/register", AdminUserRegister);
 router.post("/login", AdminUserLogin);
 router.get("/data", verifyToken, authorizeRoles("admin"), AdminData);
+router.put("/update-profile", verifyToken, authorizeRoles("admin"), upload.single("profilePic"), updateAdminProfile);
 router.put("/update-password", verifyToken, authorizeRoles("admin"), updateAdminPassword);
 router.get("/dashboard-stats", verifyToken, authorizeRoles("admin"), getDashboardStats);
 router.get("/reports-analytics", verifyToken, authorizeRoles("admin"), getReportsAnalytics);

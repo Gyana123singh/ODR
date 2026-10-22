@@ -1037,6 +1037,10 @@ nav a:hover {
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
 .btn-light::before {
@@ -1050,6 +1054,7 @@ nav a:hover {
   background: rgba(255, 107, 107, 0.2);
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
+  pointer-events: none;
 }
 
 .btn-light:hover::before {

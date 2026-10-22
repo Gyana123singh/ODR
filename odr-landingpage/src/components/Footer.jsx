@@ -27,9 +27,9 @@ function Footer() {
                 <div className="footer-section">
                     <h4>Services</h4>
                     <ul>
-                        <li><Link to="/#">Negotiation</Link></li>
-                        <li><Link to="/#">Mediation</Link></li>
-                        <li><Link to="/#">Arbitration</Link></li>
+                        <li><Link to="/rules#article-7">Negotiation</Link></li>
+                        <li><Link to="/rules#article-8">Mediation</Link></li>
+                        <li><Link to="/rules#article-9">Arbitration</Link></li>
                     </ul>
                 </div>
                 <div className="footer-section">

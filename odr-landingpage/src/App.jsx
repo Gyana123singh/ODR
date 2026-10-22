@@ -15,13 +15,23 @@ function App() {
 
   useEffect(() => {
     if (location.hash) {
-      setTimeout(() => {
+      const scrollToTarget = () => {
         const id = location.hash.replace('#', '');
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
+          return true;
+        }
+        return false;
+      };
+
+      const timer1 = setTimeout(() => {
+        if (!scrollToTarget()) {
+          setTimeout(scrollToTarget, 200);
         }
       }, 100);
+
+      return () => clearTimeout(timer1);
     } else if (location.pathname === '/people') {
       setTimeout(() => {
         const element = document.getElementById('people');

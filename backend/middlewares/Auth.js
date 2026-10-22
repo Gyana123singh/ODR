@@ -3,12 +3,19 @@ const User = require("../models/users");
 
 // Helper to extract JWT token from cookies or Authorization header
 const extractToken = (req) => {
-  // 1. Check for cookie (HTTP-only) if cookie-parser is used
+  // 1. Check for Authorization header first (active client token from localStorage)
+  const authHeader = req.header("Authorization") || req.headers?.authorization || req.headers?.Authorization;
+  if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    return authHeader.substring(7).trim();
+  }
+
+  // 2. Check for cookie (HTTP-only) if cookie-parser is used
   if (req.cookies && req.cookies.token) {
     return req.cookies.token;
   }
-  // 2. Parse cookies manually from headers if cookie-parser is not active
-  const cookieHeader = req.headers.cookie || req.headers.Cookie;
+
+  // 3. Parse cookies manually from headers if cookie-parser is not active
+  const cookieHeader = req.headers?.cookie || req.headers?.Cookie;
   if (cookieHeader) {
     const cookies = {};
     cookieHeader.split(";").forEach((cookie) => {
@@ -21,11 +28,7 @@ const extractToken = (req) => {
       return cookies.token;
     }
   }
-  // 3. Check for Authorization header
-  const authHeader = req.header("Authorization") || req.headers.authorization || req.headers.Authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.substring(7);
-  }
+
   return null;
 };
 
@@ -50,19 +53,22 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "User not found" });
     }
 
+    const roleNormalized = (decoded.role || user.role || "").toLowerCase();
+
     // Attach base user payload to req.user
     req.user = {
       id: user._id,
+      _id: user._id,
       name: user.name,
       email: user.email,
-      role: decoded.role || user.role,
+      role: roleNormalized,
     };
 
     // Attach role-specific properties for compatibility with existing controllers
-    if (req.user.role === "claimant") req.claimant = user;
-    if (req.user.role === "admin") req.admin = user;
-    if (req.user.role === "neutral") req.neutral = user;
-    if (req.user.role === "respondent") req.respondent = user;
+    if (roleNormalized === "claimant") req.claimant = user;
+    if (roleNormalized === "admin") req.admin = user;
+    if (roleNormalized === "neutral") req.neutral = user;
+    if (roleNormalized === "respondent") req.respondent = user;
 
     next();
   } catch (err) {
@@ -74,7 +80,10 @@ const verifyToken = async (req, res, next) => {
 // Middleware to authorize specific roles
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const userRole = (req.user?.role || "").toLowerCase();
+    const normalizedRoles = roles.map((r) => String(r).toLowerCase());
+
+    if (!userRole || !normalizedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: `Forbidden Access: Requires one of [${roles.join(", ")}] roles`,

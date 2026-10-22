@@ -5,10 +5,22 @@ const Case = require("../models/Case");
 const upload = require("../middlewares/multer");
 const cloudinary = require("../config/cloudinary");
 
-router.post("/contact", upload.single("file"), async (req, res) => {
+const fs = require("fs");
+
+const handleLandingUpload = (req, res, next) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      console.error("Landing page upload error:", err);
+      return res.status(400).json({ error: err.message || "Invalid file format" });
+    }
+    next();
+  });
+};
+
+router.post("/contact", handleLandingUpload, async (req, res) => {
+  const file = req.file;
   try {
     const data = req.body;
-    const file = req.file;
     console.log("Received Dispute Details from Landing Page:", data);
     
     let fileUrl = "";
@@ -21,16 +33,20 @@ router.post("/contact", upload.single("file"), async (req, res) => {
           ? "raw"
           : "auto";
 
-      const uploadResult = await cloudinary.uploader.upload(file.path, {
-        folder: "uploads",
-        resource_type: resourceType,
-        use_filename: true,
-        unique_filename: false,
-        overwrite: true,
-      });
-
-      console.log("✅ Cloudinary Upload Success:", uploadResult.secure_url);
-      fileUrl = uploadResult.secure_url;
+      try {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: "uploads",
+          resource_type: resourceType,
+          use_filename: true,
+          unique_filename: false,
+          overwrite: true,
+        });
+        console.log("✅ Cloudinary Upload Success:", uploadResult.secure_url);
+        fileUrl = uploadResult.secure_url;
+      } catch (cErr) {
+        console.warn("Cloudinary upload fallback:", cErr.message);
+        fileUrl = `/uploads/${file.filename || file.originalname}`;
+      }
     }
 
     // Generate caseId logic matching ClaimantController
@@ -51,27 +67,35 @@ router.post("/contact", upload.single("file"), async (req, res) => {
     // Map landing page form data to Case schema fields
     const newCase = new Case({
       caseId,
-      DisputeType: data.disputeType,
-      DisputeName: data.disputeName,
-      DisputeAmount: data.disputeAmount,
-      CustomersName: data.customerName,
-      CustomersEmail: data.customerEmail,
-      CustomersMobileNumber: data.customerMobile,
-      CustomersAadharNumber: data.customerAadhar,
-      oppositePartyName: data.oppositeName,
-      oppositePartyEmail: data.oppositeEmail,
-      oppositeMobile: data.oppositeMobile,
-      consent: data.consent,
+      DisputeType: data.disputeType || "Other",
+      DisputeName: data.disputeName || "General Dispute",
+      DisputeAmount: data.disputeAmount || "Not Specified",
+      CustomersName: data.customerName || "",
+      CustomersEmail: data.customerEmail || "",
+      CustomersMobileNumber: data.customerMobile || "",
+      CustomersAadharNumber: data.customerAadhar || "",
+      oppositePartyName: data.oppositeName || "",
+      oppositePartyEmail: data.oppositeEmail || "",
+      oppositeMobile: data.oppositeMobile || "",
+      consent: data.consent === "No" ? "No" : "Yes",
       status: "Pending", // initial status
       file: fileUrl, // save the uploaded file URL
     });
 
     await newCase.save();
     
-    res.status(200).json({ message: "Dispute submitted successfully", caseId });
+    res.status(200).json({ success: true, message: "Dispute submitted successfully", caseId });
   } catch (error) {
     console.error("Error processing landing page dispute:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, error: error.message || "Internal server error" });
+  } finally {
+    if (file && fs.existsSync(file.path)) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch (unlinkErr) {
+        console.error("Failed to delete temp file:", unlinkErr);
+      }
+    }
   }
 });
 

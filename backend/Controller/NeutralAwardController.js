@@ -17,7 +17,7 @@ const formatBytes = (bytes, decimals = 2) => {
 const uploadAwardDoc = async (req, res) => {
   const file = req.file;
   try {
-    const neutralId = req.user.id; // from token verification middleware
+    const neutralId = req.user?._id || req.user?.id || req.neutral?._id; // from token verification middleware
     const { caseId, documentType, summary } = req.body;
 
     if (!caseId) {
@@ -41,7 +41,7 @@ const uploadAwardDoc = async (req, res) => {
     try {
       const uploadResult = await cloudinary.uploader.upload(file.path, {
         folder: "neutral_awards_orders",
-        resource_type: "raw",
+        resource_type: "auto",
       });
       fileUrl = uploadResult.secure_url;
     } catch (cErr) {
@@ -92,12 +92,13 @@ const getAwardsForNeutral = async (req, res) => {
     const { neutralId } = req.params;
     let query = {};
 
-    if (neutralId && neutralId !== "all" && neutralId !== "undefined" && neutralId !== "null") {
-      if (mongoose.Types.ObjectId.isValid(neutralId)) {
-        query = { neutralId: new mongoose.Types.ObjectId(neutralId) };
+    if (neutralId && neutralId !== "all" && neutralId !== "undefined" && neutralId !== "null" && mongoose.Types.ObjectId.isValid(neutralId)) {
+      query = { neutralId: new mongoose.Types.ObjectId(neutralId) };
+    } else if (req.user?.role !== "admin") {
+      const myId = req.user?._id || req.user?.id;
+      if (myId && mongoose.Types.ObjectId.isValid(myId)) {
+        query = { neutralId: new mongoose.Types.ObjectId(myId) };
       }
-    } else if (req.user?.id) {
-      query = { neutralId: req.user.id };
     }
 
     // Fetch awards and populate case details if needed
@@ -133,10 +134,11 @@ const getAwardsForNeutral = async (req, res) => {
 const publishAwardDoc = async (req, res) => {
   try {
     const { id } = req.params;
-    const neutralId = req.user.id;
+    const neutralId = req.user?._id || req.user?.id;
+    const filter = (req.user?.role === "admin") ? { _id: id } : { _id: id, neutralId };
 
     const award = await NeutralAward.findOneAndUpdate(
-      { _id: id, neutralId },
+      filter,
       { status: "Published" },
       { new: true }
     );
@@ -167,9 +169,10 @@ const publishAwardDoc = async (req, res) => {
 const deleteAwardDoc = async (req, res) => {
   try {
     const { id } = req.params;
-    const neutralId = req.user.id;
+    const neutralId = req.user?._id || req.user?.id;
+    const filter = (req.user?.role === "admin") ? { _id: id } : { _id: id, neutralId };
 
-    const award = await NeutralAward.findOneAndDelete({ _id: id, neutralId });
+    const award = await NeutralAward.findOneAndDelete(filter);
 
     if (!award) {
       return res.status(404).json({

@@ -35,6 +35,41 @@ import {
 import { toast } from "react-toastify";
 import axiosInstance, { getApiBaseUrl } from "../../api/axiosConfig";
 import "./GoogleMeet.css";
+import { io } from "socket.io-client";
+
+const ICE_SERVERS = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+  ],
+};
+
+function RemoteVideoTile({ peer }) {
+  const rRef = useRef(null);
+
+  useEffect(() => {
+    if (rRef.current && peer.stream) {
+      rRef.current.srcObject = peer.stream;
+      rRef.current.play?.().catch((err) => console.log("Remote video play error:", err));
+    }
+  }, [peer.stream]);
+
+  return (
+    <div className="uom-video-tile">
+      <video
+        ref={rRef}
+        autoPlay
+        playsInline
+        className="uom-video-stream remote-stream"
+      />
+      <div className="uom-participant-badge">
+        <span className="uom-status-dot online" />
+        <span>{peer.userName || "Participant"} ({peer.userRole || "Counsel"})</span>
+      </div>
+    </div>
+  );
+}
 
 export default function GoogleMeet() {
   const { roomId } = useParams();
@@ -93,6 +128,13 @@ export default function GoogleMeet() {
 
   // Meeting Toolbar Controls (matching screenshot)
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+  // WebRTC & Socket.IO Signaling State
+  const [remotePeers, setRemotePeers] = useState({});
+  const [activeRoomId, setActiveRoomId] = useState("");
+  const socketRef = useRef(null);
+  const peerConnectionsRef = useRef({});
+  const activeRoomIdRef = useRef("");
 
   // Media streams
   const [isMicOn, setIsMicOn] = useState(true);
@@ -355,11 +397,31 @@ export default function GoogleMeet() {
         videoRef.current.play?.().catch(() => {});
       }
     }
-  }, [inChamber, isMinimized, isVideoOn, isScreenSharing]);
+  }, [inChamber, isMinimized, isVideoOn, isScreenSharing, remotePeers]);
 
-  // Cleanup all media tracks on unmount
+  // Cleanup all media tracks & socket connections on unmount
   useEffect(() => {
     return () => {
+      if (socketRef.current) {
+        try {
+          socketRef.current.emit("leave-video-room", {
+            roomId: activeRoomIdRef.current || "utkal-odr-room",
+            userId: localStorage.getItem("userId") || "",
+          });
+          socketRef.current.disconnect();
+        } catch (e) {
+          console.error("Socket cleanup error:", e);
+        }
+        socketRef.current = null;
+      }
+      Object.values(peerConnectionsRef.current).forEach((pc) => {
+        try {
+          pc.close();
+        } catch (e) {
+          console.error("PeerConnection cleanup error:", e);
+        }
+      });
+      peerConnectionsRef.current = {};
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach((t) => t.stop());
       }
@@ -377,7 +439,100 @@ export default function GoogleMeet() {
     toast.success("Meeting link copied! Anyone with this link can join directly.");
   };
 
-  // Screen Share Management (Stop & Toggle)
+  // WebRTC Peer Connection Factory
+  const createPeerConnection = async (peerSocketId, stream, isInitiator, peerInfo = null) => {
+    if (peerConnectionsRef.current[peerSocketId]) {
+      try {
+        peerConnectionsRef.current[peerSocketId].close();
+      } catch (e) {
+        console.error("Error closing existing peer connection:", e);
+      }
+      delete peerConnectionsRef.current[peerSocketId];
+    }
+
+    const pc = new RTCPeerConnection(ICE_SERVERS);
+    pc._queuedCandidates = [];
+    peerConnectionsRef.current[peerSocketId] = pc;
+
+    // Attach local stream tracks (screen share or camera)
+    const localStream = screenStreamRef.current || stream || streamRef.current;
+    if (localStream) {
+      localStream.getTracks().forEach((track) => {
+        try {
+          pc.addTrack(track, localStream);
+        } catch (e) {
+          console.error("Error adding local track to peer connection:", e);
+        }
+      });
+    }
+
+    // Forward ICE candidates to remote peer via backend socket
+    pc.onicecandidate = (event) => {
+      if (event.candidate && socketRef.current) {
+        socketRef.current.emit("ice-candidate", {
+          toSocketId: peerSocketId,
+          candidate: event.candidate,
+        });
+      }
+    };
+
+    // Receive remote video/audio track
+    pc.ontrack = (event) => {
+      const remoteStream = event.streams[0];
+      if (remoteStream) {
+        setRemotePeers((prev) => ({
+          ...prev,
+          [peerSocketId]: {
+            socketId: peerSocketId,
+            stream: remoteStream,
+            userName: peerInfo?.userName || prev[peerSocketId]?.userName || "Participant",
+            userRole: peerInfo?.userRole || prev[peerSocketId]?.userRole || "Counsel",
+            userId: peerInfo?.userId || prev[peerSocketId]?.userId || "",
+          },
+        }));
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log(`Peer ${peerSocketId} ICE connection state: ${pc.iceConnectionState}`);
+    };
+
+    // If initiator, generate SDP offer and send via backend
+    if (isInitiator) {
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        if (socketRef.current) {
+          const currentUserId = localStorage.getItem("userId") || `user_${Math.random().toString(36).slice(2, 8)}`;
+          const currentUserName =
+            localStorage.getItem("username") ||
+            localStorage.getItem("userName") ||
+            localStorage.getItem("userEmail") ||
+            "Participant";
+          const currentUserRole =
+            localStorage.getItem("userRole") ||
+            localStorage.getItem("role") ||
+            "Counsel";
+
+          socketRef.current.emit("video-offer", {
+            toSocketId: peerSocketId,
+            offer,
+            senderInfo: {
+              userId: currentUserId,
+              userName: currentUserName,
+              userRole: currentUserRole,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("Error creating WebRTC offer:", err);
+      }
+    }
+
+    return pc;
+  };
+
+  // Screen Share Management (Stop & Toggle with WebRTC Track Replacement)
   const stopScreenShare = () => {
     if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach((track) => {
@@ -391,6 +546,24 @@ export default function GoogleMeet() {
       screenStreamRef.current = null;
     }
     setIsScreenSharing(false);
+
+    // Revert WebRTC senders back to local camera track
+    if (streamRef.current) {
+      const camTrack = streamRef.current.getVideoTracks()[0] || null;
+      Object.values(peerConnectionsRef.current).forEach((pc) => {
+        try {
+          const senders = pc.getSenders();
+          const videoSender = senders.find((s) => s.track && s.track.kind === "video");
+          if (videoSender && camTrack) {
+            videoSender.replaceTrack(camTrack).catch((err) => {
+              console.error("Error reverting peer track to camera:", err);
+            });
+          }
+        } catch (e) {
+          console.error("Error in peer track revert:", e);
+        }
+      });
+    }
 
     // Switch videoRef back to camera if camera is on
     setTimeout(() => {
@@ -419,7 +592,6 @@ export default function GoogleMeet() {
     }
 
     try {
-      // Prompt user to select screen / window / tab
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           cursor: "always",
@@ -429,17 +601,30 @@ export default function GoogleMeet() {
 
       screenStreamRef.current = screenStream;
 
-      // Handle user clicking the native browser "Stop sharing" floating bar
       const videoTrack = screenStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.onended = () => {
           stopScreenShare();
         };
+
+        // Replace video track across all active WebRTC peer connections
+        Object.values(peerConnectionsRef.current).forEach((pc) => {
+          try {
+            const senders = pc.getSenders();
+            const videoSender = senders.find((s) => s.track && s.track.kind === "video");
+            if (videoSender) {
+              videoSender.replaceTrack(videoTrack).catch((err) => {
+                console.error("Error replacing peer track with screen share:", err);
+              });
+            }
+          } catch (e) {
+            console.error("Error updating peer sender:", e);
+          }
+        });
       }
 
       setIsScreenSharing(true);
 
-      // Attach immediately to the video element
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = screenStream;
@@ -453,7 +638,6 @@ export default function GoogleMeet() {
 
       toast.success("You are now presenting your screen");
     } catch (err) {
-      // If user cancelled the browser screen share picker
       if (err.name === "NotAllowedError" || err.name === "AbortError") {
         console.log("User cancelled screen share dialog");
       } else {
@@ -463,35 +647,202 @@ export default function GoogleMeet() {
     }
   };
 
-  // Launch Room (supports Instant Meeting with auto-generated shareable link)
-  const handleLaunchChamber = (title = "Virtual Hearing Chamber", isInstant = false) => {
-    const chamberCode = isInstant
+  // Launch Room & Initialize WebRTC Signaling via Socket.IO
+  const handleLaunchChamber = async (title = "Virtual Hearing Chamber", isInstant = false, customRoomId = null) => {
+    const chamberCode = customRoomId || (isInstant
       ? `instant-${Date.now().toString(36).slice(-5)}`
-      : "utkal-odr-room";
+      : (roomId || "utkal-odr-room"));
+
     const link = `${window.location.origin}/meet/${chamberCode}`;
     setActiveChamberLink(link);
     setChamberTitle(title);
     setInChamber(true);
     setIsMinimized(false);
+    setActiveRoomId(chamberCode);
+    activeRoomIdRef.current = chamberCode;
+
     if (isInstant) {
       setShowInstantLinkPrompt(true);
     }
-    startCamera();
-  };
 
-  const startCamera = async () => {
-    try {
-      if (navigator.mediaDevices?.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
+    // 1. Obtain local camera & microphone stream
+    let localStream = streamRef.current;
+    if (!localStream) {
+      try {
+        if (navigator.mediaDevices?.getUserMedia) {
+          localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          streamRef.current = localStream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = localStream;
+            videoRef.current.play?.().catch(() => {});
+          }
+        }
+      } catch (err) {
+        console.log("Camera access fallback:", err);
       }
-    } catch (err) {
-      console.log("Camera access fallback:", err);
     }
+
+    // 2. Connect to Socket.IO signaling server
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+
+    const socket = io(getApiBaseUrl(), {
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
+    socketRef.current = socket;
+
+    const currentUserId = localStorage.getItem("userId") || `user_${Math.random().toString(36).slice(2, 8)}`;
+    const currentUserName =
+      localStorage.getItem("username") ||
+      localStorage.getItem("userName") ||
+      localStorage.getItem("userEmail") ||
+      "Participant";
+    const currentUserRole =
+      localStorage.getItem("userRole") ||
+      localStorage.getItem("role") ||
+      "Counsel";
+
+    // When socket connects, join the video room
+    socket.on("connect", () => {
+      console.log("Connected to video signaling server with socket ID:", socket.id);
+      socket.emit("join-video-room", {
+        roomId: chamberCode,
+        userId: currentUserId,
+        userName: currentUserName,
+        userRole: currentUserRole,
+      });
+    });
+
+    // 3. Newcomer receives list of existing peers in the room -> Initiates offer to each
+    socket.on("all-users-in-room", async (clientsInRoom) => {
+      console.log("Existing peers in video room:", clientsInRoom);
+      for (const peerSocketId of clientsInRoom) {
+        await createPeerConnection(peerSocketId, localStream, true);
+      }
+    });
+
+    // 4. Remote peer connected notification
+    socket.on("user-connected", ({ socketId, userId, userName, userRole }) => {
+      console.log(`Peer connected: ${userName} (${socketId})`);
+      toast.info(`${userName || "A participant"} joined the hearing room`);
+    });
+
+    // 5. Incoming video-offer from another peer
+    socket.on("video-offer", async ({ fromSocketId, offer, senderInfo }) => {
+      console.log(`Received video-offer from ${fromSocketId}:`, senderInfo);
+      try {
+        const pc = await createPeerConnection(fromSocketId, localStream, false, senderInfo);
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+        // Drain queued ICE candidates if any
+        if (pc._queuedCandidates && pc._queuedCandidates.length > 0) {
+          for (const cand of pc._queuedCandidates) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (err) {
+              console.error("Error adding queued candidate:", err);
+            }
+          }
+          pc._queuedCandidates = [];
+        }
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        socket.emit("video-answer", {
+          toSocketId: fromSocketId,
+          answer,
+        });
+      } catch (err) {
+        console.error("Error processing video-offer:", err);
+      }
+    });
+
+    // 6. Incoming video-answer from callee
+    socket.on("video-answer", async ({ fromSocketId, answer }) => {
+      console.log(`Received video-answer from ${fromSocketId}`);
+      try {
+        const pc = peerConnectionsRef.current[fromSocketId];
+        if (pc) {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+          // Drain queued ICE candidates if any
+          if (pc._queuedCandidates && pc._queuedCandidates.length > 0) {
+            for (const cand of pc._queuedCandidates) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(cand));
+              } catch (err) {
+                console.error("Error adding queued candidate:", err);
+              }
+            }
+            pc._queuedCandidates = [];
+          }
+        }
+      } catch (err) {
+        console.error("Error processing video-answer:", err);
+      }
+    });
+
+    // 7. Incoming ICE candidate from peer
+    socket.on("ice-candidate", async ({ fromSocketId, candidate }) => {
+      try {
+        const pc = peerConnectionsRef.current[fromSocketId];
+        if (pc) {
+          if (pc.remoteDescription && pc.remoteDescription.type) {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } else {
+            if (!pc._queuedCandidates) pc._queuedCandidates = [];
+            pc._queuedCandidates.push(candidate);
+          }
+        }
+      } catch (err) {
+        console.error("Error processing ice-candidate:", err);
+      }
+    });
+
+    // 8. Remote peer left or disconnected
+    socket.on("user-disconnected", ({ socketId, userId }) => {
+      console.log(`Peer disconnected: ${socketId}`);
+      if (peerConnectionsRef.current[socketId]) {
+        try {
+          peerConnectionsRef.current[socketId].close();
+        } catch (e) {
+          console.error("Error closing disconnected peer connection:", e);
+        }
+        delete peerConnectionsRef.current[socketId];
+      }
+      setRemotePeers((prev) => {
+        const next = { ...prev };
+        delete next[socketId];
+        return next;
+      });
+    });
   };
 
+  // Leave Hearing Chamber and Clean Up WebRTC/Socket state
   const handleLeaveChamber = () => {
+    if (socketRef.current) {
+      const currentUserId = localStorage.getItem("userId") || "";
+      socketRef.current.emit("leave-video-room", {
+        roomId: activeRoomIdRef.current || activeRoomId || roomId || "utkal-odr-room",
+        userId: currentUserId,
+      });
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    Object.values(peerConnectionsRef.current).forEach((pc) => {
+      try {
+        pc.close();
+      } catch (e) {
+        console.error("Error closing peer connection:", e);
+      }
+    });
+    peerConnectionsRef.current = {};
+    setRemotePeers({});
+
     if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach((t) => t.stop());
       screenStreamRef.current = null;
@@ -500,6 +851,9 @@ export default function GoogleMeet() {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+
+    setActiveRoomId("");
+    activeRoomIdRef.current = "";
     setInChamber(false);
     setIsMinimized(false);
     setIsScreenSharing(false);
@@ -507,6 +861,13 @@ export default function GoogleMeet() {
     setShowInstantLinkPrompt(false);
     toast.info("Left the hearing chamber.");
   };
+
+  // Auto-join chamber if roomId is present in the URL path
+  useEffect(() => {
+    if (roomId) {
+      handleLaunchChamber(`Hearing Chamber (${roomId})`, false, roomId);
+    }
+  }, [roomId]);
 
   // In-Call Chat Sending (Everyone texts one by one)
   const handleSendChatMessage = (e) => {
@@ -1216,18 +1577,56 @@ export default function GoogleMeet() {
                       </div>
                     )}
                   </div>
+                ) : Object.keys(remotePeers).length > 0 ? (
+                  <div className="uom-video-grid">
+                    {/* Local Camera Tile */}
+                    <div className="uom-video-tile">
+                      {isVideoOn ? (
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          muted
+                          className="uom-video-stream"
+                        />
+                      ) : (
+                        <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "14px" }}>
+                          <Scale size={36} style={{ opacity: 0.4, margin: "0 auto 8px auto" }} />
+                          <p>Your camera is off</p>
+                        </div>
+                      )}
+                      <div className="uom-participant-badge">
+                        <span className="uom-status-dot online" />
+                        <span>You ({localStorage.getItem("role") || localStorage.getItem("userRole") || "Participant"})</span>
+                      </div>
+                    </div>
+
+                    {/* Remote Participants' Tiles */}
+                    {Object.values(remotePeers).map((peer) => (
+                      <RemoteVideoTile key={peer.socketId} peer={peer} />
+                    ))}
+                  </div>
                 ) : isVideoOn ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="uom-video-stream"
-                  />
+                  <div style={{ width: "100%", height: "100%", position: "relative" }}>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="uom-video-stream"
+                    />
+                    <div className="uom-participant-badge">
+                      <span className="uom-status-dot online" />
+                      <span>You (Waiting for other participants to join...)</span>
+                    </div>
+                  </div>
                 ) : (
                   <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "14px" }}>
                     <Scale size={48} style={{ opacity: 0.4, margin: "0 auto 12px auto" }} />
                     <p>Camera is switched off</p>
+                    <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
+                      Waiting for other participants to join the chamber...
+                    </p>
                   </div>
                 )}
               </div>

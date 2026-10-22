@@ -12,7 +12,7 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import ModalComponent from "./Modal/ModalComponent";
 import axiosInstance from "../../api/axiosConfig";
@@ -25,6 +25,10 @@ export default function UploadAwards() {
   const [deletingId, setDeletingId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [viewingAward, setViewingAward] = useState(null);
+  const fileInputRef = useRef(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [isCustomCase, setIsCustomCase] = useState(false);
+  const [customCaseId, setCustomCaseId] = useState("");
 
   const DEMO_CASES = [
     {
@@ -132,21 +136,22 @@ export default function UploadAwards() {
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.caseId) {
-      toast.error("Please select a Case ID");
+    const finalCaseId = isCustomCase ? customCaseId.trim() : formData.caseId;
+    if (!finalCaseId) {
+      toast.error("Please select or enter a Case ID");
       return;
     }
     if (!formData.file) {
-      toast.error("Please attach a document file");
+      toast.error("Please attach a document file (PDF, DOCX, or Image)");
       return;
     }
 
     setUploading(true);
     try {
       const dataToSend = new FormData();
-      dataToSend.append("caseId", formData.caseId);
+      dataToSend.append("caseId", finalCaseId);
       dataToSend.append("documentType", formData.documentType);
-      dataToSend.append("summary", formData.summary);
+      dataToSend.append("summary", formData.summary || "");
       dataToSend.append("file", formData.file);
 
       const res = await axiosInstance.post("/neutral/awards/upload", dataToSend, {
@@ -156,6 +161,8 @@ export default function UploadAwards() {
       if (res.data?.success) {
         toast.success("Document uploaded successfully as Draft!");
         setFormData({ caseId: "", documentType: "Award", summary: "", file: null });
+        setIsCustomCase(false);
+        setCustomCaseId("");
         setOpenModal(false);
         fetchAwards();
       }
@@ -613,8 +620,29 @@ export default function UploadAwards() {
           <form onSubmit={handleUploadSubmit} style={styles.form}>
             {/* Case Selection */}
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Select Assigned Case</label>
-              {loadingCases ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                <label style={styles.label}>Select Assigned Case</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomCase(!isCustomCase);
+                    if (!isCustomCase) setCustomCaseId(formData.caseId);
+                  }}
+                  style={{ background: "none", border: "none", color: "#ff9900", fontSize: "12px", fontWeight: "600", cursor: "pointer", padding: 0 }}
+                >
+                  {isCustomCase ? "Select from list" : "+ Enter Custom Case ID"}
+                </button>
+              </div>
+              {isCustomCase ? (
+                <input
+                  type="text"
+                  placeholder="e.g. ODR-2024-45 or CASE-2026-0001"
+                  value={customCaseId}
+                  onChange={(e) => setCustomCaseId(e.target.value)}
+                  style={styles.select}
+                  required
+                />
+              ) : loadingCases ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#64748b", fontSize: "13px" }}>
                   <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
                   <span>Loading your cases...</span>
@@ -628,7 +656,7 @@ export default function UploadAwards() {
                 >
                   <option value="">-- Select Case --</option>
                   {assignedCases.map((c) => (
-                    <option key={c._id} value={c.caseId}>
+                    <option key={c._id || c.caseId} value={c.caseId}>
                       {c.caseId} {c.DisputeName ? `(${c.DisputeName})` : ""}
                     </option>
                   ))}
@@ -655,20 +683,39 @@ export default function UploadAwards() {
             <div style={styles.inputGroup}>
               <label style={styles.label}>Attach Document</label>
               <div
-                style={styles.filePickerZone}
-                onClick={() => document.getElementById("award-file-input").click()}
+                style={{
+                  ...styles.filePickerZone,
+                  borderColor: dragActive ? "#ff9900" : formData.file ? "#10b981" : "#cbd5e1",
+                  backgroundColor: dragActive ? "#fffbeb" : formData.file ? "#f0fdf4" : "#f8fafc",
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setDragActive(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragActive(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    setFormData((prev) => ({ ...prev, file: e.dataTransfer.files[0] }));
+                  }
+                }}
               >
-                <Upload size={24} style={{ color: "#94a3b8", marginBottom: "4px" }} />
+                <Upload size={24} style={{ color: dragActive ? "#ff9900" : "#94a3b8", marginBottom: "4px" }} />
                 <span style={{ fontSize: "13px", fontWeight: "600", color: "#334155" }}>
-                  {formData.file ? "Change attached file" : "Select file to upload"}
+                  {formData.file ? "Change attached file" : "Select file to upload (or drag & drop here)"}
                 </span>
-                <span style={{ fontSize: "11px", color: "#64748b" }}>PDF, DOCX, or Image formats</span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>PDF, DOCX, TXT, or Image formats</span>
                 <input
-                  id="award-file-input"
+                  ref={fileInputRef}
                   type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
                   onChange={handleFileChange}
                   style={{ display: "none" }}
-                  required
                 />
               </div>
               {formData.file && (

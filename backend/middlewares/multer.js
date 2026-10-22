@@ -20,9 +20,12 @@ const fileFilter = (req, file, cb) => {
     "image/png",
     "image/jpg",
     "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
   ];
   if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error("Invalid file type. Only JPG, PNG, and PDF allowed."), false);
+    return cb(new Error("Invalid file type. Only JPG, PNG, PDF, and DOC/DOCX files allowed."), false);
   }
   cb(null, true);
 };

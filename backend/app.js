@@ -209,8 +209,94 @@ io.on("connection", (socket) => {
     }
   });
 
+  // --- WEBRTC VIDEO CALL SIGNALING EVENTS ---
+  socket.on("join-video-room", ({ roomId, userId, userName, userRole }) => {
+    try {
+      if (!roomId) return;
+      socket.join(roomId);
+      socket.data = socket.data || {};
+      socket.data.videoRoom = { roomId, userId, userName, userRole };
+      console.log(`Video call participant joined room [${roomId}]: socket=${socket.id}, user=${userName} (${userId})`);
+
+      // Find all existing peer sockets in this room
+      const clientsInRoom = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
+        .filter((id) => id !== socket.id);
+
+      // Send the list of existing peers to the newcomer so they can initiate WebRTC offers
+      socket.emit("all-users-in-room", clientsInRoom);
+
+      // Notify everyone else in the room that a new peer connected
+      socket.to(roomId).emit("user-connected", {
+        socketId: socket.id,
+        userId,
+        userName,
+        userRole,
+      });
+    } catch (err) {
+      console.error("join-video-room error:", err);
+    }
+  });
+
+  socket.on("video-offer", ({ toSocketId, offer, senderInfo }) => {
+    try {
+      io.to(toSocketId).emit("video-offer", {
+        fromSocketId: socket.id,
+        offer,
+        senderInfo,
+      });
+    } catch (err) {
+      console.error("video-offer error:", err);
+    }
+  });
+
+  socket.on("video-answer", ({ toSocketId, answer }) => {
+    try {
+      io.to(toSocketId).emit("video-answer", {
+        fromSocketId: socket.id,
+        answer,
+      });
+    } catch (err) {
+      console.error("video-answer error:", err);
+    }
+  });
+
+  socket.on("ice-candidate", ({ toSocketId, candidate }) => {
+    try {
+      io.to(toSocketId).emit("ice-candidate", {
+        fromSocketId: socket.id,
+        candidate,
+      });
+    } catch (err) {
+      console.error("ice-candidate error:", err);
+    }
+  });
+
+  socket.on("leave-video-room", ({ roomId, userId }) => {
+    try {
+      if (roomId) {
+        socket.leave(roomId);
+        socket.to(roomId).emit("user-disconnected", {
+          socketId: socket.id,
+          userId,
+        });
+      }
+      if (socket.data) delete socket.data.videoRoom;
+    } catch (err) {
+      console.error("leave-video-room error:", err);
+    }
+  });
+
   socket.on("disconnect", () => {
-    console.log("Real-time chat client disconnected:", socket.id);
+    console.log("Real-time client disconnected:", socket.id);
+    if (socket.data && socket.data.videoRoom) {
+      const { roomId, userId } = socket.data.videoRoom;
+      if (roomId) {
+        socket.to(roomId).emit("user-disconnected", {
+          socketId: socket.id,
+          userId,
+        });
+      }
+    }
   });
 });
 

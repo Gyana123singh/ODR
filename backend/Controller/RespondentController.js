@@ -664,6 +664,24 @@ const updateRespondentProfile = async (req, res) => {
     if (phone) respondent.phone = phone;
     if (organization) respondent.organization = organization;
     if (address) respondent.address = address;
+    if (email !== undefined) {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      if (normalizedEmail) {
+        if (normalizedEmail !== (respondent.email || "").toLowerCase()) {
+          const existing = await respondentUser.findOne({
+            _id: { $ne: respondent._id },
+            email: normalizedEmail,
+          });
+          if (existing) {
+            return res.status(400).json({
+              success: false,
+              message: "This email address is already in use by another account.",
+            });
+          }
+          respondent.email = normalizedEmail;
+        }
+      }
+    }
 
     await respondent.save();
 

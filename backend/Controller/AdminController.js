@@ -441,27 +441,60 @@ const deleteAllUser = async (req, res) => {
 const documentUpload = async (req, res) => {
   const file = req.file;
   try {
-    const { claimantName } = req.body;
+    const { claimantName, caseId, documentType } = req.body;
 
-    if (!file) return res.status(400).json({ message: "No file uploaded" });
-    if (!claimantName)
-      return res.status(400).json({ message: "Claimant name is required" });
+    if (!file) return res.status(400).json({ success: false, message: "No file uploaded" });
 
-    // ⭐ Correct way to find case
-    const caseData = await Case.findOne({ "claimant.name": claimantName });
-
-    if (!caseData) {
-      return res
-        .status(404)
-        .json({ message: "No case found for this claimant" });
+    // Look up the case either by caseId (preferred) or claimant/customer info
+    let caseData = null;
+    if (caseId) {
+      caseData = await Case.findOne({
+        $or: [
+          { caseId: caseId },
+          ...(mongoose.isValidObjectId(caseId) ? [{ _id: caseId }] : []),
+        ],
+      }).populate("claimant", "name email");
     }
 
-    // Upload to cloudinary
+    if (!caseData && claimantName) {
+      caseData = await Case.findOne({
+        $or: [
+          { caseId: claimantName },
+          { CustomersName: new RegExp(`^${claimantName}$`, "i") },
+          { DisputeName: new RegExp(`^${claimantName}$`, "i") },
+        ],
+      }).populate("claimant", "name email");
+
+      if (!caseData) {
+        const user = await AdminUser.findOne({ name: new RegExp(`^${claimantName}$`, "i") });
+        if (user) {
+          caseData = await Case.findOne({ claimant: user._id }).populate("claimant", "name email");
+        }
+      }
+    }
+
+    // Detect file type for Cloudinary
+    const ext = path.extname(file.originalname).toLowerCase();
+    const resourceType =
+      ext === ".pdf" || ext === ".doc" || ext === ".docx" || ext === ".txt"
+        ? "raw"
+        : "auto";
+
+    // Upload to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(file.path, {
       folder: "documents",
+      resource_type: resourceType,
+      use_filename: true,
+      unique_filename: false,
+      overwrite: true,
     });
 
-    let caseDocument = await adminDocument.findOne({ caseId: caseData.caseId });
+    const targetCaseId = caseData ? caseData.caseId : (caseId || "GENERAL-DOC");
+    const targetClaimantName = caseData
+      ? (caseData.CustomersName || caseData.claimant?.name || "Claimant")
+      : (claimantName || "Claimant");
+
+    let caseDocument = await adminDocument.findOne({ caseId: targetCaseId });
 
     if (caseDocument) {
       caseDocument.documents.push({
@@ -469,16 +502,26 @@ const documentUpload = async (req, res) => {
         fileName: file.originalname,
         uploadedAt: new Date(),
       });
+      caseDocument.DocumentName = file.originalname;
+      caseDocument.fileUrl = uploadResult.secure_url;
+      caseDocument.fileType = ext.replace(".", "").toUpperCase() || file.mimetype;
+      caseDocument.fileSize = file.size;
+      caseDocument.uploadedAt = new Date();
+      if (documentType) caseDocument.Type = documentType;
       await caseDocument.save();
     } else {
       caseDocument = await adminDocument.create({
-        caseId: caseData.caseId,
-        claimantName,
+        caseId: targetCaseId,
+        claimantName: targetClaimantName,
         DocumentName: file.originalname,
         fileUrl: uploadResult.secure_url,
-        fileType: file.mimetype,
+        fileType: ext.replace(".", "").toUpperCase() || file.mimetype,
         fileSize: file.size,
+        UploadedBy: "ADMIN",
+        Type: documentType || "Evidence",
         status: "Pending",
+        claimantEmail: caseData?.CustomersEmail || caseData?.claimant?.email || "",
+        respondentEmail: caseData?.oppositePartyEmail || "",
         documents: [
           {
             fileUrl: uploadResult.secure_url,
@@ -490,12 +533,13 @@ const documentUpload = async (req, res) => {
     }
 
     return res.status(201).json({
+      success: true,
       message: "Document uploaded successfully",
       data: caseDocument,
     });
   } catch (error) {
-    console.log("Error:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error in documentUpload:", error);
+    res.status(500).json({ success: false, message: error.message || "Server error", error });
   } finally {
     if (file && fs.existsSync(file.path)) {
       try {
@@ -1533,7 +1577,86 @@ const updateAdminPassword = async (req, res) => {
   }
 };
 
+const updateAdminProfile = async (req, res) => {
+  const file = req.file;
+  try {
+    const adminId = req.admin ? (req.admin._id || req.admin.id) : (req.user ? req.user.id : null);
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: "Unauthorized admin session" });
+    }
+
+    const { name, email, phone, bio } = req.body;
+
+    const admin = await AdminUser.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin user not found" });
+    }
+
+    // Check if email is changing and if another user has it
+    if (email && email.trim().toLowerCase() !== (admin.email || "").toLowerCase()) {
+      const emailLower = email.trim().toLowerCase();
+      const existingUser = await AdminUser.findOne({ email: emailLower });
+      if (existingUser && existingUser._id.toString() !== adminId.toString()) {
+        return res.status(400).json({ success: false, message: "Email is already taken by another user" });
+      }
+      admin.email = emailLower;
+    }
+
+    if (name && name.trim()) {
+      admin.name = name.trim();
+    }
+    if (phone !== undefined) {
+      admin.phone = phone.trim();
+    }
+    if (bio !== undefined) {
+      admin.bio = bio;
+    }
+
+    // Handle profile picture upload if provided
+    if (file) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          folder: "profiles",
+        });
+        if (uploadResult && uploadResult.secure_url) {
+          admin.profilePic = uploadResult.secure_url;
+        }
+      } catch (cloudErr) {
+        console.error("Cloudinary upload failed for admin profile picture:", cloudErr);
+      }
+    }
+
+    await admin.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone,
+        bio: admin.bio,
+        role: admin.role,
+        profilePic: admin.profilePic,
+      },
+    });
+  } catch (err) {
+    console.error("Update admin profile error:", err);
+    return res.status(500).json({ success: false, message: "Server error updating profile", error: err.message });
+  } finally {
+    if (file && fs.existsSync(file.path)) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch (unlinkErr) {
+        console.error("Failed to delete temp file:", file.path, unlinkErr);
+      }
+    }
+  }
+};
+
 module.exports = {
+  updateAdminProfile,
   updateAdminPassword,
   AdminUserRegister,
   AdminUserLogin,

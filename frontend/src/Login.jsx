@@ -175,30 +175,50 @@ export default function Login({ getRole }) {
   useEffect(() => {
     return () => {
       clearRecaptcha();
-      const container = document.getElementById("recaptcha-container");
-      if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
     };
   }, []);
 
   const setupRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      return window.recaptchaVerifier;
+    }
     clearRecaptcha();
-    getRecaptchaContainer();
+    let container = document.getElementById("recaptcha-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "recaptcha-container";
+      document.body.appendChild(container);
+    }
 
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
+      size: "normal",
       callback: () => {
         // reCAPTCHA solved
       },
       "expired-callback": () => {
-        toast.warn("reCAPTCHA expired. Please try again.");
+        toast.warn("reCAPTCHA expired. Please check again.");
         clearRecaptcha();
       }
     });
 
     return window.recaptchaVerifier;
   };
+
+  useEffect(() => {
+    if (showPhoneLogin && !isOtpSent) {
+      const timer = setTimeout(() => {
+        try {
+          const verifier = setupRecaptcha();
+          if (verifier && typeof verifier.render === "function") {
+            verifier.render().catch(() => {});
+          }
+        } catch (e) {
+          console.warn("reCAPTCHA render notice:", e);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [showPhoneLogin, isOtpSent]);
 
   const loginWithPhone = async (e) => {
     if (e) e.preventDefault();
@@ -462,6 +482,10 @@ export default function Login({ getRole }) {
                               disabled={loading}
                             />
                           </div>
+                          <div style={{ fontSize: "12px", color: "#64748b", margin: "-4px 0 6px", textAlign: "center", backgroundColor: "#f1f5f9", padding: "6px", borderRadius: "6px" }}>
+                            Firebase Test Login: <strong>9999999999</strong> (OTP: <strong>000000</strong>)
+                          </div>
+                          <div id="recaptcha-container" style={{ display: "flex", justifyContent: "center", margin: "6px 0", minHeight: "78px" }}></div>
                           <button type="button" onClick={loginWithPhone} className="btn-success" disabled={loading}>
                             {loading ? "Sending OTP..." : "Send OTP"}
                           </button>
@@ -519,8 +543,6 @@ export default function Login({ getRole }) {
                 </div>
               )}
 
-              {/* Persistent reCAPTCHA container */}
-              <div id="recaptcha-container"></div>
 
               <div className="register-prompt">
                 <span>Don't have an account?</span>
